@@ -18,6 +18,9 @@
     <normaloff/>
    </iconset>
   </property>
+  <property name="dockNestingEnabled">
+   <bool>true</bool>
+  </property>
   <widget class="Canvas" name="canvas"/>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -49,7 +52,7 @@
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
-     <string>&amp;Windows</string>
+     <string>&amp;Window</string>
     </property>
     <addaction name="actionToolbars"/>
     <addaction name="actionDocks"/>
@@ -105,7 +108,25 @@
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
-   <widget class="QWidget" name="dockWidgetContents"/>
+   <widget class="QWidget" name="paletteWidget"/>
+  </widget>
+  <widget class="QDockWidget" name="colourSelectorDockWidget">
+   <property name="windowTitle">
+    <string>Colour</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="ColourSelector" name="colourSelector"/>
+  </widget>
+  <widget class="QDockWidget" name="transformDockWidget">
+   <property name="windowTitle">
+    <string>Transform</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="TransformWidget" name="transformWidget"/>
   </widget>
   <action name="actionNew">
    <property name="icon">
@@ -225,6 +246,18 @@
    <class>Canvas</class>
    <extends>QWidget</extends>
    <header>canvas.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ColourSelector</class>
+   <extends>QWidget</extends>
+   <header>colourselector.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>TransformWidget</class>
+   <extends>QWidget</extends>
+   <header>transformwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -15,11 +15,18 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     newdialog.cpp \
-    canvas.cpp
+    canvas.cpp \
+    colourselector.cpp \
+    transformwidget.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
-    canvas.h
+    canvas.h \
+    colourselector.h \
+    transformwidget.h \
+    constants.h
 
 FORMS    += mainwindow.ui \
-    newdialog.ui
+    newdialog.ui \
+    colourselector.ui \
+    transformwidget.ui

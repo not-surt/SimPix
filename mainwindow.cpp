@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "newdialog.h"
+#include "canvas.h"
 
 #include <QFileDialog>
 
@@ -18,6 +19,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionSaveAs, SIGNAL(triggered()), this, SLOT(saveAsImage()));
 
     QObject::connect(this, SIGNAL(imageChanged(QImage *)), ui->canvas, SLOT(setImage(QImage *)));
+
+    QObject::connect(ui->transformWidget, SIGNAL(transformChanged(Transform)), ui->canvas, SLOT(setTransform(Transform)));
+    QObject::connect(ui->canvas, SIGNAL(transformChanged(Transform)), ui->transformWidget, SLOT(setTransform(Transform)));
 }
 
 MainWindow::~MainWindow()

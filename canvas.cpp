@@ -5,19 +5,10 @@
 #include <QDebug>
 
 Canvas::Canvas(QWidget *parent) :
-    QWidget(parent)
+    QWidget(parent), m_image(0), m_transform(), panKeyDown(false)
 {
+    setFocusPolicy(Qt::WheelFocus);
     setImage(0);
-}
-
-void Canvas::setImage(QImage *image)
-{
-    this->image = image;
-    pan = QPointF(0, 0);
-    scale = 1.;
-    pixelAspect = QPointF(2., 1.);
-    rotation = 0.;
-    updateMatrix();
 }
 
 void Canvas::resizeEvent(QResizeEvent *)
@@ -28,16 +19,16 @@ void Canvas::resizeEvent(QResizeEvent *)
 void Canvas::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
-    if (image) {
+    if (m_image) {
         painter.fillRect(rect(), Qt::gray);
         painter.setTransform(matrix);
-        painter.drawImage(QRectF(image->rect()), *image, QRectF(image->rect()));
+        painter.drawImage(QRectF(m_image->rect()), *m_image, QRectF(m_image->rect()));
     }
 }
 
 void Canvas::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::MiddleButton or (event->buttons() & Qt::LeftButton and event->modifiers() & Qt::CTRL)) {
+    if (panKeyDown || event->button() == Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
         lastMousePos = event->pos();
         event->accept();
     }
@@ -49,10 +40,17 @@ void Canvas::mousePressEvent(QMouseEvent *event)
 void Canvas::mouseMoveEvent(QMouseEvent *event)
 {
     QPointF mousePosition = inverseMatrix.map(QPointF(event->pos()));
-    if (event->buttons() & Qt::MiddleButton or (event->buttons() & Qt::LeftButton and event->modifiers() & Qt::CTRL)) {
+    if (!panKeyDown && event->buttons() & Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
+
+    }
+    else if (event->buttons() & Qt::RightButton) {
+
+    }
+    else if (panKeyDown || event->buttons() & Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
         QPointF delta = mousePosition - inverseMatrix.map(QPointF(lastMousePos));
-        qDebug() << pan << " +" << delta;
-        pan += delta;
+//        qDebug() << pan << " +" << delta;
+        m_transform.pan += delta;
+        emit transformChanged(m_transform);
         lastMousePos = event->pos();
         updateMatrix();
         update();
@@ -70,16 +68,42 @@ void Canvas::mouseReleaseEvent(QMouseEvent *event)
 void Canvas::wheelEvent(QWheelEvent *event)
 {
     if (event->modifiers() & Qt::SHIFT) {
-        rotation += event->angleDelta().y() > 0 ? 15 : (event->angleDelta().y() < 0 ? -15 : 0);
+        m_transform.rotation += event->angleDelta().y() > 0 ? 15 : (event->angleDelta().y() < 0 ? -15 : 0);
+        emit transformChanged(m_transform);
         updateMatrix();
         update();
         event->accept();
     }
     else {
-        scale *= event->angleDelta().y() > 0 ? 2 : (event->angleDelta().y() < 0 ? .5 : 1);
+        m_transform.zoom *= event->angleDelta().y() > 0 ? 2 : (event->angleDelta().y() < 0 ? .5 : 1);
+        emit transformChanged(m_transform);
         updateMatrix();
         update();
         event->accept();
+    }
+}
+
+void Canvas::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Space && !event->isAutoRepeat()) {
+        panKeyDown = true;
+        qDebug() << panKeyDown;
+        event->accept();
+    }
+    else {
+        event->ignore();
+    }
+}
+
+void Canvas::keyReleaseEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Space && !event->isAutoRepeat()) {
+        panKeyDown = false;
+        qDebug() << panKeyDown;
+        event->accept();
+    }
+    else {
+        event->ignore();
     }
 }
 
@@ -87,8 +111,8 @@ void Canvas::updateMatrix()
 {
     matrix = QTransform();
     matrix.translate(width() / 2, height() / 2);
-    matrix.rotate(rotation);
-    matrix.scale(scale * pixelAspect.x(), scale * pixelAspect.y());
-    matrix.translate(pan.x(), pan.y());
+    matrix.rotate(m_transform.rotation);
+    matrix.scale(m_transform.zoom * m_transform.pixelAspect.x(), m_transform.zoom * m_transform.pixelAspect.y());
+    matrix.translate(m_transform.pan.x(), m_transform.pan.y());
     inverseMatrix = matrix.inverted();
 }
