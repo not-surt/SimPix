@@ -1,0 +1,58 @@
+#include "palettemodel.h"
+
+#include <QColor>
+
+PaletteModel::PaletteModel(QObject *parent) :
+    QAbstractListModel(parent), m_image(0)
+{
+}
+
+int PaletteModel::rowCount(const QModelIndex &parent) const
+{
+    if (m_image) {
+        return m_image->colorTable().size();
+    }
+    else {
+        return 0;
+    }
+}
+
+QVariant PaletteModel::data(const QModelIndex &index, int role) const
+{
+    if (!index.isValid())
+        return QVariant();
+
+    if (!m_image || m_image && (index.row() >= m_image->colorTable().size()))
+        return QVariant();
+
+    if (role == Qt::DisplayRole) {
+      return QColor(m_image->colorTable().at(index.row()));
+    }
+    else {
+        return QVariant();
+    }
+}
+
+QVariant PaletteModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role != Qt::DisplayRole)
+        return QVariant();
+
+    if (orientation == Qt::Horizontal)
+        return QString("Column %1").arg(section);
+    else
+        return QString("Row %1").arg(section);
+}
+
+QImage *PaletteModel::image() const
+{
+    return m_image;
+}
+
+void PaletteModel::setImage(QImage *image)
+{
+    qDebug() << "seti" << image;
+    beginResetModel();
+    m_image = image;
+    endResetModel();
+}

@@ -28,42 +28,15 @@ public:
     void keyPressEvent(QKeyEvent * event);
     void keyReleaseEvent(QKeyEvent * event);
 
-    QImage * image() const
-    {
-        return m_image;
-    }
+    QImage * image() const;
 
-    Transform transform() const
-    {
-        return m_transform;
-    }
+    Transform transform() const;
 
 public slots:
 
-    void setImage(QImage * arg)
-    {
-        this->m_image = arg;
-        m_transform.pan = QPointF(0, 0);
-        m_transform.zoom = 1.;
-        m_transform.pixelAspect = QPointF(1., 1.);
-        m_transform.rotation = 0.;
-        updateMatrix();
-        update();
-        emit transformChanged(m_transform);
-    }
+    void setImage(QImage * arg);
 
-    void setTransform(Transform arg)
-    {
-        if (m_transform.pan != arg.pan ||
-                m_transform.zoom != arg.zoom ||
-                m_transform.pixelAspect != arg.pixelAspect ||
-                m_transform.rotation != arg.rotation) {
-            m_transform = arg;
-            updateMatrix();
-            update();
-            emit transformChanged(arg);
-        }
-    }
+    void setTransform(Transform arg);
 
 signals:
     void transformChanged(Transform arg);

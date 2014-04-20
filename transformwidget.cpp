@@ -23,3 +23,55 @@ TransformWidget::~TransformWidget()
 {
     delete ui;
 }
+
+Transform TransformWidget::transform() const
+{
+    return Transform {QPointF(ui->panXSpinBox->value(), ui->panYSpinBox->value()),
+                ui->zoomSpinBox->value(),
+                QPointF(ui->pixelAspectXSpinBox->value(), ui->pixelAspectYSpinBox->value()),
+                ui->rotationSpinBox->value()};
+}
+
+void TransformWidget::setTransform(Transform arg)
+{
+    if (ui->panXSpinBox->value() != arg.pan.x() ||
+            ui->panYSpinBox->value() != arg.pan.y() ||
+            ui->zoomSpinBox->value() != arg.zoom ||
+            ui->pixelAspectXSpinBox->value() != arg.pixelAspect.x() ||
+            ui->pixelAspectYSpinBox->value() != arg.pixelAspect.y() ||
+            ui->rotationSpinBox->value() != arg.rotation) {
+        ui->panXSpinBox->setValue(arg.pan.x());
+        ui->panYSpinBox->setValue(arg.pan.y());
+        ui->zoomSpinBox->setValue(arg.zoom);
+        ui->pixelAspectXSpinBox->setValue(arg.pixelAspect.x());
+        ui->pixelAspectYSpinBox->setValue(arg.pixelAspect.y());
+        ui->rotationSpinBox->setValue(arg.rotation);
+        emit transformChanged(arg);
+    }
+}
+
+void TransformWidget::sendTransform() {
+    emit transformChanged(transform());
+}
+
+void TransformWidget::clearPan() {
+    ui->panXSpinBox->setValue(PAN_DEF);
+    ui->panYSpinBox->setValue(PAN_DEF);
+    emit transformChanged(transform());
+}
+
+void TransformWidget::clearZoom() {
+    ui->zoomSpinBox->setValue(ZOOM_DEF);
+    emit transformChanged(transform());
+}
+
+void TransformWidget::clearPixelAspect() {
+    ui->pixelAspectXSpinBox->setValue(PIXEL_ASPECT_DEF);
+    ui->pixelAspectYSpinBox->setValue(PIXEL_ASPECT_DEF);
+    emit transformChanged(transform());
+}
+
+void TransformWidget::clearRotation() {
+    ui->rotationSpinBox->setValue(ROTATION_DEF);
+    emit transformChanged(transform());
+}

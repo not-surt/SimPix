@@ -17,16 +17,23 @@ SOURCES += main.cpp\
     newdialog.cpp \
     canvas.cpp \
     colourselector.cpp \
-    transformwidget.cpp
+    transformwidget.cpp \
+    palettemodel.cpp \
+    palettewidget.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
     canvas.h \
     colourselector.h \
     transformwidget.h \
-    constants.h
+    constants.h \
+    palettemodel.h \
+    palettewidget.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \
     colourselector.ui \
-    transformwidget.ui
+    transformwidget.ui \
+    palettewidget.ui
+
+QMAKE_CXXFLAGS += -std=c++11

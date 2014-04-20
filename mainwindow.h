@@ -25,7 +25,9 @@ public slots:
     void openImage();
     void saveImage();
     void saveAsImage();
-
+    void setFullscreen(bool);
+    void about();
+    void aboutQt();
 private:
     Ui::MainWindow *ui;
     QImage *image;

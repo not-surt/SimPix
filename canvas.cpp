@@ -8,6 +8,7 @@ Canvas::Canvas(QWidget *parent) :
     QWidget(parent), m_image(0), m_transform(), panKeyDown(false)
 {
     setFocusPolicy(Qt::WheelFocus);
+    setMouseTracking(true);
     setImage(0);
 }
 
@@ -28,7 +29,7 @@ void Canvas::paintEvent(QPaintEvent *)
 
 void Canvas::mousePressEvent(QMouseEvent *event)
 {
-    if (panKeyDown || event->button() == Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
+    if (event->button() == Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
         lastMousePos = event->pos();
         event->accept();
     }
@@ -39,6 +40,9 @@ void Canvas::mousePressEvent(QMouseEvent *event)
 
 void Canvas::mouseMoveEvent(QMouseEvent *event)
 {
+    if (rect().contains(event->pos())) {
+        setFocus();
+    }
     QPointF mousePosition = inverseMatrix.map(QPointF(event->pos()));
     if (!panKeyDown && event->buttons() & Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
 
@@ -48,7 +52,7 @@ void Canvas::mouseMoveEvent(QMouseEvent *event)
     }
     else if (panKeyDown || event->buttons() & Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
         QPointF delta = mousePosition - inverseMatrix.map(QPointF(lastMousePos));
-//        qDebug() << pan << " +" << delta;
+//        qDebug() << m_transform.pan << " +" << delta;
         m_transform.pan += delta;
         emit transformChanged(m_transform);
         lastMousePos = event->pos();
@@ -87,7 +91,9 @@ void Canvas::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Space && !event->isAutoRepeat()) {
         panKeyDown = true;
-        qDebug() << panKeyDown;
+        lastMousePos = mapFromGlobal(QCursor::pos());
+        grabMouse();
+//        qDebug() << panKeyDown;
         event->accept();
     }
     else {
@@ -99,11 +105,47 @@ void Canvas::keyReleaseEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Space && !event->isAutoRepeat()) {
         panKeyDown = false;
-        qDebug() << panKeyDown;
+//        qDebug() << panKeyDown;
+        releaseMouse();
         event->accept();
     }
     else {
         event->ignore();
+    }
+}
+
+QImage *Canvas::image() const
+{
+    return m_image;
+}
+
+Transform Canvas::transform() const
+{
+    return m_transform;
+}
+
+void Canvas::setImage(QImage *arg)
+{
+    m_image = arg;
+    m_transform.pan = QPointF(0, 0);
+    m_transform.zoom = 1.;
+    m_transform.pixelAspect = QPointF(1., 1.);
+    m_transform.rotation = 0.;
+    updateMatrix();
+    update();
+    emit transformChanged(m_transform);
+}
+
+void Canvas::setTransform(Transform arg)
+{
+    if (m_transform.pan != arg.pan ||
+            m_transform.zoom != arg.zoom ||
+            m_transform.pixelAspect != arg.pixelAspect ||
+            m_transform.rotation != arg.rotation) {
+        m_transform = arg;
+        updateMatrix();
+        update();
+        emit transformChanged(arg);
     }
 }
 
