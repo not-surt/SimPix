@@ -34,6 +34,14 @@
    </item>
    <item row="2" column="2" colspan="2">
     <widget class="QComboBox" name="modeComboBox">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <item>
+      <property name="text">
+       <string>Monochrome</string>
+      </property>
+     </item>
      <item>
       <property name="text">
        <string>Indexed</string>
@@ -68,7 +76,14 @@
     </widget>
    </item>
    <item row="0" column="2">
-    <widget class="QSpinBox" name="widthSpinBox"/>
+    <widget class="QSpinBox" name="widthSpinBox">
+     <property name="maximum">
+      <number>4096</number>
+     </property>
+     <property name="singleStep">
+      <number>16</number>
+     </property>
+    </widget>
    </item>
    <item row="3" column="2" colspan="2">
     <widget class="QComboBox" name="paletteComboBox">
@@ -100,6 +115,11 @@
      <item>
       <property name="text">
        <string>EGA Standard</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>EGA Global</string>
       </property>
      </item>
      <item>
@@ -147,7 +167,14 @@
     </widget>
    </item>
    <item row="0" column="3">
-    <widget class="QSpinBox" name="heightSpinBox"/>
+    <widget class="QSpinBox" name="heightSpinBox">
+     <property name="maximum">
+      <number>4096</number>
+     </property>
+     <property name="singleStep">
+      <number>16</number>
+     </property>
+    </widget>
    </item>
    <item row="7" column="1" colspan="3">
     <layout class="QHBoxLayout" name="horizontalLayout">

@@ -13,10 +13,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), image(0)
 {
-    QCoreApplication::setApplicationName("SimPix");
-    QCoreApplication::setOrganizationName("Uninhabitant");
-    QCoreApplication::setOrganizationDomain("uninhabitant.com");
-
     ui->setupUi(this);
 
     addAction(ui->actionMenu);

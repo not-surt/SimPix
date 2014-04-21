@@ -16,8 +16,6 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-
-    void closeEvent(QCloseEvent *event);
 signals:
     void imageChanged(Image *);
 
@@ -30,6 +28,8 @@ public slots:
     void about();
     void aboutQt();
     void closeFile();
+protected:
+    virtual void closeEvent(QCloseEvent *event);
 private:
     Ui::MainWindow *ui;
     Image *image;

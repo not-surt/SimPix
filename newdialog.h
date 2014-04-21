@@ -22,9 +22,15 @@ public:
     QSize imageSize() const;
     Mode mode() const;
     int palette() const;
-
+protected:
+    virtual void closeEvent(QCloseEvent *event);
 private:
     Ui::NewDialog *ui;
+
+    // QDialog interface
+public slots:
+    virtual void accept();
+    void setPreset();
 };
 
 #endif // NEWDIALOG_H
