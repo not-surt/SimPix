@@ -54,6 +54,16 @@
      </item>
      <item>
       <property name="text">
+       <string>Count</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Custom</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
        <string>Hue</string>
       </property>
      </item>

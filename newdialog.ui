@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>263</width>
-    <height>177</height>
+    <width>365</width>
+    <height>163</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,219 +18,8 @@
     <normaloff/>
    </iconset>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="spacing">
-    <number>0</number>
-   </property>
-   <property name="leftMargin">
-    <number>0</number>
-   </property>
-   <property name="topMargin">
-    <number>0</number>
-   </property>
-   <property name="rightMargin">
-    <number>0</number>
-   </property>
-   <property name="bottomMargin">
-    <number>0</number>
-   </property>
-   <item>
-    <layout class="QFormLayout" name="formLayout">
-     <property name="fieldGrowthPolicy">
-      <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-     </property>
-     <property name="horizontalSpacing">
-      <number>0</number>
-     </property>
-     <property name="verticalSpacing">
-      <number>0</number>
-     </property>
-     <item row="2" column="0">
-      <widget class="QLabel" name="widthLabel">
-       <property name="text">
-        <string>&amp;Width</string>
-       </property>
-       <property name="buddy">
-        <cstring>widthSpinBox</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QSpinBox" name="widthSpinBox"/>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="heightLabel">
-       <property name="text">
-        <string>&amp;Height</string>
-       </property>
-       <property name="buddy">
-        <cstring>heightSpinBox</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QSpinBox" name="heightSpinBox"/>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="modeLabel">
-       <property name="text">
-        <string>&amp;Colour Mode</string>
-       </property>
-       <property name="buddy">
-        <cstring>modeComboBox</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QComboBox" name="modeComboBox">
-       <item>
-        <property name="text">
-         <string>Indexed</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>RGB</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>RGBA</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="paletteLabel">
-       <property name="text">
-        <string>&amp;Palette</string>
-       </property>
-       <property name="buddy">
-        <cstring>paletteComboBox</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="QComboBox" name="paletteComboBox">
-       <item>
-        <property name="text">
-         <string>Arne 16</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>DawnBringer 16</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>DawnBringer 32</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Commodore 64 (ptoing)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Commodore 64 (Pepto)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>EGA Standard</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>NES</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>&amp;Open...</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="presetLabel">
-       <property name="text">
-        <string>&amp;Preset</string>
-       </property>
-       <property name="buddy">
-        <cstring>presetComboBox</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QComboBox" name="presetComboBox">
-       <item>
-        <property name="text">
-         <string>32x32</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>64x64</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>128x128</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>256x256</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>512x512</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>320x200</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>320x240</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>640x480</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>800x600</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>1024x768</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QFrame" name="separator">
-       <property name="frameShape">
-        <enum>QFrame::HLine</enum>
-       </property>
-       <property name="frameShadow">
-        <enum>QFrame::Sunken</enum>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="4" column="1" colspan="3">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -238,27 +27,208 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>3</height>
+       <height>40</height>
       </size>
      </property>
     </spacer>
    </item>
-   <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   <item row="2" column="2" colspan="2">
+    <widget class="QComboBox" name="modeComboBox">
+     <item>
+      <property name="text">
+       <string>Indexed</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>RGB</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>RGBA</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLabel" name="sizeLabel">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>&amp;Size</string>
+     </property>
+     <property name="buddy">
+      <cstring>widthSpinBox</cstring>
      </property>
     </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QSpinBox" name="widthSpinBox"/>
+   </item>
+   <item row="3" column="2" colspan="2">
+    <widget class="QComboBox" name="paletteComboBox">
+     <item>
+      <property name="text">
+       <string>Arne 16</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>DawnBringer 16</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>DawnBringer 32</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Commodore 64 (ptoing)</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Commodore 64 (Pepto)</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>EGA Standard</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>NES</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>&amp;Open...</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLabel" name="modeLabel">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>&amp;Mode</string>
+     </property>
+     <property name="buddy">
+      <cstring>modeComboBox</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLabel" name="paletteLabel">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>&amp;Palette</string>
+     </property>
+     <property name="buddy">
+      <cstring>paletteComboBox</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="3">
+    <widget class="QSpinBox" name="heightSpinBox"/>
+   </item>
+   <item row="7" column="1" colspan="3">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QPushButton" name="presetButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Preset</string>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="addPresetButton">
+       <property name="text">
+        <string>Add Preset</string>
+       </property>
+       <property name="icon">
+        <iconset theme="list-add">
+         <normaloff/>
+        </iconset>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="removePresetButton">
+       <property name="text">
+        <string>Remove Preset</string>
+       </property>
+       <property name="icon">
+        <iconset theme="list-remove">
+         <normaloff/>
+        </iconset>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="standardButtons">
+        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
  <tabstops>
-  <tabstop>presetComboBox</tabstop>
   <tabstop>widthSpinBox</tabstop>
   <tabstop>heightSpinBox</tabstop>
   <tabstop>modeComboBox</tabstop>
   <tabstop>paletteComboBox</tabstop>
-  <tabstop>buttonBox</tabstop>
  </tabstops>
  <resources/>
  <connections>

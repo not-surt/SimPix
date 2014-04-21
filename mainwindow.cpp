@@ -56,6 +56,11 @@ MainWindow::MainWindow(QWidget *parent) :
     QSettings settings;
     restoreGeometry(settings.value("window/geometry").toByteArray());
     restoreState(settings.value("window/state").toByteArray());
+//    toolbars = findChildren<QToolBar *>();
+//    toolbar = QListIterator<QToolBar *>(toolbars);
+//    while (toolbar.hasNext()) {
+//        toolbar.next()->restoreGeometry(settings.value(QString("window/%1geometry").arg(toolbar.objectName())).toByteArray());
+//    }
 
 }
 
@@ -108,6 +113,10 @@ void MainWindow::openImage()
             image->save("temp.png");
 //            image->setColor(1, qRgba(0, 0, 0, 0));
             qDebug() << QColor(image->colorTable().at(0));
+            QRgb pixel = image->colorTable().at(image->pixelIndex(QPoint(0, 0)));
+            qDebug() << QColor(image->colorTable().at(image->pixelIndex(QPoint(0, 0))));
+            qDebug() << QColor(image->pixel(QPoint(0, 0)));
+            qDebug() << qAlpha(pixel);
             emit imageChanged(image);
             ui->paletteWidget->setImage(image);
             setWindowFilePath(fileName);
