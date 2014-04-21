@@ -252,6 +252,14 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>presetComboBox</tabstop>
+  <tabstop>widthSpinBox</tabstop>
+  <tabstop>heightSpinBox</tabstop>
+  <tabstop>modeComboBox</tabstop>
+  <tabstop>paletteComboBox</tabstop>
+  <tabstop>buttonBox</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
@@ -262,7 +270,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>199</x>
-     <y>276</y>
+     <y>176</y>
     </hint>
     <hint type="destinationlabel">
      <x>199</x>
@@ -278,7 +286,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>199</x>
-     <y>276</y>
+     <y>176</y>
     </hint>
     <hint type="destinationlabel">
      <x>199</x>

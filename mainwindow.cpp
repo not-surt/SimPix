@@ -26,11 +26,13 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(openImage()));
     QObject::connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveImage()));
     QObject::connect(ui->actionSaveAs, SIGNAL(triggered()), this, SLOT(saveAsImage()));
+    QObject::connect(ui->actionClose, SIGNAL(triggered()), this, SLOT(closeFile()));
+    QObject::connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
     QObject::connect(ui->actionFullscreen, SIGNAL(triggered(bool)), this, SLOT(setFullscreen(bool)));
     QObject::connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
     QObject::connect(ui->actionAboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
 
-    QObject::connect(this, SIGNAL(imageChanged(QImage *)), ui->canvas, SLOT(setImage(QImage *)));
+    QObject::connect(this, SIGNAL(imageChanged(Image *)), ui->canvas, SLOT(setImage(Image *)));
 
     QObject::connect(ui->transformWidget, SIGNAL(transformChanged(Transform)), ui->canvas, SLOT(setTransform(Transform)));
     QObject::connect(ui->canvas, SIGNAL(transformChanged(Transform)), ui->transformWidget, SLOT(setTransform(Transform)));
@@ -51,11 +53,24 @@ MainWindow::MainWindow(QWidget *parent) :
         dockMenu->addAction(dock.next()->toggleViewAction());
     }
 
+    QSettings settings;
+    restoreGeometry(settings.value("window/geometry").toByteArray());
+    restoreState(settings.value("window/state").toByteArray());
+
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete image;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    QSettings settings;
+    settings.setValue("window/geometry", saveGeometry());
+    settings.setValue("window/State", saveState());
+    QMainWindow::closeEvent(event);
 }
 
 void MainWindow::newImage()
@@ -65,7 +80,7 @@ void MainWindow::newImage()
         if (image) {
             delete image;
         }
-        image = new QImage(dialog->imageSize(), QImage::Format_RGB32);
+        image = new Image(dialog->imageSize(), Image::Format_RGB32);
         emit imageChanged(image);
     }
 }
@@ -76,7 +91,7 @@ void MainWindow::openImage()
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), settings.value("file/lastOpened", QDir::homePath()).toString(), fileDialogFilterString);
     if (!fileName.isNull()) {
         settings.setValue("file/lastOpened", fileName);
-        QImage *temp = new QImage(fileName);
+        Image *temp = new Image(fileName);
         if (temp->isNull()) {
             delete temp;
         }
@@ -91,6 +106,8 @@ void MainWindow::openImage()
 //            }
 //            qDebug() << image->hasAlphaChannel();
             image->save("temp.png");
+//            image->setColor(1, qRgba(0, 0, 0, 0));
+            qDebug() << QColor(image->colorTable().at(0));
             emit imageChanged(image);
             ui->paletteWidget->setImage(image);
             setWindowFilePath(fileName);
@@ -110,6 +127,17 @@ void MainWindow::saveAsImage()
     if (image) {
         QString fileName = QFileDialog::getSaveFileName(this, tr("Save Image"), settings.value("file/lastSaved", QDir::homePath()).toString(), fileDialogFilterString);
         settings.setValue("file/lastSaved", fileName);
+    }
+}
+
+void MainWindow::closeFile()
+{
+    if (image) {
+        Image *temp = image;
+        image = 0;
+        delete temp;
+        emit imageChanged(image);
+        ui->paletteWidget->setImage(image);
     }
 }
 

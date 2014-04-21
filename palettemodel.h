@@ -2,13 +2,13 @@
 #define PALETTEMODEL_H
 
 #include <QAbstractListModel>
-#include <QImage>
+#include "image.h"
 #include <QDebug>
 
 class PaletteModel : public QAbstractListModel
 {
     Q_OBJECT
-    Q_PROPERTY(QImage *image READ image WRITE setImage)
+    Q_PROPERTY(Image *image READ image WRITE setImage)
     Q_ENUMS(image)
 public:
     explicit PaletteModel(QObject *parent = 0);
@@ -18,16 +18,16 @@ public:
     virtual QVariant data(const QModelIndex &index, int role=Qt::DisplayRole) const;
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role=Qt::DisplayRole) const;
 
-    QImage *image() const;
+    Image *image() const;
 
 signals:
 
 public slots:
-    void setImage(QImage * image);
+    void setImage(Image *image);
 
 
 private:
-    QImage * m_image;
+    Image *m_image;
 
 };
 

@@ -36,6 +36,7 @@
     <addaction name="actionOpen"/>
     <addaction name="actionReopen"/>
     <addaction name="actionRecentFiles"/>
+    <addaction name="actionReopenLast"/>
     <addaction name="separator"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
@@ -352,6 +353,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="actionReopenLast">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Reopen &amp;Last File at Startup</string>
    </property>
   </action>
  </widget>

@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QImage>
+#include "image.h"
 
 namespace Ui {
 class MainWindow;
@@ -17,8 +17,9 @@ public:
     ~MainWindow();
 
 
+    void closeEvent(QCloseEvent *event);
 signals:
-    void imageChanged(QImage *);
+    void imageChanged(Image *);
 
 public slots:
     void newImage();
@@ -28,9 +29,10 @@ public slots:
     void setFullscreen(bool);
     void about();
     void aboutQt();
+    void closeFile();
 private:
     Ui::MainWindow *ui;
-    QImage *image;
+    Image *image;
 
     static const QString fileDialogFilterString;
 };

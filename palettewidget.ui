@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>195</width>
+    <height>109</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,17 +29,20 @@
    <property name="spacing">
     <number>0</number>
    </property>
-   <item row="1" column="0">
-    <widget class="QLabel" name="sortLabel">
+   <item row="0" column="3">
+    <widget class="QToolButton" name="lockPaletteButton">
      <property name="text">
-      <string>Sort</string>
+      <string>Lock</string>
      </property>
-     <property name="buddy">
-      <cstring>comboBox</cstring>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="autoRaise">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
+   <item row="0" column="1">
     <widget class="QComboBox" name="comboBox">
      <property name="frame">
       <bool>true</bool>
@@ -81,7 +84,17 @@
      </item>
     </widget>
    </item>
-   <item row="1" column="2">
+   <item row="0" column="0">
+    <widget class="QLabel" name="sortLabel">
+     <property name="text">
+      <string>Sort</string>
+     </property>
+     <property name="buddy">
+      <cstring>comboBox</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
     <widget class="QToolButton" name="sortDescendingButton">
      <property name="text">
       <string>...</string>
@@ -99,11 +112,18 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0" colspan="3">
-    <widget class="QListView" name="listView"/>
+   <item row="1" column="0" colspan="4">
+    <widget class="PaletteView" name="paletteView"/>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PaletteView</class>
+   <extends>QListView</extends>
+   <header>paletteview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

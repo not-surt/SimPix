@@ -44,14 +44,13 @@ QVariant PaletteModel::headerData(int section, Qt::Orientation orientation, int 
         return QString("Row %1").arg(section);
 }
 
-QImage *PaletteModel::image() const
+Image *PaletteModel::image() const
 {
     return m_image;
 }
 
-void PaletteModel::setImage(QImage *image)
+void PaletteModel::setImage(Image *image)
 {
-    qDebug() << "seti" << image;
     beginResetModel();
     m_image = image;
     endResetModel();

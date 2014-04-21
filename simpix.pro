@@ -19,7 +19,10 @@ SOURCES += main.cpp\
     colourselector.cpp \
     transformwidget.cpp \
     palettemodel.cpp \
-    palettewidget.cpp
+    palettewidget.cpp \
+    paletteview.cpp \
+    colourdelegate.cpp \
+    image.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
@@ -28,7 +31,10 @@ HEADERS  += mainwindow.h \
     transformwidget.h \
     constants.h \
     palettemodel.h \
-    palettewidget.h
+    palettewidget.h \
+    paletteview.h \
+    colourdelegate.h \
+    image.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \

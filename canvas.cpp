@@ -114,7 +114,7 @@ void Canvas::keyReleaseEvent(QKeyEvent *event)
     }
 }
 
-QImage *Canvas::image() const
+Image *Canvas::image() const
 {
     return m_image;
 }
@@ -124,7 +124,7 @@ Transform Canvas::transform() const
     return m_transform;
 }
 
-void Canvas::setImage(QImage *arg)
+void Canvas::setImage(Image *arg)
 {
     m_image = arg;
     m_transform.pan = QPointF(0, 0);

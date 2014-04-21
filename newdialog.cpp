@@ -1,6 +1,11 @@
 #include "newdialog.h"
 #include "ui_newdialog.h"
 
+static const QSize presets[] = {
+    {50, 50}, {100, 100}, {200, 200},
+    QSize()
+};
+
 NewDialog::NewDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::NewDialog)

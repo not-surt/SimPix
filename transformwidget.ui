@@ -44,7 +44,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Pan</string>
+      <string>&amp;Pan</string>
      </property>
      <property name="buddy">
       <cstring>panXSpinBox</cstring>
@@ -128,7 +128,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Zoom</string>
+      <string>&amp;Zoom</string>
      </property>
      <property name="buddy">
       <cstring>zoomSpinBox</cstring>
@@ -159,7 +159,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Pixel</string>
+      <string>&amp;Aspect</string>
      </property>
      <property name="buddy">
       <cstring>pixelAspectXSpinBox</cstring>
@@ -243,7 +243,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Rotation</string>
+      <string>&amp;Rotation</string>
      </property>
      <property name="buddy">
       <cstring>rotationSpinBox</cstring>
