@@ -7,20 +7,21 @@ namespace Ui {
 class NewDialog;
 }
 
+Q_DECLARE_METATYPE(QImage::Format)
+
 class NewDialog : public QDialog
 {
     Q_OBJECT
     Q_PROPERTY(QSize imageSize READ imageSize)
-    Q_PROPERTY(Mode mode READ mode)
+    Q_PROPERTY(QImage::Format mode READ mode)
     Q_PROPERTY(int palette READ palette)
     Q_ENUMS(size mode palette)
 
 public:
     explicit NewDialog(QWidget *parent = 0);
     ~NewDialog();
-    enum Mode {Indexed, RGB, RGBA};
     QSize imageSize() const;
-    Mode mode() const;
+    QImage::Format mode() const;
     int palette() const;
 protected:
     virtual void closeEvent(QCloseEvent *event);

@@ -78,11 +78,28 @@ void MainWindow::newImage()
 {
     NewDialog *dialog = new NewDialog(this);
     if (dialog->exec()) {
+        QImage::Format mode = dialog->mode();
+        if (mode == QImage::Format_Mono || mode == QImage::Format_MonoLSB) {
+            mode = QImage::Format_Indexed8;
+        }
+        else if (dialog->mode() == QImage::Format_RGB32) {
+            mode = QImage::Format_ARGB32;
+        }
+        Image *newImage = new Image(dialog->imageSize(), mode);
+        if (mode == QImage::Format_Indexed8) {
+            newImage->setColor(0, qRgb(0, 0, 0));
+            newImage->setColor(1, qRgb(255, 255, 255));
+            newImage->fill(0);
+        }
+        else if (mode == QImage::Format_ARGB32) {
+            newImage->fill(qRgba(0, 0, 0, 0));
+        }
+        ui->paletteWidget->setImage(newImage);
+        emit imageChanged(newImage);
         if (image) {
             delete image;
         }
-        image = new Image(dialog->imageSize(), Image::Format_RGB32);
-        emit imageChanged(image);
+        image = newImage;
     }
 }
 
@@ -92,30 +109,19 @@ void MainWindow::openImage()
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), settings.value("file/lastOpened", QDir::homePath()).toString(), fileDialogFilterString);
     if (!fileName.isNull()) {
         settings.setValue("file/lastOpened", fileName);
-        Image *temp = new Image(fileName);
-        if (temp->isNull()) {
-            delete temp;
+        Image *newImage = new Image(fileName);
+        if (newImage->isNull()) {
+            delete newImage;
         }
         else {
+//            newImage->save("temp.png");
+            emit imageChanged(newImage);
+            ui->paletteWidget->setImage(newImage);
+            setWindowFilePath(fileName);
             if (image) {
                 delete image;
             }
-            image = temp;
-//            for (int i = 0; i < image->colorTable().length(); i++) {
-//                QColor colour = QColor(image->colorTable()[i]);
-//                qDebug() << colour;
-//            }
-//            qDebug() << image->hasAlphaChannel();
-            image->save("temp.png");
-//            image->setColor(1, qRgba(0, 0, 0, 0));
-            qDebug() << QColor(image->colorTable().at(0));
-            QRgb pixel = image->colorTable().at(image->pixelIndex(QPoint(0, 0)));
-            qDebug() << QColor(image->colorTable().at(image->pixelIndex(QPoint(0, 0))));
-            qDebug() << QColor(image->pixel(QPoint(0, 0)));
-            qDebug() << qAlpha(pixel);
-            emit imageChanged(image);
-            ui->paletteWidget->setImage(image);
-            setWindowFilePath(fileName);
+            image = newImage;
         }
     }
 }

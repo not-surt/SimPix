@@ -27,7 +27,7 @@ QVariant PaletteModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole) {
         QRgb colour = m_image->colorTable().at(index.row());
-        return QColor(qRed(colour), qBlue(colour), qGreen(colour), qAlpha(colour));
+        return QColor(qRed(colour), qGreen(colour), qBlue(colour), qAlpha(colour));
     }
     else {
         return QVariant();

@@ -1,0 +1,3 @@
+[submodule "color_widgets"]
+	path = color_widgets
+	url = https://github.com/mbasaglia/Qt-Color-Picker.git

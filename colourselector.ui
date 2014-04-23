@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>210</width>
+    <width>217</width>
     <height>87</height>
    </rect>
   </property>
@@ -45,26 +45,13 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
-    <widget class="QSlider" name="redSlider">
-     <property name="maximum">
-      <number>255</number>
-     </property>
-     <property name="pageStep">
-      <number>16</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
    <item row="0" column="2">
     <widget class="QSpinBox" name="redSpinBox">
      <property name="maximum">
       <number>255</number>
      </property>
      <property name="value">
-      <number>16</number>
+      <number>0</number>
      </property>
     </widget>
    </item>
@@ -78,26 +65,13 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QSlider" name="greenSlider">
-     <property name="maximum">
-      <number>255</number>
-     </property>
-     <property name="pageStep">
-      <number>16</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="2">
     <widget class="QSpinBox" name="greenSpinBox">
      <property name="maximum">
       <number>255</number>
      </property>
      <property name="value">
-      <number>16</number>
+      <number>0</number>
      </property>
     </widget>
    </item>
@@ -111,37 +85,76 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="1">
-    <widget class="QSlider" name="blueSlider">
-     <property name="maximum">
-      <number>255</number>
-     </property>
-     <property name="pageStep">
-      <number>16</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
    <item row="3" column="2">
     <widget class="QSpinBox" name="blueSpinBox">
      <property name="maximum">
       <number>255</number>
      </property>
      <property name="value">
+      <number>0</number>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="Gradient_Slider" name="redSlider">
+     <property name="maximum">
+      <number>255</number>
+     </property>
+     <property name="pageStep">
       <number>16</number>
+     </property>
+     <property name="invertedAppearance">
+      <bool>false</bool>
+     </property>
+     <property name="invertedControls">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="Gradient_Slider" name="greenSlider">
+     <property name="maximum">
+      <number>255</number>
+     </property>
+     <property name="pageStep">
+      <number>16</number>
+     </property>
+     <property name="invertedAppearance">
+      <bool>false</bool>
+     </property>
+     <property name="invertedControls">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="Gradient_Slider" name="blueSlider">
+     <property name="maximum">
+      <number>255</number>
+     </property>
+     <property name="pageStep">
+      <number>16</number>
+     </property>
+     <property name="invertedAppearance">
+      <bool>false</bool>
+     </property>
+     <property name="invertedControls">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Gradient_Slider</class>
+   <extends>QSlider</extends>
+   <header>gradient_slider.hpp</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
-  <tabstop>redSlider</tabstop>
   <tabstop>redSpinBox</tabstop>
-  <tabstop>greenSlider</tabstop>
   <tabstop>greenSpinBox</tabstop>
-  <tabstop>blueSlider</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -152,76 +165,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>173</x>
-     <y>138</y>
+     <x>124</x>
+     <y>17</y>
     </hint>
     <hint type="destinationlabel">
-     <x>200</x>
-     <y>144</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>greenSpinBox</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>greenSlider</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>215</x>
-     <y>176</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>165</x>
-     <y>179</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>blueSpinBox</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>blueSlider</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>223</x>
-     <y>228</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>155</x>
-     <y>216</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>blueSlider</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>blueSpinBox</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>171</x>
-     <y>216</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>215</x>
-     <y>218</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>redSpinBox</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>redSlider</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>223</x>
-     <y>134</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>163</x>
-     <y>133</y>
+     <x>198</x>
+     <y>16</y>
     </hint>
    </hints>
   </connection>
@@ -232,12 +181,76 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>176</x>
-     <y>178</y>
+     <x>79</x>
+     <y>40</y>
     </hint>
     <hint type="destinationlabel">
-     <x>206</x>
-     <y>181</y>
+     <x>200</x>
+     <y>44</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>blueSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>blueSpinBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>117</x>
+     <y>76</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>192</x>
+     <y>72</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>blueSpinBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>blueSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>180</x>
+     <y>75</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>132</x>
+     <y>68</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>greenSpinBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>greenSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>196</x>
+     <y>42</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>93</x>
+     <y>43</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>redSpinBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>redSlider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>196</x>
+     <y>16</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>112</x>
+     <y>18</y>
     </hint>
    </hints>
   </connection>

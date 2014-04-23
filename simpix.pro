@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     palettewidget.cpp \
     paletteview.cpp \
     colourdelegate.cpp \
-    image.cpp
+    image.cpp \
+    paletteplugin.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
@@ -34,7 +35,8 @@ HEADERS  += mainwindow.h \
     palettewidget.h \
     paletteview.h \
     colourdelegate.h \
-    image.h
+    image.h \
+    paletteplugin.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \
@@ -43,3 +45,8 @@ FORMS    += mainwindow.ui \
     palettewidget.ui
 
 QMAKE_CXXFLAGS += -std=c++11
+
+include(color_widgets/color_widgets.pri)
+
+OTHER_FILES += \
+    paletteplugin.json
