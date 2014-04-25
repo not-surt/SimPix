@@ -76,19 +76,21 @@ void doLine(QImage &image, const QPoint &a, const QPoint &b, const uint index_or
 {
     QPoint delta = b - a;
     const int stepX = sign(delta.x()), stepY = sign(delta.y());
-    if (stepX == 0 && stepY == 0) {
-        return;
-    }
-    const int sumStepX = abs(delta.y()), sumStepY = abs(delta.x());
-//    if (!inclusive || sumStepX > 1 || sumStepY > 1) {
+    int sumStepX = abs(delta.y()), sumStepY = abs(delta.x());
+    int x = a.x(), y = a.y();
     if (sumStepX > 0 || sumStepY > 0) {
+        if (sumStepX == 0) {
+            sumStepX = sumStepY;
+        }
+        if (sumStepY == 0) {
+            sumStepY = sumStepX;
+        }
         const int limit = sumStepX * sumStepY;
         int sumX = sumStepX, sumY = sumStepY;
-        int x = a.x(), y = a.y();
-        qDebug() << sumStepX << "," << sumStepY << " | " << limit;
+//        qDebug() << sumStepX << "," << sumStepY << " | " << limit;
         do {
-            qDebug() << sumX << "," << sumY;
-            callback(image, QPoint(x, floor(y)), index_or_rgb);
+//            qDebug() << sumX << "," << sumY;
+            callback(image, QPoint(x, y), index_or_rgb);
             if (sumX >= sumY) {
                 y += stepY;
                 sumY += sumStepY;
@@ -99,10 +101,9 @@ void doLine(QImage &image, const QPoint &a, const QPoint &b, const uint index_or
             }
         } while (sumX <= limit && sumY <= limit);
     }
-//    if (inclusive) {
-//        callback(image, QPoint(x, floor(y)), index_or_rgb);
-//    }
-
+    if (inclusive) {
+        callback(image, QPoint(x, y), index_or_rgb);
+    }
 }
 
 void drawLine(QImage &image, const QPoint &a, const QPoint &b, const uint index_or_rgb)
@@ -197,7 +198,7 @@ typedef void (*SegmentCallback)(QImage &image, const QPoint &a, const QPoint &b,
 void Image::stroke(const QPoint &a, const QPoint &b)
 {
     PointCallback pointCallback = drawPixel;
-    SegmentCallback segmentCallback = doRectangleFilled;
+    SegmentCallback segmentCallback = doLine;
     uint colour;
     if (format() == Indexed) {
         colour = 1;
@@ -205,7 +206,7 @@ void Image::stroke(const QPoint &a, const QPoint &b)
     else if (format() == RGBA) {
         colour = qRgb(255, 0, 0);
     }
-    segmentCallback(m_data, a, b, colour, pointCallback, false);
+    segmentCallback(m_data, a, b, colour, pointCallback, true);
 //    undoStack->push(new StrokeCommand(*m_image, a, b));
     emit changed();
 }
