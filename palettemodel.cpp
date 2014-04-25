@@ -10,7 +10,7 @@ PaletteModel::PaletteModel(QObject *parent) :
 int PaletteModel::rowCount(const QModelIndex &parent) const
 {
     if (m_image) {
-        return m_image->colorTable().size();
+        return m_image->data().colorTable().size();
     }
     else {
         return 0;
@@ -22,11 +22,11 @@ QVariant PaletteModel::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
-    if (!m_image || m_image && (index.row() >= m_image->colorTable().size()))
+    if (!m_image || (m_image && (index.row() >= m_image->data().colorTable().size())))
         return QVariant();
 
     if (role == Qt::DisplayRole) {
-        QRgb colour = m_image->colorTable().at(index.row());
+        QRgb colour = m_image->data().colorTable().at(index.row());
         return QColor(qRed(colour), qGreen(colour), qBlue(colour), qAlpha(colour));
     }
     else {

@@ -5,6 +5,8 @@
 #include <QSettings>
 #include <QDebug>
 
+#include "image.h"
+
 static const QSize sizePresets[] = {
     {50, 50}, {100, 100}, {200, 200},
     QSize(),
@@ -49,10 +51,8 @@ NewDialog::NewDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-//    ui->modeComboBox->addItem("Monochrome", QImage::Format_Mono);
-    ui->modeComboBox->addItem("Indexed", QImage::Format_Indexed8);
-//    ui->modeComboBox->addItem("RGB", QImage::Format_RGB32);
-    ui->modeComboBox->addItem("RGBA", QImage::Format_ARGB32);
+    ui->modeComboBox->addItem("Indexed", Image::Indexed);
+    ui->modeComboBox->addItem("RGBA", Image::RGBA);
 
     QMenu *presetMenu = new QMenu();
     for (int i = 0; sizePresets[i].isValid() || sizePresets[i+1].isValid(); ++i) {
@@ -100,9 +100,9 @@ QSize NewDialog::imageSize() const
     return QSize(ui->widthSpinBox->value(), ui->heightSpinBox->value());
 }
 
-QImage::Format NewDialog::mode() const
+Image::Format NewDialog::mode() const
 {
-    return static_cast<QImage::Format>(ui->modeComboBox->currentData().toInt());
+    return static_cast<Image::Format>(ui->modeComboBox->currentData().toInt());
 }
 
 int NewDialog::palette() const

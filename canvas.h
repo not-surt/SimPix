@@ -1,6 +1,7 @@
 #ifndef CANVAS_H
 #define CANVAS_H
 
+#include <QUndoCommand>
 #include <QWidget>
 #include "image.h"
 
@@ -41,6 +42,7 @@ public slots:
 
 signals:
     void transformChanged(Transform arg);
+    void stroked(const QPoint &a, const QPoint &b);
 
 private:
     Image *m_image;
@@ -48,6 +50,7 @@ private:
     QTransform matrix;
     QTransform inverseMatrix;
     QPoint lastMousePos;
+    QPointF lastMouseImagePos;
     bool panKeyDown;
 
     void updateMatrix();

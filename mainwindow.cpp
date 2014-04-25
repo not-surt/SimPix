@@ -9,10 +9,51 @@
 
 const QString MainWindow::fileDialogFilterString = tr("PNG Image Files (*.png)");
 
+void MainWindow::stroke(const QPoint &a, const QPoint &b)
+{
+    m_image->stroke(a, b);
+//    if (m_image->format() == QImage::Format_Indexed8) {
+////                drawLine(*m_image, a, b, 1);
+//        drawRectangle(*m_image, a, b, 1);
+//    }
+//    else if (m_image->format() == QImage::Format_ARGB32) {
+////                drawLine(*m_image, a, b, qRgb(255, 0, 0));
+//        drawRectangle(*m_image, a, b, qRgb(255, 0, 0));
+//    }
+//    undoStack->push(new StrokeCommand(*m_image, a, b));
+}
+
+//StrokeCommand::StrokeCommand(const Image &image, const QPoint &a, const QPoint &b, QUndoCommand *parent)
+//    : image(image), a(a), b(b)
+//{
+//    QRect rect = QRect(a, QSize(1, 1)).united(QRect(b, QSize(1, 1)));
+//    dirty = Image(image.copy(rect));
+//}
+
+//StrokeCommand::~StrokeCommand()
+//{
+//}
+
+//void StrokeCommand::undo()
+//{
+
+//}
+
+//void StrokeCommand::redo()
+//{
+
+//}
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), image(0)
-{
+    ui(new Ui::MainWindow), m_image(0)
+{    
+    undoStack = new QUndoStack(this);
+    QAction *undoAction = undoStack->createUndoAction(this, tr("&Undo"));
+    undoAction->setShortcuts(QKeySequence::Undo);
+    QAction *redoAction = undoStack->createRedoAction(this, tr("&Redo"));
+    redoAction->setShortcuts(QKeySequence::Redo);
+
     ui->setupUi(this);
 
     addAction(ui->actionMenu);
@@ -27,8 +68,10 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionFullscreen, SIGNAL(triggered(bool)), this, SLOT(setFullscreen(bool)));
     QObject::connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
     QObject::connect(ui->actionAboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
+    QObject::connect(ui->actionLicense, SIGNAL(triggered()), this, SLOT(license()));
 
     QObject::connect(this, SIGNAL(imageChanged(Image *)), ui->canvas, SLOT(setImage(Image *)));
+    QObject::connect(ui->canvas, SIGNAL(stroked(QPoint, QPoint)), this, SLOT(stroke(QPoint, QPoint)));
 
     QObject::connect(ui->transformWidget, SIGNAL(transformChanged(Transform)), ui->canvas, SLOT(setTransform(Transform)));
     QObject::connect(ui->canvas, SIGNAL(transformChanged(Transform)), ui->transformWidget, SLOT(setTransform(Transform)));
@@ -50,8 +93,10 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     QSettings settings;
-    restoreGeometry(settings.value("window/geometry").toByteArray());
-    restoreState(settings.value("window/state").toByteArray());
+    settings.beginGroup("window");
+    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreState(settings.value("state").toByteArray());
+    settings.endGroup();
 //    toolbars = findChildren<QToolBar *>();
 //    toolbar = QListIterator<QToolBar *>(toolbars);
 //    while (toolbar.hasNext()) {
@@ -63,14 +108,22 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete image;
+    delete m_image;
+    delete undoStack;
+}
+
+Image *MainWindow::image() const
+{
+    return m_image;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     QSettings settings;
-    settings.setValue("window/geometry", saveGeometry());
-    settings.setValue("window/State", saveState());
+    settings.beginGroup("window");
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("State", saveState());
+    settings.endGroup();
     QMainWindow::closeEvent(event);
 }
 
@@ -78,28 +131,22 @@ void MainWindow::newImage()
 {
     NewDialog *dialog = new NewDialog(this);
     if (dialog->exec()) {
-        QImage::Format mode = dialog->mode();
-        if (mode == QImage::Format_Mono || mode == QImage::Format_MonoLSB) {
-            mode = QImage::Format_Indexed8;
+        Image *newImage = new Image(dialog->imageSize(), dialog->mode());
+        if (dialog->mode() == Image::Indexed) {
+            newImage->data().setColor(0, qRgb(0, 0, 0));
+            newImage->data().setColor(1, qRgb(255, 255, 255));
+            newImage->data().fill(0);
         }
-        else if (dialog->mode() == QImage::Format_RGB32) {
-            mode = QImage::Format_ARGB32;
-        }
-        Image *newImage = new Image(dialog->imageSize(), mode);
-        if (mode == QImage::Format_Indexed8) {
-            newImage->setColor(0, qRgb(0, 0, 0));
-            newImage->setColor(1, qRgb(255, 255, 255));
-            newImage->fill(0);
-        }
-        else if (mode == QImage::Format_ARGB32) {
-            newImage->fill(qRgba(0, 0, 0, 0));
+        else if (dialog->mode() == Image::RGBA) {
+//            newImage->data().fill(qRgba(0, 0, 0, 0));
+            newImage->data().fill(qRgb(0, 255, 0));
         }
         ui->paletteWidget->setImage(newImage);
         emit imageChanged(newImage);
-        if (image) {
-            delete image;
+        if (m_image) {
+            delete m_image;
         }
-        image = newImage;
+        m_image = newImage;
     }
 }
 
@@ -110,7 +157,7 @@ void MainWindow::openImage()
     if (!fileName.isNull()) {
         settings.setValue("file/lastOpened", fileName);
         Image *newImage = new Image(fileName);
-        if (newImage->isNull()) {
+        if (newImage->data().isNull()) {
             delete newImage;
         }
         else {
@@ -118,37 +165,39 @@ void MainWindow::openImage()
             emit imageChanged(newImage);
             ui->paletteWidget->setImage(newImage);
             setWindowFilePath(fileName);
-            if (image) {
-                delete image;
+            if (m_image) {
+                delete m_image;
             }
-            image = newImage;
+            m_image = newImage;
         }
     }
 }
 
 void MainWindow::saveImage()
 {
-    if (image) {
+    if (m_image) {
     }
 }
 
 void MainWindow::saveAsImage()
 {
-    QSettings settings;
-    if (image) {
-        QString fileName = QFileDialog::getSaveFileName(this, tr("Save Image"), settings.value("file/lastSaved", QDir::homePath()).toString(), fileDialogFilterString);
-        settings.setValue("file/lastSaved", fileName);
+    if (m_image) {
+        QSettings settings;
+        settings.beginGroup("file");
+        QString fileName = QFileDialog::getSaveFileName(this, tr("Save Image"), settings.value("lastSaved", QDir::homePath()).toString(), fileDialogFilterString);
+        settings.setValue("lastSaved", fileName);
+        settings.endGroup();
     }
 }
 
 void MainWindow::closeFile()
 {
-    if (image) {
-        Image *temp = image;
-        image = 0;
+    if (m_image) {
+        Image *temp = m_image;
+        m_image = 0;
+        ui->paletteWidget->setImage(m_image);
+        emit imageChanged(m_image);
         delete temp;
-        emit imageChanged(image);
-        ui->paletteWidget->setImage(image);
     }
 }
 
@@ -163,10 +212,40 @@ void MainWindow::setFullscreen(bool fullscreen)
 void MainWindow::about()
 {
    QMessageBox::about(this, tr(QString("About %1").arg(QCoreApplication::applicationName()).toLatin1()),
-            tr(QString("<b>%1</b> is a simple pixel editor to allow simple people to edit simple pixels in a simple manner.").arg(QCoreApplication::applicationName()).toLatin1()));
+            tr(QString(
+                   "<p><b>%1</b> is a simple pixel editor to allow simple people to edit simple pixels in a simple manner.</p>"
+                   "<p>More about %1:"
+                   "<ul>"
+                   "<li><a href=\"https://github.com/not-surt/SimPix\">GitHub page</a></li>"
+                   "</ul></p>"
+                   "<p>%1 is developed by:"
+                   "<ul>"
+                   "<li><b>surt</b> aka Carl Olsson - <a href=\"http://uninhabitant.com\">personal site</a></li>"
+                   "</ul></p>"
+                   "<p>%1 makes use of the following projects:"
+                   "<ul>"
+                   "<li><b>Qt</b> - <a href=\"http://qt-project.org\">project site</a></li>"
+                   "<li>Mattia Basaglia's <b>Qt-Color-Picker</b> - <a href=\"https://github.com/mbasaglia/Qt-Color-Picker\">GitHub page</a></li>"
+                   "</ul></p>"
+                   ).arg(QCoreApplication::applicationName()).toLatin1()));
 }
 
 void MainWindow::aboutQt()
 {
     QMessageBox::aboutQt(this);
+}
+
+void MainWindow::license()
+{
+    QFile data("LICENSE");
+    QString text;
+    if (data.open(QFile::ReadOnly)) {
+        QTextStream stream(&data);
+        QString line;
+        do {
+            line = stream.readLine();
+            text += line + '\n';
+        } while (!line.isNull());
+    }
+    QMessageBox::information(this, tr(QString("%1 License").arg(QCoreApplication::applicationName()).toLatin1()), text);
 }

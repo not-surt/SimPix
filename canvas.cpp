@@ -9,6 +9,8 @@ Canvas::Canvas(QWidget *parent) :
 {
     setFocusPolicy(Qt::WheelFocus);
     setMouseTracking(true);
+//    setAttribute(Qt::WA_OpaquePaintEvent, true);
+//    setAttribute(Qt::WA_NoSystemBackground, true);
     setImage(0);
 }
 
@@ -23,14 +25,15 @@ void Canvas::paintEvent(QPaintEvent *)
     if (m_image) {
         painter.fillRect(rect(), Qt::gray);
         painter.setTransform(matrix);
-        painter.drawImage(QRectF(m_image->rect()), *m_image, QRectF(m_image->rect()));
+        painter.drawImage(QRectF(m_image->data().rect()), m_image->data(), QRectF(m_image->data().rect()));
     }
 }
 
 void Canvas::mousePressEvent(QMouseEvent *event)
 {
+    lastMousePos = event->pos();
+    lastMouseImagePos = inverseMatrix.map(QPointF(event->pos()));
     if (event->button() == Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
-        lastMousePos = event->pos();
         event->accept();
     }
     else {
@@ -43,19 +46,28 @@ void Canvas::mouseMoveEvent(QMouseEvent *event)
     if (rect().contains(event->pos())) {
         setFocus();
     }
-    QPointF mousePosition = inverseMatrix.map(QPointF(event->pos()));
+    QPointF mouseImagePosition = inverseMatrix.map(QPointF(event->pos()));
     if (!panKeyDown && event->buttons() & Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
-
+        if (m_image) {
+            QPoint lastPixel = QPoint(floor(lastMouseImagePos.x()), floor(lastMouseImagePos.y()));
+            QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
+            emit stroked(lastPixel, pixel);
+            lastMousePos = event->pos();
+            lastMouseImagePos = mouseImagePosition;
+            update();
+            event->accept();
+        }
     }
     else if (event->buttons() & Qt::RightButton) {
 
     }
     else if (panKeyDown || event->buttons() & Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
-        QPointF delta = mousePosition - inverseMatrix.map(QPointF(lastMousePos));
+        QPointF delta = mouseImagePosition - inverseMatrix.map(QPointF(lastMousePos));
 //        qDebug() << m_transform.pan << " +" << delta;
         m_transform.pan += delta;
         emit transformChanged(m_transform);
         lastMousePos = event->pos();
+        lastMouseImagePos = mouseImagePosition;
         updateMatrix();
         update();
         event->accept();
@@ -67,6 +79,8 @@ void Canvas::mouseMoveEvent(QMouseEvent *event)
 
 void Canvas::mouseReleaseEvent(QMouseEvent *event)
 {
+//    mouseMoveEvent(event);
+//    qDebug() << "POO!";
 }
 
 void Canvas::wheelEvent(QWheelEvent *event)
@@ -158,3 +172,4 @@ void Canvas::updateMatrix()
     matrix.translate(m_transform.pan.x(), m_transform.pan.y());
     inverseMatrix = matrix.inverted();
 }
+
