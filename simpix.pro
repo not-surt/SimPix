@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     colourdelegate.cpp \
     image.cpp \
     paletteplugin.cpp \
-    transform.cpp
+    transform.cpp \
+    colourcontextwidget.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
@@ -38,15 +39,18 @@ HEADERS  += mainwindow.h \
     colourdelegate.h \
     image.h \
     paletteplugin.h \
-    transform.h
+    transform.h \
+    colourcontextwidget.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \
     colourselector.ui \
     transformwidget.ui \
-    palettewidget.ui
+    palettewidget.ui \
+    colourcontextwidget.ui
 
-QMAKE_CXXFLAGS += -std=c++11
+#QMAKE_CXXFLAGS += -std=c++11
+CONFIG += c++11
 
 include(color_widgets/color_widgets.pri)
 

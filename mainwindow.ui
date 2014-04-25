@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>640</width>
-    <height>480</height>
+    <width>652</width>
+    <height>389</height>
    </rect>
   </property>
   <property name="windowIcon">
@@ -18,13 +18,14 @@
   <property name="dockNestingEnabled">
    <bool>true</bool>
   </property>
-  <widget class="Canvas" name="canvas"/>
+  <widget class="Canvas" name="canvas">
+  </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>640</width>
+     <width>652</width>
      <height>29</height>
     </rect>
    </property>
@@ -131,16 +132,8 @@
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
-   <widget class="ColourSelector" name="colourSelector"/>
-  </widget>
-  <widget class="QDockWidget" name="transformDockWidget">
-   <property name="windowTitle">
-    <string>Transform</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="TransformWidget" name="transformWidget"/>
+   <widget class="ColourSelector" name="colourSelector">
+   </widget>
   </widget>
   <widget class="QToolBar" name="windowToolBar">
    <property name="windowTitle">
@@ -159,6 +152,27 @@
    <addaction name="actionStatusBar"/>
    <addaction name="separator"/>
    <addaction name="actionFullscreen"/>
+  </widget>
+  <widget class="QDockWidget" name="colourContextDockWidget">
+   <property name="windowTitle">
+    <string>Colour Context</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="ColourContextWidget" name="colourContextWidget"/>
+  </widget>
+  <widget class="QDockWidget" name="transformDockWidget">
+   <property name="floating">
+    <bool>false</bool>
+   </property>
+   <property name="windowTitle">
+    <string>Transform</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="TransformWidget" name="transformWidget"/>
   </widget>
   <action name="actionNew">
    <property name="icon">
@@ -395,6 +409,12 @@
    <class>PaletteWidget</class>
    <extends>QWidget</extends>
    <header>palettewidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ColourContextWidget</class>
+   <extends>QWidget</extends>
+   <header>colourcontextwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

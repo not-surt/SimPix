@@ -10,8 +10,7 @@ class Image : public QObject
     Q_OBJECT
     Q_PROPERTY(QImage data READ data)
     Q_PROPERTY(Image::Format format READ format)
-    Q_PROPERTY(uint primaryColour READ primaryColour WRITE setPrimaryColour NOTIFY primaryColourChanged)
-    Q_PROPERTY(uint secondaryColour READ secondaryColour WRITE setSecondaryColour NOTIFY secondaryColourChanged)
+    Q_PROPERTY(uint currentColour READ currentColour WRITE setCurrentColour NOTIFY currentColourChanged)
     Q_ENUMS(data format primaryColour secondaryColour)
 public:
     enum Format {
@@ -22,41 +21,24 @@ public:
     explicit Image();
     explicit Image(const QSize &size, Format format);
     explicit Image(const QString &fileName, const char *format=0);
-    explicit Image(const QImage & image);
+    explicit Image(Image & image);
     ~Image();
 
     QImage &data();
 
     Image::Format format() const;
 
-    uint primaryColour() const;
-
-    uint secondaryColour() const;
+    uint currentColour(const bool secondary = false) const;
 
 signals:
     void changed(const QRegion &region);
-    void primaryColourChanged(uint arg);
-    void secondaryColourChanged(uint arg);
+    void currentColourChanged(uint currentColour, bool secondary);
 
 public slots:
-    void point(const QPoint &position);
-    void stroke(const QPoint &a, const QPoint &b);
-
-    void setPrimaryColour(uint arg)
-    {
-        if (m_primaryColour != arg) {
-            m_primaryColour = arg;
-            emit primaryColourChanged(arg);
-        }
-    }
-
-    void setSecondaryColour(uint arg)
-    {
-        if (m_secondaryColour != arg) {
-            m_secondaryColour = arg;
-            emit secondaryColourChanged(arg);
-        }
-    }
+    void point(const QPoint &position, const bool secondary = false);
+    void stroke(const QPoint &a, const QPoint &b, const bool secondary = false);
+    void pick(const QPoint &position, const bool secondary = false);
+    void setCurrentColour(uint currentColour, const bool secondary = false);
 
 private:
     QImage m_data;

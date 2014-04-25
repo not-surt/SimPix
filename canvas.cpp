@@ -19,20 +19,6 @@ void Canvas::resizeEvent(QResizeEvent *)
     updateMatrix();
 }
 
-void qRectExpand(QRectF &rect, const QPointF &point)
-{
-    if (rect.isEmpty()) {
-        rect.setSize(QSizeF(0., 0.));
-        rect.setTopLeft(point);
-    }
-    else {
-        if (rect.left() > point.x()) rect.setLeft(point.x());
-        if (rect.right() < point.x()) rect.setRight(point.x());
-        if (rect.top() > point.y()) rect.setTop(point.y());
-        if (rect.bottom() < point.y()) rect.setBottom(point.y());
-    }
-}
-
 void Canvas::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
@@ -108,7 +94,8 @@ void Canvas::mouseReleaseEvent(QMouseEvent *event)
     }
     else if (event->button() == Qt::RightButton) {
         if (m_image) {
-            m_image->setPrimaryColour(0);
+            QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
+            m_image->pick(pixel);
         }
     }
 }
