@@ -30,11 +30,27 @@ signals:
     void changed();
 
 public slots:
+    void point(const QPoint &position);
     void stroke(const QPoint &a, const QPoint &b);
 
 private:
     QImage m_data;
     QUndoStack *undoStack;
+};
+
+class StrokeCommand : public QUndoCommand
+{
+public:
+    StrokeCommand(const Image &image, const QPoint &a, const QPoint &b, QUndoCommand *parent = 0);
+    ~StrokeCommand();
+
+    void undo();
+    void redo();
+
+private:
+    QPointF a, b;
+    const Image &image;
+    Image dirty;
 };
 
 #endif // IMAGE_H

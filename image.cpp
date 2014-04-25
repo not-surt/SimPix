@@ -3,6 +3,27 @@
 #include <QDebug>
 #include <QUndoStack>
 
+//StrokeCommand::StrokeCommand(const Image &image, const QPoint &a, const QPoint &b, QUndoCommand *parent)
+//    : image(image), a(a), b(b)
+//{
+//    QRect rect = QRect(a, QSize(1, 1)).united(QRect(b, QSize(1, 1)));
+//    dirty = Image(image.copy(rect));
+//}
+
+//StrokeCommand::~StrokeCommand()
+//{
+//}
+
+//void StrokeCommand::undo()
+//{
+
+//}
+
+//void StrokeCommand::redo()
+//{
+
+//}
+
 Image::Image() :
     m_data()
 {
@@ -27,7 +48,7 @@ Image::Image(const QImage &image) :
 
 Image::~Image()
 {
-    delete undoStack;
+//    delete undoStack;
 }
 
 QImage &Image::data()
@@ -87,9 +108,7 @@ void doLine(QImage &image, const QPoint &a, const QPoint &b, const uint index_or
         }
         const int limit = sumStepX * sumStepY;
         int sumX = sumStepX, sumY = sumStepY;
-//        qDebug() << sumStepX << "," << sumStepY << " | " << limit;
         do {
-//            qDebug() << sumX << "," << sumY;
             callback(image, QPoint(x, y), index_or_rgb);
             if (sumX >= sumY) {
                 y += stepY;
@@ -194,6 +213,20 @@ void drawEllipse(QImage &image, const QPoint &a, const QPoint &b, const uint ind
 
 typedef void (*PointCallback)(QImage &image, const QPoint &position, const uint index_or_rgb);
 typedef void (*SegmentCallback)(QImage &image, const QPoint &a, const QPoint &b, const uint index_or_rgb, void (*pointCallback)(QImage &image, const QPoint &position, const uint index_or_rgb), const bool inclusive);
+
+void Image::point(const QPoint &position)
+{
+    PointCallback pointCallback = drawPixel;
+    uint colour;
+    if (format() == Indexed) {
+        colour = 1;
+    }
+    else if (format() == RGBA) {
+        colour = qRgb(255, 0, 0);
+    }
+    pointCallback(m_data, position, colour);
+    emit changed();
+}
 
 void Image::stroke(const QPoint &a, const QPoint &b)
 {

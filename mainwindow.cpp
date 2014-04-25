@@ -9,50 +9,14 @@
 
 const QString MainWindow::fileDialogFilterString = tr("PNG Image Files (*.png)");
 
-void MainWindow::stroke(const QPoint &a, const QPoint &b)
-{
-    m_image->stroke(a, b);
-//    if (m_image->format() == QImage::Format_Indexed8) {
-////                drawLine(*m_image, a, b, 1);
-//        drawRectangle(*m_image, a, b, 1);
-//    }
-//    else if (m_image->format() == QImage::Format_ARGB32) {
-////                drawLine(*m_image, a, b, qRgb(255, 0, 0));
-//        drawRectangle(*m_image, a, b, qRgb(255, 0, 0));
-//    }
-//    undoStack->push(new StrokeCommand(*m_image, a, b));
-}
-
-//StrokeCommand::StrokeCommand(const Image &image, const QPoint &a, const QPoint &b, QUndoCommand *parent)
-//    : image(image), a(a), b(b)
-//{
-//    QRect rect = QRect(a, QSize(1, 1)).united(QRect(b, QSize(1, 1)));
-//    dirty = Image(image.copy(rect));
-//}
-
-//StrokeCommand::~StrokeCommand()
-//{
-//}
-
-//void StrokeCommand::undo()
-//{
-
-//}
-
-//void StrokeCommand::redo()
-//{
-
-//}
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), m_image(0)
 {    
-    undoStack = new QUndoStack(this);
-    QAction *undoAction = undoStack->createUndoAction(this, tr("&Undo"));
-    undoAction->setShortcuts(QKeySequence::Undo);
-    QAction *redoAction = undoStack->createRedoAction(this, tr("&Redo"));
-    redoAction->setShortcuts(QKeySequence::Redo);
+//    QAction *undoAction = undoStack->createUndoAction(this, tr("&Undo"));
+//    undoAction->setShortcuts(QKeySequence::Undo);
+//    QAction *redoAction = undoStack->createRedoAction(this, tr("&Redo"));
+//    redoAction->setShortcuts(QKeySequence::Redo);
 
     ui->setupUi(this);
 
@@ -71,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionLicense, SIGNAL(triggered()), this, SLOT(license()));
 
     QObject::connect(this, SIGNAL(imageChanged(Image *)), ui->canvas, SLOT(setImage(Image *)));
-    QObject::connect(ui->canvas, SIGNAL(stroked(QPoint, QPoint)), this, SLOT(stroke(QPoint, QPoint)));
+    QObject::connect(this, SIGNAL(imageChanged(Image *)), ui->paletteWidget, SLOT(setImage(Image *)));
 
     QObject::connect(ui->transformWidget, SIGNAL(transformChanged(Transform)), ui->canvas, SLOT(setTransform(Transform)));
     QObject::connect(ui->canvas, SIGNAL(transformChanged(Transform)), ui->transformWidget, SLOT(setTransform(Transform)));
@@ -109,12 +73,26 @@ MainWindow::~MainWindow()
 {
     delete ui;
     delete m_image;
-    delete undoStack;
 }
 
 Image *MainWindow::image() const
 {
     return m_image;
+}
+
+void MainWindow::setImage(Image *image)
+{
+    if (m_image != image) {
+//        ui->canvas->setImage(image);
+//        ui->paletteWidget->setImage(image);
+        QObject::connect(image, SIGNAL(changed()), ui->canvas, SLOT(update()));
+        QObject::connect(ui->canvas, SIGNAL(stroked(QPoint, QPoint)), image, SLOT(stroke(QPoint, QPoint)));
+        emit imageChanged(image);
+        if (m_image) {
+            m_image->deleteLater();
+        }
+        m_image = image;
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -141,12 +119,7 @@ void MainWindow::newImage()
 //            newImage->data().fill(qRgba(0, 0, 0, 0));
             newImage->data().fill(qRgb(0, 255, 0));
         }
-        ui->paletteWidget->setImage(newImage);
-        emit imageChanged(newImage);
-        if (m_image) {
-            delete m_image;
-        }
-        m_image = newImage;
+        setImage(newImage);
     }
 }
 
@@ -162,13 +135,7 @@ void MainWindow::openImage()
         }
         else {
 //            newImage->save("temp.png");
-            emit imageChanged(newImage);
-            ui->paletteWidget->setImage(newImage);
-            setWindowFilePath(fileName);
-            if (m_image) {
-                delete m_image;
-            }
-            m_image = newImage;
+            setImage(newImage);
         }
     }
 }
