@@ -85,7 +85,7 @@ void MainWindow::setImage(Image *image)
     if (m_image != image) {
 //        ui->canvas->setImage(image);
 //        ui->paletteWidget->setImage(image);
-        QObject::connect(image, SIGNAL(changed()), ui->canvas, SLOT(update()));
+        QObject::connect(image, SIGNAL(changed(const QRegion &)), ui->canvas, SLOT(updateImage(const QRegion &)));
         QObject::connect(ui->canvas, SIGNAL(stroked(QPoint, QPoint)), image, SLOT(stroke(QPoint, QPoint)));
         emit imageChanged(image);
         if (m_image) {

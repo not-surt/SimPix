@@ -19,13 +19,33 @@ void Canvas::resizeEvent(QResizeEvent *)
     updateMatrix();
 }
 
-void Canvas::paintEvent(QPaintEvent *)
+void qRectExpand(QRectF &rect, const QPointF &point)
+{
+    if (rect.isEmpty()) {
+        rect.setSize(QSizeF(0., 0.));
+        rect.setTopLeft(point);
+    }
+    else {
+        if (rect.left() > point.x()) rect.setLeft(point.x());
+        if (rect.right() < point.x()) rect.setRight(point.x());
+        if (rect.top() > point.y()) rect.setTop(point.y());
+        if (rect.bottom() < point.y()) rect.setBottom(point.y());
+    }
+}
+
+void Canvas::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     if (m_image) {
+        QRectF imageBounds = inverseMatrix.mapRect(QRectF(event->rect().topLeft(), event->rect().bottomRight() + QPoint(1, 1)));
+        QRect imageRect = QRect(QPoint((int)floor(imageBounds.left()), (int)floor(imageBounds.top())),
+                                QPoint((int)ceil(imageBounds.right()), (int)ceil(imageBounds.bottom()))).intersected(m_image->data().rect());
         painter.fillRect(rect(), Qt::gray);
         painter.setTransform(matrix);
-        painter.drawImage(QRectF(m_image->data().rect()), m_image->data(), QRectF(m_image->data().rect()));
+        qDebug() << imageRect;
+        painter.drawImage(imageRect, m_image->data(), imageRect);
+        painter.setPen(Qt::black);
+        painter.drawRect(imageRect);
     }
 }
 
@@ -78,7 +98,6 @@ void Canvas::mouseMoveEvent(QMouseEvent *event)
 void Canvas::mouseReleaseEvent(QMouseEvent *event)
 {
 //    mouseMoveEvent(event);
-//    qDebug() << "POO!";
 }
 
 void Canvas::wheelEvent(QWheelEvent *event)
@@ -155,6 +174,12 @@ void Canvas::setTransform(Transform arg)
         updateMatrix();
         emit transformChanged(arg);
     }
+}
+
+void Canvas::updateImage(const QRegion &region)
+{
+//    update(matrix.map(region)); // Too slow
+    update(matrix.mapRect(region.boundingRect()));
 }
 
 void Canvas::updateMatrix()

@@ -27,7 +27,7 @@ public:
     Image::Format format() const;
 
 signals:
-    void changed();
+    void changed(const QRegion &region);
 
 public slots:
     void point(const QPoint &position);
@@ -35,7 +35,7 @@ public slots:
 
 private:
     QImage m_data;
-    QUndoStack *undoStack;
+    QUndoStack *undoStack = new QUndoStack(this);
 };
 
 class StrokeCommand : public QUndoCommand

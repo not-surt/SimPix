@@ -32,7 +32,6 @@ Image::Image() :
 Image::Image(const QSize &size, Image::Format format) :
     m_data(size, static_cast<QImage::Format>(format))
 {
-    undoStack = new QUndoStack(this);
 }
 
 Image::Image(const QString &fileName, const char *format) :
@@ -48,7 +47,7 @@ Image::Image(const QImage &image) :
 
 Image::~Image()
 {
-//    delete undoStack;
+    delete undoStack;
 }
 
 QImage &Image::data()
@@ -225,7 +224,7 @@ void Image::point(const QPoint &position)
         colour = qRgb(255, 0, 0);
     }
     pointCallback(m_data, position, colour);
-    emit changed();
+    emit changed(QRect(position, QSize(1, 1)));
 }
 
 void Image::stroke(const QPoint &a, const QPoint &b)
@@ -241,5 +240,6 @@ void Image::stroke(const QPoint &a, const QPoint &b)
     }
     segmentCallback(m_data, a, b, colour, pointCallback, true);
 //    undoStack->push(new StrokeCommand(*m_image, a, b));
-    emit changed();
+//    emit changed(QRect(a, b));
+    emit changed(QRegion(data().rect()));
 }
