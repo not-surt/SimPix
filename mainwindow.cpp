@@ -83,10 +83,9 @@ Image *MainWindow::image() const
 void MainWindow::setImage(Image *image)
 {
     if (m_image != image) {
-//        ui->canvas->setImage(image);
-//        ui->paletteWidget->setImage(image);
         QObject::connect(image, SIGNAL(changed(const QRegion &)), ui->canvas, SLOT(updateImage(const QRegion &)));
-        QObject::connect(ui->canvas, SIGNAL(stroked(QPoint, QPoint)), image, SLOT(stroke(QPoint, QPoint)));
+        QObject::connect(ui->canvas, SIGNAL(clicked(const QPoint &)), image, SLOT(point(const QPoint &)));
+        QObject::connect(ui->canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), image, SLOT(stroke(const QPoint &, const QPoint &)));
         emit imageChanged(image);
         if (m_image) {
             m_image->deleteLater();

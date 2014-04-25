@@ -38,7 +38,8 @@ public slots:
 
 signals:
     void transformChanged(Transform arg);
-    void stroked(const QPoint &a, const QPoint &b);
+    void clicked(const QPoint &position);
+    void dragged(const QPoint &a, const QPoint &b);
 
 protected:
     virtual void paintEvent(QPaintEvent *event);

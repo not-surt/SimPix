@@ -42,10 +42,10 @@ void Canvas::paintEvent(QPaintEvent *event)
                                 QPoint((int)ceil(imageBounds.right()), (int)ceil(imageBounds.bottom()))).intersected(m_image->data().rect());
         painter.fillRect(rect(), Qt::gray);
         painter.setTransform(matrix);
-        qDebug() << imageRect;
         painter.drawImage(imageRect, m_image->data(), imageRect);
-        painter.setPen(Qt::black);
-        painter.drawRect(imageRect);
+//        painter.setPen(Qt::black);
+//        painter.drawRect(imageRect);
+//        qDebug() << imageRect;
     }
 }
 
@@ -53,7 +53,7 @@ void Canvas::mousePressEvent(QMouseEvent *event)
 {
     lastMousePos = event->pos();
     lastMouseImagePos = inverseMatrix.map(QPointF(event->pos()));
-    if (event->button() == Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
+    if (event->button() == Qt::MiddleButton || (event->button() == Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
         event->accept();
     }
     else {
@@ -71,7 +71,7 @@ void Canvas::mouseMoveEvent(QMouseEvent *event)
         if (m_image) {
             QPoint lastPixel = QPoint(floor(lastMouseImagePos.x()), floor(lastMouseImagePos.y()));
             QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
-            emit stroked(lastPixel, pixel);
+            emit dragged(lastPixel, pixel);
             lastMousePos = event->pos();
             lastMouseImagePos = mouseImagePosition;
             event->accept();
@@ -97,7 +97,20 @@ void Canvas::mouseMoveEvent(QMouseEvent *event)
 
 void Canvas::mouseReleaseEvent(QMouseEvent *event)
 {
-//    mouseMoveEvent(event);
+    QPointF mouseImagePosition = inverseMatrix.map(QPointF(event->pos()));
+    if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
+        if (m_image) {
+            QPoint lastPixel = QPoint(floor(lastMouseImagePos.x()), floor(lastMouseImagePos.y()));
+            QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
+            emit clicked(pixel);
+            event->accept();
+        }
+    }
+    else if (event->button() == Qt::RightButton) {
+        if (m_image) {
+            m_image->setPrimaryColour(0);
+        }
+    }
 }
 
 void Canvas::wheelEvent(QWheelEvent *event)

@@ -25,7 +25,7 @@
 //}
 
 Image::Image() :
-    m_data()
+    m_data(), m_primaryColour(0), m_secondaryColour(0)
 {
 }
 
@@ -65,6 +65,16 @@ Image::Format Image::format() const
     default:
         return Invalid;
     }
+}
+
+uint Image::primaryColour() const
+{
+    return m_primaryColour;
+}
+
+uint Image::secondaryColour() const
+{
+    return m_secondaryColour;
 }
 
 void drawPixel(QImage &image, const QPoint &position, const uint index_or_rgb)
@@ -224,7 +234,7 @@ void Image::point(const QPoint &position)
         colour = qRgb(255, 0, 0);
     }
     pointCallback(m_data, position, colour);
-    emit changed(QRect(position, QSize(1, 1)));
+    emit changed(QRegion(QRect(position, QSize(1, 1))));
 }
 
 void Image::stroke(const QPoint &a, const QPoint &b)

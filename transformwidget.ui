@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>297</width>
-    <height>128</height>
+    <width>188</width>
+    <height>96</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -35,118 +35,60 @@
    <property name="spacing">
     <number>0</number>
    </property>
-   <item row="0" column="0">
-    <widget class="QLabel" name="panLabel">
+   <item row="3" column="0">
+    <widget class="QLabel" name="rotationLabel">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
      <property name="text">
-      <string>&amp;Pan</string>
+      <string>&amp;Rotation</string>
      </property>
      <property name="buddy">
-      <cstring>panXSpinBox</cstring>
+      <cstring>rotationSpinBox</cstring>
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
-    <widget class="QDoubleSpinBox" name="panXSpinBox">
+   <item row="1" column="1" colspan="2">
+    <widget class="QDoubleSpinBox" name="zoomSpinBox">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="decimals">
-      <number>3</number>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
      </property>
-     <property name="minimum">
-      <double>-65536.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>65536.000000000000000</double>
-     </property>
-     <property name="singleStep">
-      <double>16.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>0.000000000000000</double>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="2">
-    <widget class="QDoubleSpinBox" name="panYSpinBox">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="suffix">
-      <string/>
-     </property>
-     <property name="decimals">
-      <number>3</number>
-     </property>
-     <property name="minimum">
-      <double>-65536.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>65536.000000000000000</double>
-     </property>
-     <property name="singleStep">
-      <double>16.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>0.000000000000000</double>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="3">
-    <widget class="QToolButton" name="panClearButton">
-     <property name="text">
-      <string>Clear</string>
-     </property>
-     <property name="icon">
-      <iconset theme="edit-clear">
-       <normaloff/>
-      </iconset>
-     </property>
-     <property name="autoRaise">
+     <property name="frame">
       <bool>true</bool>
      </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="zoomLabel">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+     <property name="decimals">
+      <number>2</number>
      </property>
-     <property name="text">
-      <string>&amp;Zoom</string>
+     <property name="minimum">
+      <double>0.060000000000000</double>
      </property>
-     <property name="buddy">
-      <cstring>zoomSpinBox</cstring>
+     <property name="maximum">
+      <double>256.000000000000000</double>
      </property>
-    </widget>
-   </item>
-   <item row="1" column="3">
-    <widget class="QToolButton" name="zoomClearButton">
-     <property name="text">
-      <string>Clear</string>
+     <property name="singleStep">
+      <double>2.000000000000000</double>
      </property>
-     <property name="icon">
-      <iconset theme="edit-clear">
-       <normaloff/>
-      </iconset>
-     </property>
-     <property name="autoRaise">
-      <bool>true</bool>
+     <property name="value">
+      <double>1.000000000000000</double>
      </property>
     </widget>
    </item>
@@ -158,11 +100,127 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>&amp;Aspect</string>
      </property>
      <property name="buddy">
       <cstring>pixelAspectXSpinBox</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="4">
+    <widget class="QToolButton" name="zoomClearButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="text">
+      <string>Clear</string>
+     </property>
+     <property name="icon">
+      <iconset theme="edit-clear">
+       <normaloff/>
+      </iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="autoRaise">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="4">
+    <widget class="QToolButton" name="panClearButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="text">
+      <string>Clear</string>
+     </property>
+     <property name="icon">
+      <iconset theme="edit-clear">
+       <normaloff/>
+      </iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="autoRaise">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="panLabel">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>&amp;Pan</string>
+     </property>
+     <property name="buddy">
+      <cstring>panXSpinBox</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="4">
+    <widget class="QToolButton" name="pixelAspectClearButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="text">
+      <string>Clear</string>
+     </property>
+     <property name="icon">
+      <iconset theme="edit-clear">
+       <normaloff/>
+      </iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="autoRaise">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -177,11 +235,16 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
      <property name="decimals">
-      <number>3</number>
+      <number>2</number>
      </property>
      <property name="minimum">
-      <double>0.125000000000000</double>
+      <double>0.120000000000000</double>
      </property>
      <property name="maximum">
       <double>8.000000000000000</double>
@@ -194,33 +257,53 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="2">
-    <widget class="QDoubleSpinBox" name="pixelAspectYSpinBox">
+   <item row="0" column="2">
+    <widget class="QDoubleSpinBox" name="panYSpinBox">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
+     <property name="suffix">
+      <string/>
+     </property>
      <property name="decimals">
-      <number>3</number>
+      <number>2</number>
      </property>
      <property name="minimum">
-      <double>0.125000000000000</double>
+      <double>-8192.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>8.000000000000000</double>
+      <double>8192.000000000000000</double>
      </property>
      <property name="singleStep">
-      <double>0.100000000000000</double>
+      <double>16.000000000000000</double>
      </property>
      <property name="value">
-      <double>1.000000000000000</double>
+      <double>0.000000000000000</double>
      </property>
     </widget>
    </item>
-   <item row="2" column="3">
-    <widget class="QToolButton" name="pixelAspectClearButton">
+   <item row="3" column="4">
+    <widget class="QToolButton" name="rotationClearButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="text">
       <string>Clear</string>
      </property>
@@ -229,77 +312,86 @@
        <normaloff/>
       </iconset>
      </property>
+     <property name="iconSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
      <property name="autoRaise">
       <bool>true</bool>
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="rotationLabel">
+   <item row="1" column="0">
+    <widget class="QLabel" name="zoomLabel">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
      <property name="text">
-      <string>&amp;Rotation</string>
+      <string>&amp;Zoom</string>
      </property>
      <property name="buddy">
-      <cstring>rotationSpinBox</cstring>
+      <cstring>zoomSpinBox</cstring>
      </property>
     </widget>
    </item>
-   <item row="3" column="3">
-    <widget class="QToolButton" name="rotationClearButton">
-     <property name="text">
-      <string>Clear</string>
-     </property>
-     <property name="icon">
-      <iconset theme="edit-clear">
-       <normaloff/>
-      </iconset>
-     </property>
-     <property name="autoRaise">
+   <item row="0" column="1">
+    <widget class="QDoubleSpinBox" name="panXSpinBox">
+     <property name="enabled">
       <bool>true</bool>
      </property>
-    </widget>
-   </item>
-   <item row="1" column="1" colspan="2">
-    <widget class="QDoubleSpinBox" name="zoomSpinBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="frame">
-      <bool>true</bool>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
      </property>
      <property name="decimals">
-      <number>3</number>
+      <number>2</number>
      </property>
      <property name="minimum">
-      <double>0.062000000000000</double>
+      <double>-8192.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>256.000000000000000</double>
+      <double>8192.000000000000000</double>
      </property>
      <property name="singleStep">
-      <double>2.000000000000000</double>
+      <double>16.000000000000000</double>
      </property>
      <property name="value">
-      <double>1.000000000000000</double>
+      <double>0.000000000000000</double>
      </property>
     </widget>
    </item>
    <item row="3" column="1" colspan="2">
     <widget class="QDoubleSpinBox" name="rotationSpinBox">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
      </property>
      <property name="wrapping">
       <bool>true</bool>
@@ -308,7 +400,7 @@
       <bool>false</bool>
      </property>
      <property name="decimals">
-      <number>3</number>
+      <number>2</number>
      </property>
      <property name="maximum">
       <double>360.000000000000000</double>
@@ -321,13 +413,41 @@
      </property>
     </widget>
    </item>
+   <item row="2" column="2">
+    <widget class="QDoubleSpinBox" name="pixelAspectYSpinBox">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
+     <property name="decimals">
+      <number>2</number>
+     </property>
+     <property name="minimum">
+      <double>0.120000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>8.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.100000000000000</double>
+     </property>
+     <property name="value">
+      <double>1.000000000000000</double>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
- <tabstops>
-  <tabstop>panYSpinBox</tabstop>
-  <tabstop>panClearButton</tabstop>
-  <tabstop>zoomSpinBox</tabstop>
- </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>217</width>
-    <height>87</height>
+    <width>192</width>
+    <height>72</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -37,8 +37,19 @@
    </property>
    <item row="0" column="0">
     <widget class="QLabel" name="redLabel">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
      <property name="text">
-      <string>Red</string>
+      <string>&amp;Red</string>
      </property>
      <property name="buddy">
       <cstring>redSpinBox</cstring>
@@ -47,6 +58,17 @@
    </item>
    <item row="0" column="2">
     <widget class="QSpinBox" name="redSpinBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
      <property name="maximum">
       <number>255</number>
      </property>
@@ -57,8 +79,19 @@
    </item>
    <item row="1" column="0">
     <widget class="QLabel" name="greenLabel">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
      <property name="text">
-      <string>Green</string>
+      <string>&amp;Green</string>
      </property>
      <property name="buddy">
       <cstring>greenSpinBox</cstring>
@@ -67,6 +100,17 @@
    </item>
    <item row="1" column="2">
     <widget class="QSpinBox" name="greenSpinBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
      <property name="maximum">
       <number>255</number>
      </property>
@@ -77,8 +121,19 @@
    </item>
    <item row="3" column="0">
     <widget class="QLabel" name="blueLabel">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
      <property name="text">
-      <string>Blue</string>
+      <string>&amp;Blue</string>
      </property>
      <property name="buddy">
       <cstring>blueSpinBox</cstring>
@@ -87,6 +142,17 @@
    </item>
    <item row="3" column="2">
     <widget class="QSpinBox" name="blueSpinBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
      <property name="maximum">
       <number>255</number>
      </property>
@@ -97,6 +163,14 @@
    </item>
    <item row="0" column="1">
     <widget class="Gradient_Slider" name="redSlider">
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="maximum">
       <number>255</number>
      </property>
@@ -113,6 +187,14 @@
    </item>
    <item row="1" column="1">
     <widget class="Gradient_Slider" name="greenSlider">
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="maximum">
       <number>255</number>
      </property>
@@ -129,6 +211,14 @@
    </item>
    <item row="3" column="1">
     <widget class="Gradient_Slider" name="blueSlider">
+     <property name="font">
+      <font>
+       <pointsize>6</pointsize>
+      </font>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="maximum">
       <number>255</number>
      </property>

@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     paletteview.cpp \
     colourdelegate.cpp \
     image.cpp \
-    paletteplugin.cpp
+    paletteplugin.cpp \
+    transform.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
@@ -36,7 +37,8 @@ HEADERS  += mainwindow.h \
     paletteview.h \
     colourdelegate.h \
     image.h \
-    paletteplugin.h
+    paletteplugin.h \
+    transform.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \
