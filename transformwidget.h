@@ -20,7 +20,7 @@ class TransformWidget : public QWidget
     Q_ENUMS(transform)
 
 public:
-    explicit TransformWidget(QWidget *parent = 0);
+    explicit TransformWidget(QWidget *parent = nullptr);
     ~TransformWidget();
     Transform transform() const;
 

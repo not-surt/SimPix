@@ -13,7 +13,7 @@ class Transform : public QObject
     Q_PROPERTY(qreal rotation MEMBER m_rotation NOTIFY rotationChanged)
     Q_ENUMS(pan zoom pixelAspect rotation)
 public:
-    explicit Transform(QObject *parent = 0);
+    explicit Transform(QObject *parent = nullptr);
 
 signals:
     void panChanged(const QPointF &pan);

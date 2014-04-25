@@ -20,7 +20,7 @@ class NewDialog : public QDialog
     Q_ENUMS(size mode palette)
 
 public:
-    explicit NewDialog(QWidget *parent = 0);
+    explicit NewDialog(QWidget *parent = nullptr);
     ~NewDialog();
     QSize imageSize() const;
     Image::Format mode() const;

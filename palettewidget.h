@@ -16,7 +16,7 @@ class PaletteWidget : public QWidget
     Q_ENUMS(image)
 
 public:
-    explicit PaletteWidget(QWidget *parent = 0);
+    explicit PaletteWidget(QWidget *parent = nullptr);
     ~PaletteWidget();
     Image *image() const;
 
@@ -24,7 +24,7 @@ public:
 signals:
 
 public slots:
-    void setImage(Image * image);
+    void setImage(Image *image);
     void editColour(QModelIndex index);
     void setPrimaryColour(QModelIndex index);
     void setSecondaryColour(QModelIndex index);

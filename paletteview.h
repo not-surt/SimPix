@@ -11,7 +11,7 @@ class PaletteView : public QListView
     Q_PROPERTY(Image *image READ image WRITE setImage)
     Q_ENUMS(image)
 public:
-    explicit PaletteView(QWidget *parent = 0);
+    explicit PaletteView(QWidget *parent = nullptr);
     Image *image() const;
 
 signals:

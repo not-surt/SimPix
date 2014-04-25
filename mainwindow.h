@@ -14,7 +14,7 @@ class MainWindow : public QMainWindow
     Q_PROPERTY(Image *image READ image WRITE setImage NOTIFY imageChanged)
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     Image *image() const;
 

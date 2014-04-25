@@ -12,7 +12,7 @@ class ColourSelector : public QWidget
     Q_OBJECT
 
 public:
-    explicit ColourSelector(QWidget *parent = 0);
+    explicit ColourSelector(QWidget *parent = nullptr);
     ~ColourSelector();
 
 private:

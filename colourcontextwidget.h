@@ -12,7 +12,7 @@ class ColourContextWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit ColourContextWidget(QWidget *parent = 0);
+    explicit ColourContextWidget(QWidget *parent = nullptr);
     ~ColourContextWidget();
 
 private:

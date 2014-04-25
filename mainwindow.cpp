@@ -109,15 +109,6 @@ void MainWindow::newImage()
     NewDialog *dialog = new NewDialog(this);
     if (dialog->exec()) {
         Image *newImage = new Image(dialog->imageSize(), dialog->mode());
-        if (dialog->mode() == Image::Indexed) {
-            newImage->data().setColor(0, qRgb(0, 0, 0));
-            newImage->data().setColor(1, qRgb(255, 255, 255));
-            newImage->data().fill(0);
-        }
-        else if (dialog->mode() == Image::RGBA) {
-//            newImage->data().fill(qRgba(0, 0, 0, 0));
-            newImage->data().fill(qRgb(0, 255, 0));
-        }
         setImage(newImage);
     }
 }
@@ -125,9 +116,10 @@ void MainWindow::newImage()
 void MainWindow::openImage()
 {
     QSettings settings;
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), settings.value("file/lastOpened", QDir::homePath()).toString(), fileDialogFilterString);
+    settings.beginGroup("file");
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), settings.value("lastOpened", QDir::homePath()).toString(), fileDialogFilterString);
     if (!fileName.isNull()) {
-        settings.setValue("file/lastOpened", fileName);
+        settings.setValue("lastOpened", fileName);
         Image *newImage = new Image(fileName);
         if (newImage->data().isNull()) {
             delete newImage;
@@ -137,6 +129,7 @@ void MainWindow::openImage()
             setImage(newImage);
         }
     }
+    settings.endGroup();
 }
 
 void MainWindow::saveImage()

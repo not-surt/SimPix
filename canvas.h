@@ -3,6 +3,8 @@
 
 #include <QUndoCommand>
 #include <QWidget>
+#include <QPixmap>
+#include <memory>
 #include "image.h"
 
 typedef struct Transform {
@@ -20,7 +22,7 @@ class Canvas : public QWidget
     Q_ENUMS(image transform)
 
 public:
-    explicit Canvas(QWidget *parent = 0);
+    explicit Canvas(QWidget *parent = nullptr);
     void resizeEvent(QResizeEvent *);
     void mousePressEvent(QMouseEvent *);
     void mouseMoveEvent(QMouseEvent *);
@@ -33,11 +35,11 @@ public:
 
 public slots:
     void setImage(Image *image);
-    void setTransform(Transform arg);
+    void setTransform(const Transform &transform, const bool limit = true);
     void updateImage(const QRegion &region);
 
 signals:
-    void transformChanged(Transform arg);
+    void transformChanged(const Transform &arg);
     void clicked(const QPoint &position);
     void dragged(const QPoint &a, const QPoint &b);
 
@@ -51,6 +53,7 @@ private:
     QTransform inverseMatrix;
     QPoint lastMousePos;
     QPointF lastMouseImagePos;
+    static std::unique_ptr<QPixmap> backgroundPattern;
     bool panKeyDown;
 
     void updateMatrix();

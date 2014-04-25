@@ -18,10 +18,9 @@ public:
         Indexed = QImage::Format_Indexed8,
         RGBA = QImage::Format_ARGB32,
     };
-    explicit Image();
-    explicit Image(const QSize &size, Format format);
-    explicit Image(const QString &fileName, const char *format=0);
-    explicit Image(Image & image);
+    explicit Image(const QSize &size, Format format, QObject *parent = nullptr);
+    explicit Image(const QString &fileName, const char *format = nullptr, QObject *parent = nullptr);
+    explicit Image(Image & image, QObject *parent = nullptr);
     ~Image();
 
     QImage &data();
@@ -61,7 +60,7 @@ private:
 class StrokeCommand : public QUndoCommand
 {
 public:
-    StrokeCommand(const Image &image, const QPoint &a, const QPoint &b, QUndoCommand *parent = 0);
+    StrokeCommand(const Image &image, const QPoint &a, const QPoint &b, QUndoCommand *parent = nullptr);
     ~StrokeCommand();
 
     void undo();

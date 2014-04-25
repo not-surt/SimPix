@@ -11,7 +11,7 @@ class PaletteModel : public QAbstractListModel
     Q_PROPERTY(Image *image READ image WRITE setImage)
     Q_ENUMS(image)
 public:
-    explicit PaletteModel(QObject *parent = 0);
+    explicit PaletteModel(QObject *parent = nullptr);
 
     // QAbstractItemModel interface
     virtual int rowCount(const QModelIndex &parent=QModelIndex()) const;
