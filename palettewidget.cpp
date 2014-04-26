@@ -30,7 +30,7 @@ Image *PaletteWidget::image() const
     return ui->paletteView->image();
 }
 
-void PaletteWidget::setImage(Image *image)
+void PaletteWidget::setImage(Image * const image)
 {
     ui->paletteView->setImage(image);
 }

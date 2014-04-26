@@ -19,7 +19,7 @@ public:
     Image *image() const;
 
 signals:
-    void imageChanged(Image *);
+    void imageChanged(Image *const);
 
 public slots:
     void newImage();

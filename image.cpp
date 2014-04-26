@@ -105,11 +105,26 @@ uint Image::currentColour(const bool secondary) const
     }
 }
 
-void drawPixel(QImage &image, const QPoint &point, const uint colour)
+void drawPixel(QImage &image, const QPoint &point, const uint colour, const void *const data = nullptr)
 {
     if (image.rect().contains(point)) {
         image.setPixel(point, colour);
     }
+}
+
+void drawRectangularBrush(QImage &image, const QPoint &point, const uint colour, const void *const data)
+{
+    const uint *const size = (const uint *)data;
+}
+
+void drawEllipticalBrush(QImage &image, const QPoint &point, const uint colour, const void *const data)
+{
+    const uint *const size = (const uint *)data;
+}
+
+void drawAngularBrush(QImage &image, const QPoint &point, const uint colour, const void *const data)
+{
+    const int *const size = (const int *)data;
 }
 
 inline int sign(const int val)
@@ -117,20 +132,20 @@ inline int sign(const int val)
     return (val > 0) ? 1 : ((val < 0) ? -1 : 0);
 }
 
-void doSpan(QImage &image, const QPoint &point, const uint x1, const uint colour, void (*callback)(QImage &image, const QPoint &point, const uint colour), const bool inclusive = true)
+void doSpan(QImage &image, const QPoint &point, const uint x1, const uint colour, void (*callback)(QImage &image, const QPoint &point, const uint colour, const void *const data), const void *const data = nullptr, const bool inclusive = true)
 {
     const int end = x1 + (inclusive ? 1 : 0);
     for (int x = point.x(); x < end; x++) {
-        callback(image, QPoint(x, point.y()), colour);
+        callback(image, QPoint(x, point.y()), colour, data);
     }
 }
 
 void drawSpan(QImage &image, const QPoint &point, const uint x1, const uint colour, const bool inclusive = true)
 {
-    doSpan(image, point, x1, colour, drawPixel, inclusive);
+    doSpan(image, point, x1, colour, drawPixel, nullptr, inclusive);
 }
 
-void doLine(QImage &image, const QPoint &point0, const QPoint &point1, const uint colour, void (*callback)(QImage &image, const QPoint &point, const uint colour), const bool inclusive = true)
+void doLine(QImage &image, const QPoint &point0, const QPoint &point1, const uint colour, void (*callback)(QImage &image, const QPoint &point, const uint colour, const void *const data), const void *const data = nullptr, const bool inclusive = true)
 {
     QPoint delta = point1 - point0;
     const int stepX = sign(delta.x()), stepY = sign(delta.y());
@@ -146,7 +161,7 @@ void doLine(QImage &image, const QPoint &point0, const QPoint &point1, const uin
         const int limit = sumStepX * sumStepY;
         int sumX = sumStepX, sumY = sumStepY;
         do {
-            callback(image, QPoint(x, y), colour);
+            callback(image, QPoint(x, y), colour, data);
             if (sumX >= sumY) {
                 y += stepY;
                 sumY += sumStepY;
@@ -158,16 +173,16 @@ void doLine(QImage &image, const QPoint &point0, const QPoint &point1, const uin
         } while (sumX <= limit && sumY <= limit);
     }
     if (inclusive) {
-        callback(image, QPoint(x, y), colour);
+        callback(image, QPoint(x, y), colour, data);
     }
 }
 
 void drawLine(QImage &image, const QPoint &point0, const QPoint &point1, const uint colour)
 {
-    doLine(image, point0, point1, colour, drawPixel);
+    doLine(image, point0, point1, colour, drawPixel, nullptr);
 }
 
-void doRectangle(QImage &image, const QPoint &point0, const QPoint &point1, const uint colour, void (*callback)(QImage &image, const QPoint &point, const uint colour), const bool inclusive = true)
+void doRectangle(QImage &image, const QPoint &point0, const QPoint &point1, const uint colour, void (*callback)(QImage &image, const QPoint &point, const uint colour, const void *const data), const void *const data = nullptr, const bool inclusive = true)
 {
     int x0, x1;
     if (point0.x() < point1.x()) {
@@ -193,17 +208,17 @@ void doRectangle(QImage &image, const QPoint &point0, const QPoint &point1, cons
     }
     int deltaX = x1 - x0;
     int deltaY = y1 - y0;
-    doSpan(image, QPoint(x0, y0), x1, colour, callback, true);
+    doSpan(image, QPoint(x0, y0), x1, colour, callback, data, true);
     if (deltaY > 0) {
         if (deltaY > 1) {
             for (int y = y0; y <= y1; y++) {
-                callback(image, QPoint(x0, y), colour);
+                callback(image, QPoint(x0, y), colour, data);
                 if (deltaX > 0) {
-                    callback(image, QPoint(x1, y), colour);
+                    callback(image, QPoint(x1, y), colour, data);
                 }
             }
         }
-        doSpan(image, QPoint(x0, y1), x1, colour, callback, true);
+        doSpan(image, QPoint(x0, y1), x1, colour, callback, data, true);
     }
 }
 
@@ -211,7 +226,7 @@ void drawRectangle(QImage &image, const QPoint &point0, const QPoint &point1, co
     doRectangle(image, point0, point1, colour, drawPixel);
 }
 
-void doRectangleFilled(QImage &image, const QPoint &point0, const QPoint &point1, const uint colour, void (*callback)(QImage &image, const QPoint &point, const uint colour), const bool inclusive = true)
+void doRectangleFilled(QImage &image, const QPoint &point0, const QPoint &point1, const uint colour, void (*callback)(QImage &image, const QPoint &point, const uint colour, const void *const data), const void *const data = nullptr, const bool inclusive = true)
 {
     int x0, x1;
     if (point0.x() < point1.x()) {
@@ -236,7 +251,7 @@ void doRectangleFilled(QImage &image, const QPoint &point0, const QPoint &point1
         y1--;
     }
     for (int y = y0; y <= y1; y++) {
-        doSpan(image, QPoint(x0, y), x1, colour, callback, true);
+        doSpan(image, QPoint(x0, y), x1, colour, callback, data, true);
     }
 }
 
@@ -276,7 +291,7 @@ bool hslThresholdCallback(QImage &image, const QPoint &point, const uint colour0
             ((uint)abs(qAlpha(a0) - qAlpha(a1)) < thresholds[3]);
 }
 
-void doFloodfill(QImage &image, const QPoint &point, const uint colour, void (*callback)(QImage &image, const QPoint &point, const uint colour), bool (*comparisonCallback)(QImage &image, const QPoint &point, const uint colour0, const uint colour1, const void *const data) = 0, const void *const data = 0)
+void doFloodfill(QImage &image, const QPoint &point, const uint colour, void (*callback)(QImage &image, const QPoint &point, const uint colour, const void *const data), bool (*comparisonCallback)(QImage &image, const QPoint &point, const uint colour0, const uint colour1, const void *const data) = 0, const void *const data = 0)
 {
 
 }
@@ -287,13 +302,13 @@ void drawFloodfill(QImage &image, const QPoint &point, const uint colour)
 }
 
 typedef bool (*ComparisonCallback)(QImage &image, const QPoint &point, const uint colour0, const uint colour1);
-typedef void (*PointCallback)(QImage &image, const QPoint &point, const uint colour);
-typedef void (*SegmentCallback)(QImage &image, const QPoint &point0, const QPoint &point1, const uint colour, void (*pointCallback)(QImage &image, const QPoint &point, const uint colour), const bool inclusive);
+typedef void (*PointCallback)(QImage &image, const QPoint &point, const uint colour, const void *const data);
+typedef void (*SegmentCallback)(QImage &image, const QPoint &point0, const QPoint &point1, const uint colour, void (*pointCallback)(QImage &image, const QPoint &point, const uint colour, const void *const data), const void *const data, const bool inclusive);
 
 void Image::point(const QPoint &point, const bool secondary)
 {
     PointCallback pointCallback = drawPixel;
-    pointCallback(m_data, point, currentColour(secondary));
+    pointCallback(m_data, point, currentColour(secondary), nullptr);
     emit changed(QRegion(QRect(point, QSize(1, 1))));
 }
 
@@ -301,7 +316,7 @@ void Image::stroke(const QPoint &point0, const QPoint &point1, const bool second
 {
     PointCallback pointCallback = drawPixel;
     SegmentCallback segmentCallback = doLine;
-    segmentCallback(m_data, point0, point1, currentColour(secondary), pointCallback, true);
+    segmentCallback(m_data, point0, point1, currentColour(secondary), pointCallback, nullptr, true);
 //    undoStack->push(new StrokeCommand(*m_image, a, b));
 //    emit changed(QRect(a, b));
     emit changed(QRegion(data().rect()));

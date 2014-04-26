@@ -18,8 +18,7 @@
   <property name="dockNestingEnabled">
    <bool>true</bool>
   </property>
-  <widget class="Canvas" name="canvas">
-  </widget>
+  <widget class="Canvas" name="canvas"/>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
@@ -100,6 +99,7 @@
    <addaction name="separator"/>
    <addaction name="actionUndo"/>
    <addaction name="actionRedo"/>
+   <addaction name="actionTiled"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QToolBar" name="toolToolBar">
@@ -132,8 +132,7 @@
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
-   <widget class="ColourSelector" name="colourSelector">
-   </widget>
+   <widget class="ColourSelector" name="colourSelector"/>
   </widget>
   <widget class="QToolBar" name="windowToolBar">
    <property name="windowTitle">
@@ -382,6 +381,17 @@
   <action name="actionLicense">
    <property name="text">
     <string>License</string>
+   </property>
+  </action>
+  <action name="actionTiled">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Tiled</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
    </property>
   </action>
  </widget>

@@ -34,11 +34,13 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionAboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
     QObject::connect(ui->actionLicense, SIGNAL(triggered()), this, SLOT(license()));
 
-    QObject::connect(this, SIGNAL(imageChanged(Image *)), ui->canvas, SLOT(setImage(Image *)));
-    QObject::connect(this, SIGNAL(imageChanged(Image *)), ui->paletteWidget, SLOT(setImage(Image *)));
+    QObject::connect(this, SIGNAL(imageChanged(Image *const)), ui->canvas, SLOT(setImage(Image *const)));
+    QObject::connect(this, SIGNAL(imageChanged(Image *const)), ui->paletteWidget, SLOT(setImage(Image *const)));
 
     QObject::connect(ui->transformWidget, SIGNAL(transformChanged(Transform)), ui->canvas, SLOT(setTransform(Transform)));
     QObject::connect(ui->canvas, SIGNAL(transformChanged(Transform)), ui->transformWidget, SLOT(setTransform(Transform)));
+
+    QObject::connect(ui->actionTiled, SIGNAL(triggered(bool)), ui->canvas, SLOT(setTiled(bool)));
 
     QMenu *toolBarMenu = new QMenu(this);
     ui->actionToolbars->setMenu(toolBarMenu);

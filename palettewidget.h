@@ -24,7 +24,7 @@ public:
 signals:
 
 public slots:
-    void setImage(Image *image);
+    void setImage(Image *const image);
     void editColour(QModelIndex index);
     void setPrimaryColour(QModelIndex index);
     void setSecondaryColour(QModelIndex index);
