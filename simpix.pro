@@ -27,7 +27,8 @@ SOURCES += main.cpp\
     colourcontextwidget.cpp \
     colourswatch.cpp \
     colourswatchdelegate.cpp \
-    util.cpp
+    util.cpp \
+    application.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
@@ -43,7 +44,8 @@ HEADERS  += mainwindow.h \
     colourcontextwidget.h \
     colourswatchdelegate.h \
     colourswatch.h \
-    util.h
+    util.h \
+    application.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \
