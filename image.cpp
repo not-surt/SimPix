@@ -4,26 +4,33 @@
 #include <QColor>
 #include <QUndoStack>
 
-//StrokeCommand::StrokeCommand(const Image &image, const QPoint &point0, const QPoint &point1, QUndoCommand *parent)
-//    : image(image), a(a), b(b)
-//{
+StrokeCommand::StrokeCommand(const Image &image, const QPoint &point0, const QPoint &point1, QUndoCommand *parent)
+    : QUndoCommand(parent), image(image), point0(point0), point1(point1)
+{
 //    QRect rect = QRect(a, QSize(1, 1)).united(QRect(b, QSize(1, 1)));
 //    dirty = Image(image.copy(rect));
-//}
+}
 
-//StrokeCommand::~StrokeCommand()
-//{
-//}
+StrokeCommand::~StrokeCommand()
+{
+}
 
-//void StrokeCommand::undo()
-//{
+void StrokeCommand::undo()
+{
 
-//}
+}
 
-//void StrokeCommand::redo()
-//{
+void StrokeCommand::redo()
+{
 
-//}
+}
+
+
+Image::Image(const Image &image, QObject *parent) :
+    QObject(parent), m_data(image.constData()), m_primaryColour(image.currentColour()), m_secondaryColour(image.currentColour(true))
+{
+
+}
 
 Image::Image(const QSize &size, Image::Format format, QObject *parent) :
     QObject(parent), m_data(size, static_cast<QImage::Format>(format))
@@ -66,18 +73,17 @@ Image::Image(const QString &fileName, const char *format, QObject *parent) :
     }
 }
 
-Image::Image(Image &image, QObject *parent) :
-   QObject(parent),  m_data(image.data()), m_primaryColour(image.m_primaryColour), m_secondaryColour(image.m_secondaryColour)
-{
-
-}
-
 Image::~Image()
 {
     delete undoStack;
 }
 
 QImage &Image::data()
+{
+    return m_data;
+}
+
+const QImage &Image::constData() const
 {
     return m_data;
 }

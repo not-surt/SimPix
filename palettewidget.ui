@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>172</width>
+    <width>187</width>
     <height>109</height>
    </rect>
   </property>
@@ -14,28 +14,8 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <property name="leftMargin">
-    <number>0</number>
-   </property>
-   <property name="topMargin">
-    <number>0</number>
-   </property>
-   <property name="rightMargin">
-    <number>0</number>
-   </property>
-   <property name="bottomMargin">
-    <number>0</number>
-   </property>
-   <property name="spacing">
-    <number>0</number>
-   </property>
    <item row="0" column="3">
     <widget class="QToolButton" name="lockPaletteButton">
-     <property name="font">
-      <font>
-       <pointsize>6</pointsize>
-      </font>
-     </property>
      <property name="text">
       <string>&amp;Lock</string>
      </property>
@@ -54,11 +34,6 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>6</pointsize>
-      </font>
      </property>
      <property name="frame">
       <bool>true</bool>
@@ -117,11 +92,6 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>6</pointsize>
-      </font>
      </property>
      <property name="text">
       <string>&amp;Sort</string>

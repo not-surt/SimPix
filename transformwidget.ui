@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>188</width>
-    <height>96</height>
+    <width>293</width>
+    <height>152</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,21 +20,6 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <property name="leftMargin">
-    <number>0</number>
-   </property>
-   <property name="topMargin">
-    <number>0</number>
-   </property>
-   <property name="rightMargin">
-    <number>0</number>
-   </property>
-   <property name="bottomMargin">
-    <number>0</number>
-   </property>
-   <property name="spacing">
-    <number>0</number>
-   </property>
    <item row="3" column="0">
     <widget class="QLabel" name="rotationLabel">
      <property name="sizePolicy">
@@ -42,11 +27,6 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>6</pointsize>
-      </font>
      </property>
      <property name="text">
       <string>&amp;Rotation</string>
@@ -67,11 +47,6 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="font">
-      <font>
-       <pointsize>6</pointsize>
-      </font>
-     </property>
      <property name="frame">
       <bool>true</bool>
      </property>
@@ -88,7 +63,7 @@
       <double>2.000000000000000</double>
      </property>
      <property name="value">
-      <double>1.000000000000000</double>
+      <double>0.060000000000000</double>
      </property>
     </widget>
    </item>
@@ -99,11 +74,6 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>6</pointsize>
-      </font>
      </property>
      <property name="text">
       <string>&amp;Aspect</string>
@@ -181,11 +151,6 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="font">
-      <font>
-       <pointsize>6</pointsize>
-      </font>
-     </property>
      <property name="text">
       <string>&amp;Pan</string>
      </property>
@@ -235,11 +200,6 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="font">
-      <font>
-       <pointsize>6</pointsize>
-      </font>
-     </property>
      <property name="decimals">
       <number>2</number>
      </property>
@@ -253,7 +213,7 @@
       <double>0.100000000000000</double>
      </property>
      <property name="value">
-      <double>1.000000000000000</double>
+      <double>0.120000000000000</double>
      </property>
     </widget>
    </item>
@@ -267,11 +227,6 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>6</pointsize>
-      </font>
      </property>
      <property name="suffix">
       <string/>
@@ -331,11 +286,6 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="font">
-      <font>
-       <pointsize>6</pointsize>
-      </font>
-     </property>
      <property name="text">
       <string>&amp;Zoom</string>
      </property>
@@ -354,11 +304,6 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>6</pointsize>
-      </font>
      </property>
      <property name="decimals">
       <number>2</number>
@@ -388,13 +333,8 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="font">
-      <font>
-       <pointsize>6</pointsize>
-      </font>
-     </property>
      <property name="wrapping">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
      <property name="accelerated">
       <bool>false</bool>
@@ -424,11 +364,6 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="font">
-      <font>
-       <pointsize>6</pointsize>
-      </font>
-     </property>
      <property name="decimals">
       <number>2</number>
      </property>
@@ -442,7 +377,7 @@
       <double>0.100000000000000</double>
      </property>
      <property name="value">
-      <double>1.000000000000000</double>
+      <double>0.120000000000000</double>
      </property>
     </widget>
    </item>

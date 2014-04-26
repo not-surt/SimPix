@@ -1,12 +1,12 @@
-#ifndef COLOURDELEGATE_H
-#define COLOURDELEGATE_H
+#ifndef COLOURSWATCHDELEGATE_H
+#define COLOURSWATCHDELEGATE_H
 #include <QStyledItemDelegate>
 
-class ColourDelegate : public QStyledItemDelegate
+class ColourSwatchDelegate : public QStyledItemDelegate
 {
 public:
-    explicit ColourDelegate(QWidget *parent = nullptr);
-    ~ColourDelegate();
+    explicit ColourSwatchDelegate(QWidget *parent = nullptr);
+    ~ColourSwatchDelegate();
     // QAbstractItemDelegate interface
     virtual void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     virtual QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
@@ -14,4 +14,4 @@ private:
     QSize parentSize;
 };
 
-#endif // COLOURDELEGATE_H
+#endif // COLOURSWATCHDELEGATE_H

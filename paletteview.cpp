@@ -1,4 +1,4 @@
-#include "colourdelegate.h"
+#include "colourswatchdelegate.h"
 #include "palettemodel.h"
 #include "paletteview.h"
 
@@ -10,7 +10,7 @@ PaletteView::PaletteView(QWidget *parent) :
     PaletteModel *model = new PaletteModel(0);
     setModel(model);
     QAbstractItemDelegate *old = itemDelegate();
-    setItemDelegate(new ColourDelegate());
+    setItemDelegate(new ColourSwatchDelegate());
     delete old;
     setSelectionMode(QAbstractItemView::ExtendedSelection);
     setDragEnabled(true);

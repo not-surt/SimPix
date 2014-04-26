@@ -6,6 +6,7 @@
 #include <QPixmap>
 #include <memory>
 #include "image.h"
+//#include "transform.h"
 
 typedef struct Transform {
     QPointF pan;
@@ -51,6 +52,7 @@ signals:
 
 protected:
     virtual void paintEvent(QPaintEvent *event);
+    virtual void tabletEvent(QTabletEvent *event);
 
 private:
     Image *m_image;
@@ -64,6 +66,7 @@ private:
     bool panKeyDown;
 
     void updateMatrix();
+
 };
 
 #endif // CANVAS_H

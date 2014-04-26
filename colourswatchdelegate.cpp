@@ -1,20 +1,21 @@
-#include "colourdelegate.h"
+#include "colourswatchdelegate.h"
 
 #include <QPainter>
+#include <QApplication>
 
 
-ColourDelegate::ColourDelegate(QWidget *parent) :
+ColourSwatchDelegate::ColourSwatchDelegate(QWidget *parent) :
     QStyledItemDelegate(parent), parentSize()
 {
 
 }
 
-ColourDelegate::~ColourDelegate()
+ColourSwatchDelegate::~ColourSwatchDelegate()
 {
 
 }
 
-void ColourDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+void ColourSwatchDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     painter->save();
 //    QRect rect = option.rect.adjusted(1, 1, -1, -1);
@@ -34,17 +35,18 @@ void ColourDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option
         painter->fillPath(path, option.palette.highlightedText());
     }
     else {
-        painter->setPen(color.lighter());
+        painter->setPen(color.lighter(125));
         painter->drawRect(rect.adjusted(1, 1, -2, -2));
-        painter->setPen(color.darker());
+        painter->setPen(color.darker(125));
         painter->drawRect(rect.adjusted(0, 0, -1, -1));
     }
     painter->restore();
 }
 
-QSize ColourDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+QSize ColourSwatchDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    return QSize(24, 24);
-//    int size = (parentSize.width() - 1) / 8; //Bug? Need to subtract one.
-    //    return QSize(size, size);
+//    return QSize(24, 24);
+    const int size = QApplication::style()->pixelMetric(QStyle::PM_ToolBarIconSize);
+//    const int size = (parentSize.width() - 1) / 8; //Bug? Need to subtract one.
+    return QSize(size, size);
 }

@@ -21,26 +21,29 @@ SOURCES += main.cpp\
     palettemodel.cpp \
     palettewidget.cpp \
     paletteview.cpp \
-    colourdelegate.cpp \
     image.cpp \
     paletteplugin.cpp \
     transform.cpp \
-    colourcontextwidget.cpp
+    colourcontextwidget.cpp \
+    colourswatch.cpp \
+    colourswatchdelegate.cpp \
+    util.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
     canvas.h \
     colourselector.h \
     transformwidget.h \
-    constants.h \
     palettemodel.h \
     palettewidget.h \
     paletteview.h \
-    colourdelegate.h \
     image.h \
     paletteplugin.h \
     transform.h \
-    colourcontextwidget.h
+    colourcontextwidget.h \
+    colourswatchdelegate.h \
+    colourswatch.h \
+    util.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \

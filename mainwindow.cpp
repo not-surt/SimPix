@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "newdialog.h"
 #include "canvas.h"
+#include "util.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -13,15 +14,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), m_image(0)
 {    
-//    QAction *undoAction = undoStack->createUndoAction(this, tr("&Undo"));
-//    undoAction->setShortcuts(QKeySequence::Undo);
-//    QAction *redoAction = undoStack->createRedoAction(this, tr("&Redo"));
-//    redoAction->setShortcuts(QKeySequence::Redo);
-
+    backgroundPixmap = generateBackgroundPixmap(16);
     ui->setupUi(this);
 
-    addAction(ui->actionMenu);
-    addAction(ui->actionFullscreen);
+    // Copy actions to window. Is there a better way?
+    QList<QMenu *> menus = ui->menuBar->findChildren<QMenu *>();
+    QListIterator<QMenu *> menu(menus);
+    while (menu.hasNext()) {
+        addActions(menu.next()->findChildren<QAction *>());
+    }
 
     QObject::connect(ui->actionNew, SIGNAL(triggered()), this, SLOT(newImage()));
     QObject::connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(openImage()));
@@ -75,6 +76,7 @@ MainWindow::~MainWindow()
 {
     delete ui;
     delete m_image;
+    delete backgroundPixmap;
 }
 
 Image *MainWindow::image() const
@@ -85,9 +87,18 @@ Image *MainWindow::image() const
 void MainWindow::setImage(Image *image)
 {
     if (m_image != image) {
+        if (m_image) {
+            QObject::disconnect(image, SIGNAL(changed(const QRegion &)), ui->canvas, SLOT(updateImage(const QRegion &)));
+            QObject::disconnect(ui->canvas, SIGNAL(clicked(const QPoint &)), image, SLOT(point(const QPoint &)));
+            QObject::disconnect(ui->canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), image, SLOT(stroke(const QPoint &, const QPoint &)));
+            QObject::disconnect(ui->actionUndo, SIGNAL(triggered()), image->undoStack, SLOT(undo()));
+            QObject::disconnect(ui->actionRedo, SIGNAL(triggered()), image->undoStack, SLOT(redo()));
+        }
         QObject::connect(image, SIGNAL(changed(const QRegion &)), ui->canvas, SLOT(updateImage(const QRegion &)));
         QObject::connect(ui->canvas, SIGNAL(clicked(const QPoint &)), image, SLOT(point(const QPoint &)));
         QObject::connect(ui->canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), image, SLOT(stroke(const QPoint &, const QPoint &)));
+        QObject::connect(ui->actionUndo, SIGNAL(triggered()), image->undoStack, SLOT(undo()));
+        QObject::connect(ui->actionRedo, SIGNAL(triggered()), image->undoStack, SLOT(redo()));
         emit imageChanged(image);
         if (m_image) {
             m_image->deleteLater();
@@ -173,22 +184,22 @@ void MainWindow::setFullscreen(bool fullscreen)
 void MainWindow::about()
 {
    QMessageBox::about(this, tr(QString("About %1").arg(QCoreApplication::applicationName()).toLatin1()),
-            tr(QString(
-                   "<p><b>%1</b> is a simple pixel editor to allow simple people to edit simple pixels in a simple manner.</p>"
-                   "<p>More about %1:"
-                   "<ul>"
-                   "<li><a href=\"https://github.com/not-surt/SimPix\">GitHub page</a></li>"
-                   "</ul></p>"
-                   "<p>%1 is developed by:"
-                   "<ul>"
-                   "<li><b>surt</b> aka Carl Olsson - <a href=\"http://uninhabitant.com\">personal site</a></li>"
-                   "</ul></p>"
-                   "<p>%1 makes use of the following projects:"
-                   "<ul>"
-                   "<li><b>Qt</b> - <a href=\"http://qt-project.org\">project site</a></li>"
-                   "<li>Mattia Basaglia's <b>Qt-Color-Picker</b> - <a href=\"https://github.com/mbasaglia/Qt-Color-Picker\">GitHub page</a></li>"
-                   "</ul></p>"
-                   ).arg(QCoreApplication::applicationName()).toLatin1()));
+        tr(QString(
+            "<p><b>%1</b> is a simple pixel editor to allow simple people to edit simple pixels in a simple manner.</p>"
+            "<p>More about %1:"
+            "<ul>"
+            "<li><a href=\"https://github.com/not-surt/SimPix\">GitHub page</a></li>"
+            "</ul></p>"
+            "<p>%1 is developed by:"
+            "<ul>"
+            "<li><b>surt</b> aka Carl Olsson - <a href=\"http://uninhabitant.com\">personal site</a></li>"
+            "</ul></p>"
+            "<p>%1 makes use of the following projects:"
+            "<ul>"
+            "<li><b>Qt</b> - <a href=\"http://qt-project.org\">project site</a></li>"
+            "<li>Mattia Basaglia's <b>Qt-Color-Picker</b> - <a href=\"https://github.com/mbasaglia/Qt-Color-Picker\">GitHub page</a></li>"
+            "</ul></p>"
+            ).arg(QCoreApplication::applicationName()).toLatin1()));
 }
 
 void MainWindow::aboutQt()

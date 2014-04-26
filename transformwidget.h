@@ -7,7 +7,6 @@
 #include "ui_transformwidget.h"
 
 #include "canvas.h"
-#include "constants.h"
 
 namespace Ui {
 class TransformWidget;

@@ -18,16 +18,19 @@ public:
         Indexed = QImage::Format_Indexed8,
         RGBA = QImage::Format_ARGB32,
     };
+    explicit Image(const Image &image, QObject *parent = nullptr);
     explicit Image(const QSize &size, Format format, QObject *parent = nullptr);
     explicit Image(const QString &fileName, const char *format = nullptr, QObject *parent = nullptr);
-    explicit Image(Image & image, QObject *parent = nullptr);
     ~Image();
 
     QImage &data();
+    const QImage &constData() const;
 
     Image::Format format() const;
 
     uint currentColour(const bool secondary = false) const;
+
+    QUndoStack *undoStack = new QUndoStack(this);
 
 signals:
     void changed(const QRegion &region);
@@ -41,7 +44,6 @@ public slots:
 
 private:
     QImage m_data;
-    QUndoStack *undoStack = new QUndoStack(this);
     QQueue<QPoint> recentPoints;
     static const int recentPointsMax = 5;
     void addRecentPoint(const QPoint &point)
@@ -60,16 +62,16 @@ private:
 class StrokeCommand : public QUndoCommand
 {
 public:
-    StrokeCommand(const Image &image, const QPoint &a, const QPoint &b, QUndoCommand *parent = nullptr);
+    StrokeCommand(const Image &image, const QPoint &point0, const QPoint &point1, QUndoCommand *parent = nullptr);
     ~StrokeCommand();
 
     void undo();
     void redo();
 
 private:
-    QPointF a, b;
+    const QPoint &point0, &point1;
     const Image &image;
-    Image dirty;
+//    Image dirty;
 };
 
 #endif // IMAGE_H

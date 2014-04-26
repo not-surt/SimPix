@@ -55,23 +55,23 @@ void TransformWidget::sendTransform() {
 }
 
 void TransformWidget::clearPan() {
-    ui->panXSpinBox->setValue(PAN_DEF);
-    ui->panYSpinBox->setValue(PAN_DEF);
+    ui->panXSpinBox->setValue(0.);
+    ui->panYSpinBox->setValue(0.);
     emit transformChanged(transform());
 }
 
 void TransformWidget::clearZoom() {
-    ui->zoomSpinBox->setValue(ZOOM_DEF);
+    ui->zoomSpinBox->setValue(1.);
     emit transformChanged(transform());
 }
 
 void TransformWidget::clearPixelAspect() {
-    ui->pixelAspectXSpinBox->setValue(PIXEL_ASPECT_DEF);
-    ui->pixelAspectYSpinBox->setValue(PIXEL_ASPECT_DEF);
+    ui->pixelAspectXSpinBox->setValue(1.);
+    ui->pixelAspectYSpinBox->setValue(1.);
     emit transformChanged(transform());
 }
 
 void TransformWidget::clearRotation() {
-    ui->rotationSpinBox->setValue(ROTATION_DEF);
+    ui->rotationSpinBox->setValue(0.);
     emit transformChanged(transform());
 }

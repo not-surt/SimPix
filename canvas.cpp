@@ -3,20 +3,10 @@
 #include <QPainter>
 #include <QWheelEvent>
 #include <QDebug>
+#include <QApplication>
+#include "util.h"
 
 std::unique_ptr<QPixmap> Canvas::backgroundPattern = nullptr;
-
-QPixmap *generateBackgroundPattern()
-{
-    QPixmap *pattern = new QPixmap(32, 32);
-    QPainter painter(pattern);
-    const QColor base = QColor(127, 127, 127), light = base.lighter(125), dark = base.darker(125);
-    painter.fillRect(QRect(0, 0, pattern->width() / 2, pattern->height() / 2), light);
-    painter.fillRect(QRect(pattern->width() / 2, 0, pattern->width() - (pattern->width() / 2), pattern->height() / 2), dark);
-    painter.fillRect(QRect(0, pattern->height() / 2, pattern->width() / 2, pattern->height() - (pattern->height() / 2)), dark);
-    painter.fillRect(QRect(pattern->width() / 2, pattern->height() / 2, pattern->width() - (pattern->width() / 2), pattern->height() - (pattern->height() / 2)), light);
-    return pattern;
-}
 
 Canvas::Canvas(QWidget *parent) :
     QWidget(parent), m_image(0), m_transform(), panKeyDown(false)
@@ -24,9 +14,6 @@ Canvas::Canvas(QWidget *parent) :
     setFocusPolicy(Qt::WheelFocus);
     setMouseTracking(true);
     setImage(0);
-    if (!backgroundPattern) {
-        backgroundPattern.reset(generateBackgroundPattern());
-    }
 }
 
 void Canvas::resizeEvent(QResizeEvent *)
@@ -37,22 +24,34 @@ void Canvas::resizeEvent(QResizeEvent *)
 void Canvas::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
+//    painter.setRenderHint(QPainter::Antialiasing, true);
+//    painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
     if (m_image) {
+        painter.fillRect(rect(), QBrush(*backgroundPixmap));
         if (!m_tiled) {
+            painter.save();
             QRectF imageBounds = inverseMatrix.mapRect(QRectF(event->rect().topLeft(), event->rect().bottomRight() + QPoint(1, 1)));
             QRect imageRect = QRect(QPoint((int)floor(imageBounds.left()), (int)floor(imageBounds.top())),
                                     QPoint((int)ceil(imageBounds.right()), (int)ceil(imageBounds.bottom()))).intersected(m_image->data().rect());
-            painter.fillRect(rect(), QBrush(*backgroundPattern));
             painter.setTransform(matrix);
             painter.drawImage(imageRect, m_image->data(), imageRect);
+            painter.restore();
         }
         else {
+            painter.save();
             QBrush brush = QBrush(m_image->data());
             brush.setTransform(matrix);
             painter.fillRect(rect(), brush);
+            painter.restore();
         }
-//        painter.setPen(Qt::black);
-//        painter.drawRect(imageRect);
+        painter.save();
+        painter.setTransform(matrix);
+        QPen pen;
+        pen.setWidth(0);
+        pen.setColor(Qt::white);
+        painter.setPen(pen);
+        painter.drawRect(m_image->data().rect());
+        painter.restore();
 //        qDebug() << imageRect;
     }
 }
@@ -61,7 +60,16 @@ void Canvas::mousePressEvent(QMouseEvent *event)
 {
     lastMousePos = event->pos();
     lastMouseImagePos = inverseMatrix.map(QPointF(event->pos()));
-    if (event->button() == Qt::MiddleButton || (event->button() == Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
+    if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
+        QApplication::setOverrideCursor(Qt::CrossCursor);
+        event->accept();
+    }
+    else if (event->button() == Qt::MiddleButton || (event->button() == Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
+        QApplication::setOverrideCursor(Qt::ClosedHandCursor);
+        event->accept();
+    }
+    else if (event->button() == Qt::RightButton) {
+        QApplication::setOverrideCursor(Qt::PointingHandCursor);
         event->accept();
     }
     else {
@@ -74,11 +82,11 @@ void Canvas::mouseMoveEvent(QMouseEvent *event)
     if (rect().contains(event->pos())) {
         setFocus();
     }
-    QPointF mouseImagePosition = inverseMatrix.map(QPointF(event->pos()));
+    const QPointF mouseImagePosition = inverseMatrix.map(QPointF(event->pos()));
     if (!panKeyDown && event->buttons() & Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
         if (m_image) {
-            QPoint lastPixel = QPoint(floor(lastMouseImagePos.x()), floor(lastMouseImagePos.y()));
-            QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
+            const QPoint lastPixel = QPoint(floor(lastMouseImagePos.x()), floor(lastMouseImagePos.y()));
+            const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
             emit dragged(lastPixel, pixel);
             lastMousePos = event->pos();
             lastMouseImagePos = mouseImagePosition;
@@ -89,7 +97,7 @@ void Canvas::mouseMoveEvent(QMouseEvent *event)
 
     }
     else if (panKeyDown || event->buttons() & Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
-        QPointF delta = mouseImagePosition - inverseMatrix.map(QPointF(lastMousePos));
+        const QPointF delta = mouseImagePosition - inverseMatrix.map(QPointF(lastMousePos));
         Transform transform = m_transform;
         transform.pan += delta;
         setTransform(transform);
@@ -107,33 +115,66 @@ void Canvas::mouseReleaseEvent(QMouseEvent *event)
     QPointF mouseImagePosition = inverseMatrix.map(QPointF(event->pos()));
     if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
         if (m_image) {
-            QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
+            const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
             emit clicked(pixel);
-            event->accept();
         }
+        QApplication::restoreOverrideCursor();
+        event->accept();
+    }
+    else if (event->button() == Qt::MiddleButton || (event->button() == Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
+        QApplication::restoreOverrideCursor();
+        event->accept();
     }
     else if (event->button() == Qt::RightButton) {
         if (m_image) {
-            QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
+            const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
             m_image->pick(pixel);
         }
+        QApplication::restoreOverrideCursor();
+        event->accept();
+    }
+    else {
+        event->ignore();
     }
 }
 
 void Canvas::wheelEvent(QWheelEvent *event)
 {
+    const bool transformAroundCursor = true;
     if (event->modifiers() & Qt::SHIFT) {
         Transform transform = m_transform;
-        transform.rotation += event->angleDelta().y() > 0 ? 15 : (event->angleDelta().y() < 0 ? -15 : 0);
+        const qreal angle = event->angleDelta().y() > 0 ? 15 : (event->angleDelta().y() < 0 ? -15 : 0);
+        transform.rotation += angle;
+        if (transformAroundCursor) {
+            const QPointF mouseImagePosition = inverseMatrix.map(QPointF(event->pos()));
+            const QPointF mouseDelta = mouseImagePosition - transform.pan;
+            qDebug() << mouseDelta;
+        }
         setTransform(transform);
         event->accept();
     }
     else {
         Transform transform = m_transform;
-        transform.zoom *= event->angleDelta().y() > 0 ? 2 : (event->angleDelta().y() < 0 ? .5 : 1);
+        const qreal scale = event->angleDelta().y() > 0 ? 2 : (event->angleDelta().y() < 0 ? .5 : 1);
+        transform.zoom *= scale;
+        if (transformAroundCursor) {
+            const QPointF mouseImagePosition = inverseMatrix.map(QPointF(event->pos()));
+
+        }
         setTransform(transform);
         updateMatrix();
         event->accept();
+    }
+}
+
+void Canvas::tabletEvent(QTabletEvent *event)
+{
+    qDebug() << event;
+    if (false) {
+        event->accept();
+    }
+    else {
+        event->ignore();
     }
 }
 
@@ -143,6 +184,7 @@ void Canvas::keyPressEvent(QKeyEvent *event)
         panKeyDown = true;
         lastMousePos = mapFromGlobal(QCursor::pos());
         grabMouse();
+        QApplication::setOverrideCursor(Qt::ClosedHandCursor);
         event->accept();
     }
     else {
@@ -155,6 +197,7 @@ void Canvas::keyReleaseEvent(QKeyEvent *event)
     if (event->key() == Qt::Key_Space && !event->isAutoRepeat()) {
         panKeyDown = false;
         releaseMouse();
+        QApplication::restoreOverrideCursor();
         event->accept();
     }
     else {
@@ -224,8 +267,14 @@ void Canvas::setTransform(const Transform &transform, const bool limit)
         m_transform = transform;
         if (limit) {
             if (m_image) {
-                m_transform.pan.setX(clamp(m_transform.pan.x(), (qreal)-m_image->data().width(), 0.));
-                m_transform.pan.setY(clamp(m_transform.pan.y(), (qreal)-m_image->data().height(), 0.));
+                if (!m_tiled) {
+                    m_transform.pan.setX(clamp(m_transform.pan.x(), (qreal)-m_image->data().width(), 0.));
+                    m_transform.pan.setY(clamp(m_transform.pan.y(), (qreal)-m_image->data().height(), 0.));
+                }
+                else {
+                    m_transform.pan.setX(wrap(m_transform.pan.x(), (qreal)-m_image->data().width(), 0.));
+                    m_transform.pan.setY(wrap(m_transform.pan.y(), (qreal)-m_image->data().height(), 0.));
+                }
             }
             m_transform.zoom = clamp(m_transform.zoom, 1./16., 256.);
             m_transform.pixelAspect.setX(clamp(m_transform.pixelAspect.x(), 1./16., 16.));
@@ -267,4 +316,3 @@ void Canvas::updateMatrix()
     inverseMatrix = matrix.inverted();
     update();
 }
-
