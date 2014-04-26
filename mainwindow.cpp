@@ -14,7 +14,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), m_image(0)
 {    
-    backgroundPixmap = generateBackgroundPixmap(16);
+    canvasBackgroundPixmap = generateBackgroundPixmap(32);
+    swatchBackgroundPixmap = generateBackgroundPixmap(16);
     ui->setupUi(this);
 
     // Copy actions to window. Is there a better way?
@@ -76,7 +77,8 @@ MainWindow::~MainWindow()
 {
     delete ui;
     delete m_image;
-    delete backgroundPixmap;
+    delete canvasBackgroundPixmap;
+    delete swatchBackgroundPixmap;
 }
 
 Image *MainWindow::image() const
@@ -138,7 +140,6 @@ void MainWindow::openImage()
             delete newImage;
         }
         else {
-//            newImage->save("temp.png");
             setImage(newImage);
         }
     }
@@ -148,6 +149,17 @@ void MainWindow::openImage()
 void MainWindow::saveImage()
 {
     if (m_image) {
+        if (m_image->fileName().isNull()) {
+            saveAsImage();
+        }
+        else {
+            if (m_image->save()) {
+                QSettings settings;
+                settings.beginGroup("file");
+                settings.setValue("lastSaved", m_image->fileName());
+                settings.endGroup();
+            }
+        }
     }
 }
 
@@ -156,8 +168,23 @@ void MainWindow::saveAsImage()
     if (m_image) {
         QSettings settings;
         settings.beginGroup("file");
-        QString fileName = QFileDialog::getSaveFileName(this, tr("Save Image"), settings.value("lastSaved", QDir::homePath()).toString(), fileDialogFilterString);
-        settings.setValue("lastSaved", fileName);
+        QString fileName;
+        if (!m_image->fileName().isNull()) {
+            fileName = m_image->fileName();
+        }
+        else {
+            QFileInfo fileInfo(settings.value("lastSaved", QDir::homePath()).toString());
+            fileName = fileInfo.dir().path();
+        }
+        fileName = QFileDialog::getSaveFileName(this, tr("Save Image"), fileName, fileDialogFilterString);
+        if (!fileName.isNull()) {
+            if (m_image->save(fileName)) {
+                QSettings settings;
+                settings.beginGroup("file");
+                settings.setValue("lastSaved", fileName);
+                settings.endGroup();
+            }
+        }
         settings.endGroup();
     }
 }

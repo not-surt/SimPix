@@ -4,6 +4,7 @@
 #include <QPixmap>
 
 QPixmap *generateBackgroundPixmap(const uint size = 32);
-extern QPixmap *backgroundPixmap;
+extern QPixmap *canvasBackgroundPixmap;
+extern QPixmap *swatchBackgroundPixmap;
 
 #endif // UTIL_H

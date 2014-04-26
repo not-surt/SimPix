@@ -8,6 +8,7 @@
 class Image : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged)
     Q_PROPERTY(QImage data READ data)
     Q_PROPERTY(Image::Format format READ format)
     Q_PROPERTY(uint currentColour READ currentColour WRITE setCurrentColour NOTIFY currentColourChanged)
@@ -32,17 +33,23 @@ public:
 
     QUndoStack *undoStack = new QUndoStack(this);
 
+    const QString &fileName() const;
+    bool save(QString fileName = QString());
+
 signals:
+    void fileNameChanged(const QString &fileName);
     void changed(const QRegion &region);
-    void currentColourChanged(uint currentColour, bool secondary);
+    void currentColourChanged(uint currentColour, bool secondary);    
 
 public slots:
     void point(const QPoint &position, const bool secondary = false);
     void stroke(const QPoint &a, const QPoint &b, const bool secondary = false);
     void pick(const QPoint &position, const bool secondary = false);
     void setCurrentColour(uint currentColour, const bool secondary = false);
+    void setFileName(const QString &fileName);
 
 private:
+    QString m_fileName;
     QImage m_data;
     QQueue<QPoint> recentPoints;
     static const int recentPointsMax = 5;
@@ -55,6 +62,7 @@ private:
     }
     uint m_primaryColour;
     uint m_secondaryColour;
+    bool dirty;
 };
 
 

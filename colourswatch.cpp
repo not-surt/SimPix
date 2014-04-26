@@ -44,7 +44,7 @@ void ColourSwatch::paintEvent(QPaintEvent *)
     alpha.append(r.topLeft());
     alpha.append(r.topRight());
     alpha.append(r.bottomLeft());
-    painter.setBrush(*backgroundPixmap);
+    painter.setBrush(*swatchBackgroundPixmap);
     painter.drawConvexPolygon(alpha);
     painter.setBrush(m_colour);
     painter.drawConvexPolygon(alpha);

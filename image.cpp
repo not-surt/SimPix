@@ -27,13 +27,13 @@ void StrokeCommand::redo()
 
 
 Image::Image(const Image &image, QObject *parent) :
-    QObject(parent), m_data(image.constData()), m_primaryColour(image.currentColour()), m_secondaryColour(image.currentColour(true))
+    QObject(parent), m_fileName(), m_data(image.constData()), m_primaryColour(image.currentColour()), m_secondaryColour(image.currentColour(true)), dirty(true)
 {
 
 }
 
 Image::Image(const QSize &size, Image::Format format, QObject *parent) :
-    QObject(parent), m_data(size, static_cast<QImage::Format>(format))
+    QObject(parent), m_fileName(), m_data(size, static_cast<QImage::Format>(format)), dirty(true)
 {
     if (format == Image::Indexed) {
         m_data.setColor(0, qRgb(0, 0, 0));
@@ -50,7 +50,7 @@ Image::Image(const QSize &size, Image::Format format, QObject *parent) :
 }
 
 Image::Image(const QString &fileName, const char *format, QObject *parent) :
-    QObject(parent), m_data(fileName, format)
+    QObject(parent), m_fileName(fileName), m_data(fileName, format), dirty(false)
 {
     if (!m_data.isNull()) {
         if (m_data.format() != QImage::Format_Indexed8 && m_data.format() != QImage::Format_ARGB32) {
@@ -109,6 +109,27 @@ uint Image::currentColour(const bool secondary) const
     else {
         return m_secondaryColour;
     }
+}
+
+const QString &Image::fileName() const
+{
+    return m_fileName;
+}
+
+bool Image::save(QString fileName)
+{
+    bool saved = false;
+    if (fileName.isNull()) {
+        fileName = m_fileName;
+    }
+    if (!fileName.isNull()) {
+        saved = m_data.save(fileName);
+        if (saved) {
+            dirty = false;
+            m_fileName = fileName;
+        }
+    }
+    return saved;
 }
 
 void drawPixel(QImage &image, const QPoint &point, const uint colour, const void *const data = nullptr)
@@ -353,5 +374,13 @@ void Image::setCurrentColour(uint arg, const bool secondary)
             m_secondaryColour = arg;
             emit currentColourChanged(m_secondaryColour, false);
         }
+    }
+}
+
+void Image::setFileName(const QString &fileName)
+{
+    if (m_fileName != fileName) {
+        m_fileName = fileName;
+        emit fileNameChanged(fileName);
     }
 }

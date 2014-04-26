@@ -27,7 +27,7 @@ void Canvas::paintEvent(QPaintEvent *event)
 //    painter.setRenderHint(QPainter::Antialiasing, true);
 //    painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
     if (m_image) {
-        painter.fillRect(rect(), QBrush(*backgroundPixmap));
+        painter.fillRect(rect(), QBrush(*canvasBackgroundPixmap));
         if (!m_tiled) {
             painter.save();
             QRectF imageBounds = inverseMatrix.mapRect(QRectF(event->rect().topLeft(), event->rect().bottomRight() + QPoint(1, 1)));

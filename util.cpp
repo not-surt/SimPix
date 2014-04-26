@@ -14,4 +14,5 @@ QPixmap *generateBackgroundPixmap(const uint size)
     return pattern;
 }
 
-QPixmap *backgroundPixmap;
+QPixmap *canvasBackgroundPixmap;
+QPixmap *swatchBackgroundPixmap;
