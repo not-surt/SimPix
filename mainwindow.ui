@@ -10,11 +10,6 @@
     <height>389</height>
    </rect>
   </property>
-  <property name="windowIcon">
-   <iconset theme="applications-graphics">
-    <normaloff/>
-   </iconset>
-  </property>
   <property name="dockNestingEnabled">
    <bool>true</bool>
   </property>
@@ -97,8 +92,11 @@
    <addaction name="actionSave"/>
    <addaction name="actionSaveAs"/>
    <addaction name="separator"/>
+   <addaction name="actionClose"/>
+   <addaction name="separator"/>
    <addaction name="actionUndo"/>
    <addaction name="actionRedo"/>
+   <addaction name="separator"/>
    <addaction name="actionTiled"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -366,6 +364,9 @@
    </property>
   </action>
   <action name="actionClose">
+   <property name="icon">
+    <iconset theme="window-close"/>
+   </property>
    <property name="text">
     <string>&amp;Close</string>
    </property>

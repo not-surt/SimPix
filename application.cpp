@@ -5,6 +5,8 @@
 Application::Application(int &argc, char **argv) :
     QApplication(argc, argv), window()
 {
+    setWindowIcon(QIcon("://images/simpix-48x48.png"));
+
     setApplicationName("SimPix");
     setOrganizationName("Uninhabitant");
     setOrganizationDomain("uninhabitant.com");

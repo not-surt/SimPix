@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/simpix-48x48.png</file>
+        <file>text/LICENSE</file>
+    </qresource>
+</RCC>

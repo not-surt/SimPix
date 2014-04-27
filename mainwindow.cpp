@@ -29,8 +29,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(openImage()));
     QObject::connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveImage()));
     QObject::connect(ui->actionSaveAs, SIGNAL(triggered()), this, SLOT(saveAsImage()));
-    QObject::connect(ui->actionClose, SIGNAL(triggered()), this, SLOT(closeFile()));
-    QObject::connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
+    QObject::connect(ui->actionClose, SIGNAL(triggered()), this, SLOT(closeImage()));
+    QObject::connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(exit()));
     QObject::connect(ui->actionFullscreen, SIGNAL(triggered(bool)), this, SLOT(setFullscreen(bool)));
     QObject::connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
     QObject::connect(ui->actionAboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
@@ -89,20 +89,24 @@ Image *MainWindow::image() const
 void MainWindow::setImage(Image *image)
 {
     if (m_image != image) {
-        if (m_image) {
-            QObject::disconnect(image, SIGNAL(changed(const QRegion &)), ui->canvas, SLOT(updateImage(const QRegion &)));
-            QObject::disconnect(ui->canvas, SIGNAL(clicked(const QPoint &)), image, SLOT(point(const QPoint &)));
-            QObject::disconnect(ui->canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), image, SLOT(stroke(const QPoint &, const QPoint &)));
-            QObject::disconnect(ui->actionUndo, SIGNAL(triggered()), image->undoStack, SLOT(undo()));
-            QObject::disconnect(ui->actionRedo, SIGNAL(triggered()), image->undoStack, SLOT(redo()));
+        if (image) {
+            QObject::connect(image, SIGNAL(changed(const QRegion &)), ui->canvas, SLOT(updateImage(const QRegion &)));
+            QObject::connect(ui->canvas, SIGNAL(clicked(const QPoint &)), image, SLOT(point(const QPoint &)));
+            QObject::connect(ui->canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), image, SLOT(stroke(const QPoint &, const QPoint &)));
+            QObject::connect(ui->actionUndo, SIGNAL(triggered()), image->undoStack, SLOT(undo()));
+            QObject::connect(ui->actionRedo, SIGNAL(triggered()), image->undoStack, SLOT(redo()));
+            setWindowFilePath(image->fileName());
         }
-        QObject::connect(image, SIGNAL(changed(const QRegion &)), ui->canvas, SLOT(updateImage(const QRegion &)));
-        QObject::connect(ui->canvas, SIGNAL(clicked(const QPoint &)), image, SLOT(point(const QPoint &)));
-        QObject::connect(ui->canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), image, SLOT(stroke(const QPoint &, const QPoint &)));
-        QObject::connect(ui->actionUndo, SIGNAL(triggered()), image->undoStack, SLOT(undo()));
-        QObject::connect(ui->actionRedo, SIGNAL(triggered()), image->undoStack, SLOT(redo()));
+        else {
+            setWindowFilePath(QString());
+        }
         emit imageChanged(image);
         if (m_image) {
+            QObject::disconnect(m_image, SIGNAL(changed(const QRegion &)), ui->canvas, SLOT(updateImage(const QRegion &)));
+            QObject::disconnect(ui->canvas, SIGNAL(clicked(const QPoint &)), m_image, SLOT(point(const QPoint &)));
+            QObject::disconnect(ui->canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), m_image, SLOT(stroke(const QPoint &, const QPoint &)));
+            QObject::disconnect(ui->actionUndo, SIGNAL(triggered()), m_image->undoStack, SLOT(undo()));
+            QObject::disconnect(ui->actionRedo, SIGNAL(triggered()), m_image->undoStack, SLOT(redo()));
             m_image->deleteLater();
         }
         m_image = image;
@@ -119,17 +123,25 @@ void MainWindow::closeEvent(QCloseEvent *event)
     QMainWindow::closeEvent(event);
 }
 
-void MainWindow::newImage()
+bool MainWindow::newImage()
 {
+    if (!closeImage(false)) {
+        return false;
+    }
     NewDialog *dialog = new NewDialog(this);
     if (dialog->exec()) {
         Image *newImage = new Image(dialog->imageSize(), dialog->mode());
         setImage(newImage);
+        return true;
     }
+    return false;
 }
 
-void MainWindow::openImage()
+bool MainWindow::openImage()
 {
+    if (!closeImage(false)) {
+        return false;
+    }
     QSettings settings;
     settings.beginGroup("file");
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), settings.value("lastOpened", QDir::homePath()).toString(), fileDialogFilterString);
@@ -138,32 +150,38 @@ void MainWindow::openImage()
         Image *newImage = new Image(fileName);
         if (newImage->data().isNull()) {
             delete newImage;
+            QMessageBox::critical(this, QString(), QString(tr("Error opening file <b>\"%1\"</b>")).arg(QFileInfo(fileName).fileName()));
         }
         else {
             setImage(newImage);
+            return true;
         }
     }
     settings.endGroup();
+    return false;
 }
 
-void MainWindow::saveImage()
+bool MainWindow::saveImage()
 {
     if (m_image) {
+        QSettings settings;
+        settings.beginGroup("file");
         if (m_image->fileName().isNull()) {
-            saveAsImage();
+            return saveAsImage();
+        }
+        if (m_image->save()) {
+            settings.setValue("lastSaved", m_image->fileName());
+            return true;
         }
         else {
-            if (m_image->save()) {
-                QSettings settings;
-                settings.beginGroup("file");
-                settings.setValue("lastSaved", m_image->fileName());
-                settings.endGroup();
-            }
+            QMessageBox::critical(this, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(m_image->fileName()).fileName()));
         }
+        settings.endGroup();
     }
+    return false;
 }
 
-void MainWindow::saveAsImage()
+bool MainWindow::saveAsImage()
 {
     if (m_image) {
         QSettings settings;
@@ -179,25 +197,48 @@ void MainWindow::saveAsImage()
         fileName = QFileDialog::getSaveFileName(this, tr("Save Image"), fileName, fileDialogFilterString);
         if (!fileName.isNull()) {
             if (m_image->save(fileName)) {
-                QSettings settings;
-                settings.beginGroup("file");
                 settings.setValue("lastSaved", fileName);
-                settings.endGroup();
+            }
+            else {
+                QMessageBox::critical(this, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(fileName).fileName()));
             }
         }
         settings.endGroup();
     }
+    return false;
 }
 
-void MainWindow::closeFile()
+bool MainWindow::closeImage(const bool doClose)
 {
     if (m_image) {
-        Image *temp = m_image;
-        m_image = 0;
-        ui->paletteWidget->setImage(m_image);
-        emit imageChanged(m_image);
-        delete temp;
+        if (m_image->dirty()) {
+            QString fileName = m_image->fileName().isNull() ? "<i>unnamed</>" : QFileInfo(m_image->fileName()).fileName();
+            QMessageBox::StandardButton button = QMessageBox::question(this, QString(),
+                                           QString(tr("The file \"<b>%1</b>\" has unsaved changes.<br/>"
+                                                      "Do you want to save it before closing?")).arg(fileName),
+                                           QMessageBox::Save | QMessageBox::Discard
+                                           | QMessageBox::Cancel,
+                                           QMessageBox::Save);
+            if (button == QMessageBox::Cancel) {
+                return false;
+            }
+            if (button == QMessageBox::Save) {
+                if (!saveImage()) {
+                    return false;
+                }
+            }
+            if (doClose) {
+                setImage();
+            }
+        }
     }
+    return true;
+}
+
+void MainWindow::exit()
+{
+    closeImage();
+    close();
 }
 
 void MainWindow::setFullscreen(bool fullscreen)
@@ -236,7 +277,7 @@ void MainWindow::aboutQt()
 
 void MainWindow::license()
 {
-    QFile data("LICENSE");
+    QFile data("://text/LICENSE");
     QString text;
     if (data.open(QFile::ReadOnly)) {
         QTextStream stream(&data);
@@ -246,5 +287,5 @@ void MainWindow::license()
             text += line + '\n';
         } while (!line.isNull());
     }
-    QMessageBox::information(this, tr(QString("%1 License").arg(QCoreApplication::applicationName()).toLatin1()), text);
+    QMessageBox::information(this, QString(), text);
 }

@@ -27,13 +27,13 @@ void StrokeCommand::redo()
 
 
 Image::Image(const Image &image, QObject *parent) :
-    QObject(parent), m_fileName(), m_data(image.constData()), m_primaryColour(image.currentColour()), m_secondaryColour(image.currentColour(true)), dirty(true)
+    QObject(parent), m_fileName(), m_data(image.constData()), m_primaryColour(image.currentColour()), m_secondaryColour(image.currentColour(true)), m_dirty(true)
 {
 
 }
 
 Image::Image(const QSize &size, Image::Format format, QObject *parent) :
-    QObject(parent), m_fileName(), m_data(size, static_cast<QImage::Format>(format)), dirty(true)
+    QObject(parent), m_fileName(), m_data(size, static_cast<QImage::Format>(format)), m_dirty(true)
 {
     if (format == Image::Indexed) {
         m_data.setColor(0, qRgb(0, 0, 0));
@@ -50,7 +50,7 @@ Image::Image(const QSize &size, Image::Format format, QObject *parent) :
 }
 
 Image::Image(const QString &fileName, const char *format, QObject *parent) :
-    QObject(parent), m_fileName(fileName), m_data(fileName, format), dirty(false)
+    QObject(parent), m_fileName(fileName), m_data(fileName, format), m_dirty(false)
 {
     if (!m_data.isNull()) {
         if (m_data.format() != QImage::Format_Indexed8 && m_data.format() != QImage::Format_ARGB32) {
@@ -125,11 +125,16 @@ bool Image::save(QString fileName)
     if (!fileName.isNull()) {
         saved = m_data.save(fileName);
         if (saved) {
-            dirty = false;
+            m_dirty = false;
             m_fileName = fileName;
         }
     }
     return saved;
+}
+
+bool Image::dirty() const
+{
+    return m_dirty;
 }
 
 void drawPixel(QImage &image, const QPoint &point, const uint colour, const void *const data = nullptr)
@@ -334,6 +339,7 @@ typedef void (*SegmentCallback)(QImage &image, const QPoint &point0, const QPoin
 
 void Image::point(const QPoint &point, const bool secondary)
 {
+    m_dirty = true;
     PointCallback pointCallback = drawPixel;
     pointCallback(m_data, point, currentColour(secondary), nullptr);
     emit changed(QRegion(QRect(point, QSize(1, 1))));
@@ -341,6 +347,7 @@ void Image::point(const QPoint &point, const bool secondary)
 
 void Image::stroke(const QPoint &point0, const QPoint &point1, const bool secondary)
 {
+    m_dirty = true;
     PointCallback pointCallback = drawPixel;
     SegmentCallback segmentCallback = doLine;
     segmentCallback(m_data, point0, point1, currentColour(secondary), pointCallback, nullptr, true);

@@ -12,6 +12,7 @@ class Image : public QObject
     Q_PROPERTY(QImage data READ data)
     Q_PROPERTY(Image::Format format READ format)
     Q_PROPERTY(uint currentColour READ currentColour WRITE setCurrentColour NOTIFY currentColourChanged)
+    Q_PROPERTY(bool dirty READ dirty)
     Q_ENUMS(data format primaryColour secondaryColour)
 public:
     enum Format {
@@ -35,6 +36,8 @@ public:
 
     const QString &fileName() const;
     bool save(QString fileName = QString());
+
+    bool dirty() const;
 
 signals:
     void fileNameChanged(const QString &fileName);
@@ -62,7 +65,7 @@ private:
     }
     uint m_primaryColour;
     uint m_secondaryColour;
-    bool dirty;
+    bool m_dirty;
 };
 
 

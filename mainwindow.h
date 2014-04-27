@@ -22,16 +22,17 @@ signals:
     void imageChanged(Image *const);
 
 public slots:
-    void newImage();
-    void openImage();
-    void saveImage();
-    void saveAsImage();
+    bool newImage();
+    bool openImage();
+    bool saveImage();
+    bool saveAsImage();
     void setFullscreen(bool);
     void about();
     void aboutQt();
-    void closeFile();
+    bool closeImage(const bool doClose = true);
+    void exit();
     void license();
-    void setImage(Image *image);
+    void setImage(Image *image = nullptr);
 
 protected:
     virtual void closeEvent(QCloseEvent *event);

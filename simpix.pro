@@ -60,4 +60,13 @@ CONFIG += c++11
 include(color_widgets/color_widgets.pri)
 
 OTHER_FILES += \
-    paletteplugin.json
+    paletteplugin.json \
+    simpix.rc \
+    images/simpix-48x48.png \
+    images/simpix.ico \
+    text/LICENSE
+
+RESOURCES += \
+    simpix.qrc
+
+RC_FILE = simpix.rc
