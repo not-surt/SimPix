@@ -2,6 +2,7 @@
 #define PALETTEWIDGET_H
 
 #include <QWidget>
+#include <QColor>
 #include <ui_palettewidget.h>
 #include "image.h"
 
@@ -22,6 +23,8 @@ public:
 
 
 signals:
+    void primaryColourChanged(const uint colour);
+    void secondaryColourChanged(const uint colour);
 
 public slots:
     void setImage(Image *const image);

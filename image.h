@@ -11,7 +11,7 @@ class Image : public QObject
     Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged)
     Q_PROPERTY(QImage data READ data)
     Q_PROPERTY(Image::Format format READ format)
-    Q_PROPERTY(uint currentColour READ currentColour WRITE setCurrentColour NOTIFY currentColourChanged)
+    Q_PROPERTY(uint contextColour READ contextColour WRITE setContextColour NOTIFY contextColourChanged)
     Q_PROPERTY(bool dirty READ dirty)
     Q_ENUMS(data format primaryColour secondaryColour)
 public:
@@ -19,6 +19,11 @@ public:
         Invalid = QImage::Format_Invalid,
         Indexed = QImage::Format_Indexed8,
         RGBA = QImage::Format_ARGB32,
+    };
+    enum ContextColour {
+        Primary,
+        Secondary,
+        Eraser,
     };
     explicit Image(const Image &image, QObject *parent = nullptr);
     explicit Image(const QSize &size, Format format, QObject *parent = nullptr);
@@ -30,7 +35,7 @@ public:
 
     Image::Format format() const;
 
-    uint currentColour(const bool secondary = false) const;
+    uint contextColour(const int context = Primary) const;
 
     QUndoStack *undoStack = new QUndoStack(this);
 
@@ -42,13 +47,13 @@ public:
 signals:
     void fileNameChanged(const QString &fileName);
     void changed(const QRegion &region);
-    void currentColourChanged(uint currentColour, bool secondary);    
+    void contextColourChanged(const uint colour, const int context = Primary);
 
 public slots:
     void point(const QPoint &position, const bool secondary = false);
     void stroke(const QPoint &a, const QPoint &b, const bool secondary = false);
     void pick(const QPoint &position, const bool secondary = false);
-    void setCurrentColour(uint currentColour, const bool secondary = false);
+    void setContextColour(const uint colour, const int context = Primary);
     void setFileName(const QString &fileName);
 
 private:
@@ -65,9 +70,12 @@ private:
     }
     uint m_primaryColour;
     uint m_secondaryColour;
+    uint m_eraserColour;
     bool m_dirty;
 };
 
+Q_DECLARE_METATYPE(Image::Format)
+Q_DECLARE_METATYPE(Image::ContextColour)
 
 
 class StrokeCommand : public QUndoCommand

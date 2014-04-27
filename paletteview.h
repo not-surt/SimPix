@@ -19,6 +19,13 @@ signals:
 public slots:
     void setImage(Image *image);
 
+
+    // QWidget interface
+protected:
+    virtual void mousePressEvent(QMouseEvent *event);
+    virtual void mouseReleaseEvent(QMouseEvent *event);
+    virtual void mouseDoubleClickEvent(QMouseEvent *event);
+    virtual void mouseMoveEvent(QMouseEvent *event);
 };
 
 #endif // PALETTEVIEW_H

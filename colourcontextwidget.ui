@@ -20,7 +20,35 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="1">
+   <item row="0" column="0">
+    <widget class="ColourSwatch" name="primaryColourSwatch">
+     <property name="text">
+      <string>PushButton</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="4">
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="ColourSwatch" name="secondaryColourSwatch">
+     <property name="text">
+      <string>PushButton</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="5">
+    <widget class="ColourSwatch" name="eraserColourSwatch">
+     <property name="text">
+      <string>PushButton</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="3">
     <widget class="QToolButton" name="swapColoursButton">
      <property name="text">
       <string>...</string>
@@ -41,42 +69,13 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="2">
-    <widget class="ColourSwatch" name="secondaryColourSwatchWidget" native="true">
-     <property name="focusPolicy">
-      <enum>Qt::StrongFocus</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0">
-    <widget class="ColourSwatch" name="primaryColourSwatchWidget" native="true">
-     <property name="focusPolicy">
-      <enum>Qt::StrongFocus</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="3">
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="4">
-    <widget class="ColourSwatch" name="eraserColourSwatchWidget" native="true">
-     <property name="focusPolicy">
-      <enum>Qt::StrongFocus</enum>
-     </property>
-    </widget>
-   </item>
   </layout>
  </widget>
  <customwidgets>
   <customwidget>
    <class>ColourSwatch</class>
-   <extends>QWidget</extends>
+   <extends>QPushButton</extends>
    <header>colourswatch.h</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

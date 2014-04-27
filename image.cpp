@@ -27,7 +27,7 @@ void StrokeCommand::redo()
 
 
 Image::Image(const Image &image, QObject *parent) :
-    QObject(parent), m_fileName(), m_data(image.constData()), m_primaryColour(image.currentColour()), m_secondaryColour(image.currentColour(true)), m_dirty(true)
+    QObject(parent), m_fileName(), m_data(image.constData()), m_primaryColour(image.m_primaryColour), m_secondaryColour(image.m_secondaryColour), m_eraserColour(image.m_eraserColour), m_dirty(true)
 {
 
 }
@@ -97,17 +97,6 @@ Image::Format Image::format() const
         return RGBA;
     default:
         return Invalid;
-    }
-}
-
-uint Image::currentColour(const bool secondary) const
-{
-    return m_primaryColour;
-    if (!secondary) {
-        return m_primaryColour;
-    }
-    else {
-        return m_secondaryColour;
     }
 }
 
@@ -341,7 +330,7 @@ void Image::point(const QPoint &point, const bool secondary)
 {
     m_dirty = true;
     PointCallback pointCallback = drawPixel;
-    pointCallback(m_data, point, currentColour(secondary), nullptr);
+    pointCallback(m_data, point, contextColour(Primary), nullptr);
     emit changed(QRegion(QRect(point, QSize(1, 1))));
 }
 
@@ -350,7 +339,7 @@ void Image::stroke(const QPoint &point0, const QPoint &point1, const bool second
     m_dirty = true;
     PointCallback pointCallback = drawPixel;
     SegmentCallback segmentCallback = doLine;
-    segmentCallback(m_data, point0, point1, currentColour(secondary), pointCallback, nullptr, true);
+    segmentCallback(m_data, point0, point1, contextColour(Primary), pointCallback, nullptr, true);
 //    undoStack->push(new StrokeCommand(*m_image, a, b));
 //    emit changed(QRect(a, b));
     emit changed(QRegion(data().rect()));
@@ -360,27 +349,49 @@ void Image::pick(const QPoint &point, const bool secondary)
 {
     if (m_data.rect().contains(point)) {
         if (format() == Indexed) {
-            setCurrentColour(m_data.pixelIndex(point), secondary);
+            setContextColour(m_data.pixelIndex(point), Primary);
         }
         else if (format() == RGBA) {
-            setCurrentColour(m_data.pixel(point), secondary);
+            setContextColour(m_data.pixel(point), Primary);
         }
     }
 }
 
-void Image::setCurrentColour(uint arg, const bool secondary)
+uint Image::contextColour(const int context) const
 {
-    if (!secondary) {
-        if (m_primaryColour != arg) {
-            m_primaryColour = arg;
-            emit currentColourChanged(m_primaryColour, false);
-        }
+    switch (context) {
+    default:
+    case Primary:
+        return m_primaryColour;
+    case Secondary:
+        return m_secondaryColour;
+    case Eraser:
+        return m_eraserColour;
     }
-    else {
-        if (m_secondaryColour != arg) {
-            m_secondaryColour = arg;
-            emit currentColourChanged(m_secondaryColour, false);
+}
+
+void Image::setContextColour(uint colour, const int context)
+{
+    switch (context) {
+    default:
+    case Primary:
+        if (m_primaryColour != colour) {
+            m_primaryColour = colour;
+            emit contextColourChanged(m_primaryColour, Primary);
         }
+        break;
+    case Secondary:
+        if (m_secondaryColour != colour) {
+            m_secondaryColour = colour;
+            emit contextColourChanged(m_secondaryColour, Secondary);
+        }
+        break;
+    case Eraser:
+        if (m_eraserColour != colour) {
+            m_eraserColour = colour;
+            emit contextColourChanged(m_eraserColour, Eraser);
+        }
+        break;
     }
 }
 

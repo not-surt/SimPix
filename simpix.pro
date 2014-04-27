@@ -28,7 +28,8 @@ SOURCES += main.cpp\
     colourswatch.cpp \
     colourswatchdelegate.cpp \
     util.cpp \
-    application.cpp
+    application.cpp \
+    imagemodel.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
@@ -45,7 +46,8 @@ HEADERS  += mainwindow.h \
     colourswatchdelegate.h \
     colourswatch.h \
     util.h \
-    application.h
+    application.h \
+    imagemodel.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \

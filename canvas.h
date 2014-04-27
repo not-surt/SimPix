@@ -21,6 +21,7 @@ class Canvas : public QWidget
     Q_PROPERTY(Image *image READ image WRITE setImage NOTIFY imageChanged)
     Q_PROPERTY(Transform transform READ transform WRITE setTransform NOTIFY transformChanged)
     Q_PROPERTY(bool tiled READ tiled WRITE setTiled NOTIFY tiledChanged)
+    Q_PROPERTY(bool showFrame READ showFrame WRITE setShowFrame NOTIFY showFrameChanged)
     Q_ENUMS(image transform)
 
 public:
@@ -35,20 +36,22 @@ public:
     Image *image() const;
     Transform transform() const;
     bool tiled() const;
+    bool showFrame() const;
 
 public slots:
     void setImage(Image *const image);
     void setTransform(const Transform &transform, const bool limit = true);
     void updateImage(const QRegion &region);
-
-    void setTiled(bool tiled);
+    void setTiled(const bool tiled);
+    void setShowFrame(const bool showFrame);
 
 signals:
     void imageChanged(Image *image);
     void transformChanged(const Transform &transform);
-    void tiledChanged(bool tiled);
+    void tiledChanged(const bool tiled);
     void clicked(const QPoint &position);
     void dragged(const QPoint &a, const QPoint &b);
+    void showFrameChanged(const bool showFrame);
 
 protected:
     virtual void paintEvent(QPaintEvent *event);
@@ -67,6 +70,7 @@ private:
 
     void updateMatrix();
 
+    bool m_showFrame;
 };
 
 #endif // CANVAS_H

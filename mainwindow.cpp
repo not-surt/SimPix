@@ -43,6 +43,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->canvas, SIGNAL(transformChanged(Transform)), ui->transformWidget, SLOT(setTransform(Transform)));
 
     QObject::connect(ui->actionTiled, SIGNAL(triggered(bool)), ui->canvas, SLOT(setTiled(bool)));
+    QObject::connect(ui->actionShowFrame, SIGNAL(triggered(bool)), ui->canvas, SLOT(setShowFrame(bool)));
 
     QMenu *toolBarMenu = new QMenu(this);
     ui->actionToolbars->setMenu(toolBarMenu);
@@ -91,6 +92,8 @@ void MainWindow::setImage(Image *image)
     if (m_image != image) {
         if (image) {
             QObject::connect(image, SIGNAL(changed(const QRegion &)), ui->canvas, SLOT(updateImage(const QRegion &)));
+            qRegisterMetaType<Image::ContextColour>("Image::ContextColour");
+            QObject::connect(image, SIGNAL(contextColourChanged(const uint, const int)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
             QObject::connect(ui->canvas, SIGNAL(clicked(const QPoint &)), image, SLOT(point(const QPoint &)));
             QObject::connect(ui->canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), image, SLOT(stroke(const QPoint &, const QPoint &)));
             QObject::connect(ui->actionUndo, SIGNAL(triggered()), image->undoStack, SLOT(undo()));

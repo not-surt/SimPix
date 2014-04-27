@@ -2,6 +2,7 @@
 #include "palettemodel.h"
 #include "paletteview.h"
 
+#include <QMouseEvent>
 #include <QPainter>
 
 PaletteView::PaletteView(QWidget *parent) :
@@ -32,4 +33,30 @@ Image *PaletteView::image() const
 void PaletteView::setImage(Image *image)
 {
     ((PaletteModel *)model())->setImage(image);
+}
+
+
+void PaletteView::mousePressEvent(QMouseEvent *event)
+{
+    if(event->button() == Qt::RightButton)
+    {
+//        emit customContextMenuRequested(event->pos());
+    }
+    else
+        QListView::mousePressEvent(event);
+}
+
+void PaletteView::mouseReleaseEvent(QMouseEvent *event)
+{
+    QListView::mouseReleaseEvent(event);
+}
+
+void PaletteView::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    QListView::mouseDoubleClickEvent(event);
+}
+
+void PaletteView::mouseMoveEvent(QMouseEvent *event)
+{
+    QListView::mouseMoveEvent(event);
 }

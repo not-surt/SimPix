@@ -1,10 +1,10 @@
 #ifndef COLOURSWATCH_H
 #define COLOURSWATCH_H
 
-#include <QWidget>
+#include <QAbstractButton>
 #include <QColor>
 
-class ColourSwatch : public QWidget
+class ColourSwatch : public QAbstractButton
 {
     Q_OBJECT
     Q_PROPERTY(QColor colour READ colour WRITE setColour NOTIFY colourChanged)

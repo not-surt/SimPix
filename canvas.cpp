@@ -9,7 +9,7 @@
 std::unique_ptr<QPixmap> Canvas::backgroundPattern = nullptr;
 
 Canvas::Canvas(QWidget *parent) :
-    QWidget(parent), m_image(0), m_transform(), panKeyDown(false)
+    QWidget(parent), m_image(0), m_transform(), panKeyDown(false), m_tiled(false), m_showFrame(false)
 {
     setFocusPolicy(Qt::WheelFocus);
     setMouseTracking(true);
@@ -44,14 +44,16 @@ void Canvas::paintEvent(QPaintEvent *event)
             painter.fillRect(rect(), brush);
             painter.restore();
         }
-        painter.save();
-        painter.setTransform(matrix);
-        QPen pen;
-        pen.setWidth(0);
-        pen.setColor(Qt::white);
-        painter.setPen(pen);
-        painter.drawRect(m_image->data().rect());
-        painter.restore();
+        if (m_showFrame) {
+            painter.save();
+            painter.setTransform(matrix);
+            QPen pen;
+            pen.setWidth(0);
+            pen.setColor(Qt::white);
+            painter.setPen(pen);
+            painter.drawRect(m_image->data().rect());
+            painter.restore();
+        }
 //        qDebug() << imageRect;
     }
 }
@@ -220,6 +222,11 @@ bool Canvas::tiled() const
     return m_tiled;
 }
 
+bool Canvas::showFrame() const
+{
+    return m_showFrame;
+}
+
 void Canvas::setImage(Image *const image)
 {
     m_image = image;
@@ -297,12 +304,21 @@ void Canvas::updateImage(const QRegion &region)
     }
 }
 
-void Canvas::setTiled(bool tiled)
+void Canvas::setTiled(const bool tiled)
 {
     if (m_tiled != tiled) {
         m_tiled = tiled;
         update();
         emit tiledChanged(tiled);
+    }
+}
+
+void Canvas::setShowFrame(const bool showFrame)
+{
+    if (m_showFrame != showFrame) {
+        m_showFrame = showFrame;
+        update();
+        emit showFrameChanged(showFrame);
     }
 }
 
