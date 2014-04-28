@@ -12,6 +12,7 @@ Application::Application(int &argc, char **argv) :
     setOrganizationDomain("uninhabitant.com");
 
     setStyleSheet(
+        "QStatusBar::item {border: none}"
 //        "* {color: #fff; background-color: #000}"
 //        "* {font-size: 24pt}"
 //        "* {icon-size: 48px}"

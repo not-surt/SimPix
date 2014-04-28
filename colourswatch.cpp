@@ -5,7 +5,7 @@
 #include "util.h"
 
 ColourSwatch::ColourSwatch(QWidget *parent) :
-    QAbstractButton(parent)
+    QAbstractButton(parent), m_colour(QColor(0, 0, 0, 0))
 {
 }
 

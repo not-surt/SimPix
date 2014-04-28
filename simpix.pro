@@ -29,7 +29,9 @@ SOURCES += main.cpp\
     colourswatchdelegate.cpp \
     util.cpp \
     application.cpp \
-    imagemodel.cpp
+    imagemodel.cpp \
+    transformmodel.cpp \
+    statusmousewidget.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
@@ -47,14 +49,17 @@ HEADERS  += mainwindow.h \
     colourswatch.h \
     util.h \
     application.h \
-    imagemodel.h
+    imagemodel.h \
+    transformmodel.h \
+    statusmousewidget.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \
     colourselector.ui \
     transformwidget.ui \
     palettewidget.ui \
-    colourcontextwidget.ui
+    colourcontextwidget.ui \
+    statusmousewidget.ui
 
 #QMAKE_CXXFLAGS += -std=c++11
 CONFIG += c++11

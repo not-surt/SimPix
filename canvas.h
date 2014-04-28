@@ -6,14 +6,7 @@
 #include <QPixmap>
 #include <memory>
 #include "image.h"
-//#include "transform.h"
-
-typedef struct Transform {
-    QPointF pan;
-    qreal zoom;
-    QPointF pixelAspect;
-    qreal rotation;
-} Transform;
+#include "transform.h"
 
 class Canvas : public QWidget
 {
@@ -52,6 +45,9 @@ signals:
     void clicked(const QPoint &position);
     void dragged(const QPoint &a, const QPoint &b);
     void showFrameChanged(const bool showFrame);
+    void mouseEntered();
+    void mouseLeft();
+    void pixelChanged(const QPoint &position, const uint colour);
 
 protected:
     virtual void paintEvent(QPaintEvent *event);
@@ -71,6 +67,11 @@ private:
     void updateMatrix();
 
     bool m_showFrame;
+
+    // QWidget interface
+protected:
+    virtual void enterEvent(QEvent *const event);
+    virtual void leaveEvent(QEvent * const event);
 };
 
 #endif // CANVAS_H

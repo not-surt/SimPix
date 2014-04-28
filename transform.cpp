@@ -5,8 +5,8 @@ Transform::Transform(QObject *parent) :
 {
 }
 
-Transform::Transform(const Transform &transform, QObject *parent):
-    QObject(parent), m_origin(transform.m_origin), m_pan(transform.m_pan), m_zoom(transform.m_zoom), m_pixelAspect(transform.m_pixelAspect), m_rotation(transform.m_rotation), dirty(true)
+Transform::Transform(const Transform &transform):
+    QObject(transform.parent()), m_origin(transform.m_origin), m_pan(transform.m_pan), m_zoom(transform.m_zoom), m_pixelAspect(transform.m_pixelAspect), m_rotation(transform.m_rotation), dirty(true)
 {
 }
 
@@ -15,7 +15,7 @@ void Transform::setOrigin(const QPointF &origin)
     if (m_origin != origin) {
         dirty = true;
         m_origin = origin;
-        emit originChanged(origin);
+        emit changed(*this);
     }
 }
 
@@ -24,7 +24,7 @@ void Transform::setPan(const QPointF &pan)
     if (m_pan != pan) {
         dirty = true;
         m_pan = pan;
-        emit panChanged(pan);
+        emit changed(*this);
     }
 }
 
@@ -33,7 +33,7 @@ void Transform::setZoom(const qreal zoom)
     if (m_zoom != zoom) {
         dirty = true;
         m_zoom = zoom;
-        emit zoomChanged(zoom);
+        emit changed(*this);
     }
 }
 
@@ -42,7 +42,7 @@ void Transform::setPixelAspect(const QPointF &pixelAspect)
     if (m_pixelAspect != pixelAspect) {
         dirty = true;
         m_pixelAspect = pixelAspect;
-        emit pixelAspectChanged(pixelAspect);
+        emit changed(*this);
     }
 }
 
@@ -51,7 +51,7 @@ void Transform::setRotation(const qreal rotation)
     if (m_rotation != rotation) {
         dirty = true;
         m_rotation = rotation;
-        emit rotationChanged(rotation);
+        emit changed(*this);
     }
 }
 

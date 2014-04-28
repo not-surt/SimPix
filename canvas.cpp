@@ -5,20 +5,23 @@
 #include <QDebug>
 #include <QApplication>
 #include "util.h"
+#include "transform.h"
 
 std::unique_ptr<QPixmap> Canvas::backgroundPattern = nullptr;
 
 Canvas::Canvas(QWidget *parent) :
-    QWidget(parent), m_image(0), m_transform(), panKeyDown(false), m_tiled(false), m_showFrame(false)
+    QWidget(parent), m_image(0), m_transform(), m_tiled(false), panKeyDown(false), m_showFrame(false)
 {
     setFocusPolicy(Qt::WheelFocus);
     setMouseTracking(true);
     setImage(0);
 }
 
-void Canvas::resizeEvent(QResizeEvent *)
+void Canvas::resizeEvent(QResizeEvent *event)
 {
+    m_transform.setOrigin(QPoint(event->size().width() / 2, event->size().height() / 2));
     updateMatrix();
+    QWidget::resizeEvent(event);
 }
 
 void Canvas::paintEvent(QPaintEvent *event)
@@ -81,14 +84,17 @@ void Canvas::mousePressEvent(QMouseEvent *event)
 
 void Canvas::mouseMoveEvent(QMouseEvent *event)
 {
+    const QPointF mouseImagePosition = inverseMatrix.map(QPointF(event->pos()));
+    const QPoint lastPixel = QPoint(floor(lastMouseImagePos.x()), floor(lastMouseImagePos.y()));
+    const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
     if (rect().contains(event->pos())) {
         setFocus();
+        if (m_image && pixel != lastPixel && m_image->data().rect().contains(pixel)) {
+            emit pixelChanged(pixel, m_image->data().pixel(pixel));
+        }
     }
-    const QPointF mouseImagePosition = inverseMatrix.map(QPointF(event->pos()));
     if (!panKeyDown && event->buttons() & Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
         if (m_image) {
-            const QPoint lastPixel = QPoint(floor(lastMouseImagePos.x()), floor(lastMouseImagePos.y()));
-            const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
             emit dragged(lastPixel, pixel);
             lastMousePos = event->pos();
             lastMouseImagePos = mouseImagePosition;
@@ -101,7 +107,7 @@ void Canvas::mouseMoveEvent(QMouseEvent *event)
     else if (panKeyDown || event->buttons() & Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
         const QPointF delta = mouseImagePosition - inverseMatrix.map(QPointF(lastMousePos));
         Transform transform = m_transform;
-        transform.pan += delta;
+        transform.setPan(transform.pan() + delta);
         setTransform(transform);
         lastMousePos = event->pos();
         lastMouseImagePos = mouseImagePosition;
@@ -146,10 +152,10 @@ void Canvas::wheelEvent(QWheelEvent *event)
     if (event->modifiers() & Qt::SHIFT) {
         Transform transform = m_transform;
         const qreal angle = event->angleDelta().y() > 0 ? 15 : (event->angleDelta().y() < 0 ? -15 : 0);
-        transform.rotation += angle;
+        transform.setRotation(transform.rotation() + angle);
         if (transformAroundCursor) {
             const QPointF mouseImagePosition = inverseMatrix.map(QPointF(event->pos()));
-            const QPointF mouseDelta = mouseImagePosition - transform.pan;
+            const QPointF mouseDelta = mouseImagePosition - transform.pan();
             qDebug() << mouseDelta;
         }
         setTransform(transform);
@@ -158,7 +164,7 @@ void Canvas::wheelEvent(QWheelEvent *event)
     else {
         Transform transform = m_transform;
         const qreal scale = event->angleDelta().y() > 0 ? 2 : (event->angleDelta().y() < 0 ? .5 : 1);
-        transform.zoom *= scale;
+        transform.setZoom(transform.zoom() * scale);
         if (transformAroundCursor) {
             const QPointF mouseImagePosition = inverseMatrix.map(QPointF(event->pos()));
 
@@ -230,21 +236,22 @@ bool Canvas::showFrame() const
 void Canvas::setImage(Image *const image)
 {
     m_image = image;
-    m_transform.pan = QPointF(0, 0);
-    m_transform.zoom = 1.;
-    m_transform.pixelAspect = QPointF(1., 1.);
-    m_transform.rotation = 0.;
+    Transform transform;
+    transform.setOrigin(QPointF(width() / 2, height() / 2));
+    transform.setPan(QPointF(0, 0));
+    transform.setZoom(1.);
+    transform.setPixelAspect(QPointF(1., 1.));
+    transform.setRotation(0.);
     if (image) {
         setAttribute(Qt::WA_OpaquePaintEvent, true);
         setAttribute(Qt::WA_NoSystemBackground, true);
-        m_transform.pan = -QPointF((qreal)m_image->data().width() / 2., (qreal)m_image->data().height() / 2.);
+        transform.setPan(-QPointF((qreal)m_image->data().width() / 2., (qreal)m_image->data().height() / 2.));
     }
     else {
         setAttribute(Qt::WA_OpaquePaintEvent, false);
         setAttribute(Qt::WA_NoSystemBackground, false);
     }
-    updateMatrix();
-    emit transformChanged(m_transform);
+    setTransform(transform);
 }
 
 inline qreal fsel(const qreal a, const qreal b, const qreal c) {
@@ -267,26 +274,22 @@ inline qreal wrap(qreal value, const qreal min, const qreal max)
 
 void Canvas::setTransform(const Transform &transform, const bool limit)
 {
-    if (m_transform.pan != transform.pan ||
-            m_transform.zoom != transform.zoom ||
-            m_transform.pixelAspect != transform.pixelAspect ||
-            m_transform.rotation != transform.rotation) {
+    if (m_transform != transform) {
         m_transform = transform;
         if (limit) {
             if (m_image) {
                 if (!m_tiled) {
-                    m_transform.pan.setX(clamp(m_transform.pan.x(), (qreal)-m_image->data().width(), 0.));
-                    m_transform.pan.setY(clamp(m_transform.pan.y(), (qreal)-m_image->data().height(), 0.));
+                    m_transform.setPan(QPointF(clamp(m_transform.pan().x(), (qreal)-m_image->data().width(), 0.),
+                                               clamp(m_transform.pan().y(), (qreal)-m_image->data().height(), 0.)));
                 }
                 else {
-                    m_transform.pan.setX(wrap(m_transform.pan.x(), (qreal)-m_image->data().width(), 0.));
-                    m_transform.pan.setY(wrap(m_transform.pan.y(), (qreal)-m_image->data().height(), 0.));
+                    m_transform.setPan(QPointF(wrap(m_transform.pan().x(), (qreal)-m_image->data().width(), 0.),
+                                               wrap(m_transform.pan().y(), (qreal)-m_image->data().height(), 0.)));
                 }
             }
-            m_transform.zoom = clamp(m_transform.zoom, 1./16., 256.);
-            m_transform.pixelAspect.setX(clamp(m_transform.pixelAspect.x(), 1./16., 16.));
-            m_transform.pixelAspect.setY(clamp(m_transform.pixelAspect.y(), 1./16., 16.));
-            m_transform.rotation = wrap(m_transform.rotation, 0., 360.);
+            m_transform.setZoom(clamp(m_transform.zoom(), 1./16., 256.));
+            m_transform.setPixelAspect(QPointF(clamp(m_transform.pixelAspect().x(), 1./16., 16.), clamp(m_transform.pixelAspect().y(), 1./16., 16.)));
+            m_transform.setRotation(wrap(m_transform.rotation(), 0., 360.));
         }
         updateMatrix();
         emit transformChanged(m_transform);
@@ -325,10 +328,25 @@ void Canvas::setShowFrame(const bool showFrame)
 void Canvas::updateMatrix()
 {
     matrix = QTransform();
-    matrix.translate(width() / 2, height() / 2);
-    matrix.rotate(m_transform.rotation);
-    matrix.scale(m_transform.zoom * m_transform.pixelAspect.x(), m_transform.zoom * m_transform.pixelAspect.y());
-    matrix.translate(m_transform.pan.x(), m_transform.pan.y());
+    matrix.translate(m_transform.origin().x(), m_transform.origin().y());
+    matrix.rotate(m_transform.rotation());
+    matrix.scale(m_transform.zoom() * m_transform.pixelAspect().x(), m_transform.zoom() * m_transform.pixelAspect().y());
+    matrix.translate(m_transform.pan().x(), m_transform.pan().y());
     inverseMatrix = matrix.inverted();
     update();
+}
+
+
+void Canvas::enterEvent(QEvent *const event)
+{
+    if (m_image) {
+        emit mouseEntered();
+    }
+    QWidget::enterEvent(event);
+}
+
+void Canvas::leaveEvent(QEvent *const event)
+{
+    emit mouseLeft();
+    QWidget::leaveEvent(event);
 }

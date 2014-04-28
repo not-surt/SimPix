@@ -6,12 +6,12 @@ TransformWidget::TransformWidget(QWidget *parent) :
     ui(new Ui::TransformWidget)
 {
     ui->setupUi(this);
-    QObject::connect(ui->panXSpinBox, SIGNAL(valueChanged(double)), this, SLOT(sendTransform()));
-    QObject::connect(ui->panYSpinBox, SIGNAL(valueChanged(double)), this, SLOT(sendTransform()));
-    QObject::connect(ui->zoomSpinBox, SIGNAL(valueChanged(double)), this, SLOT(sendTransform()));
-    QObject::connect(ui->pixelAspectXSpinBox, SIGNAL(valueChanged(double)), this, SLOT(sendTransform()));
-    QObject::connect(ui->pixelAspectYSpinBox, SIGNAL(valueChanged(double)), this, SLOT(sendTransform()));
-    QObject::connect(ui->rotationSpinBox, SIGNAL(valueChanged(double)), this, SLOT(sendTransform()));
+    QObject::connect(ui->panXSpinBox, SIGNAL(valueChanged(double)), this, SLOT(updateTransform()));
+    QObject::connect(ui->panYSpinBox, SIGNAL(valueChanged(double)), this, SLOT(updateTransform()));
+    QObject::connect(ui->zoomSpinBox, SIGNAL(valueChanged(double)), this, SLOT(updateTransform()));
+    QObject::connect(ui->pixelAspectXSpinBox, SIGNAL(valueChanged(double)), this, SLOT(updateTransform()));
+    QObject::connect(ui->pixelAspectYSpinBox, SIGNAL(valueChanged(double)), this, SLOT(updateTransform()));
+    QObject::connect(ui->rotationSpinBox, SIGNAL(valueChanged(double)), this, SLOT(updateTransform()));
 
     QObject::connect(ui->panClearButton, SIGNAL(clicked()), this, SLOT(clearPan()));
     QObject::connect(ui->zoomClearButton, SIGNAL(clicked()), this, SLOT(clearZoom()));
@@ -24,54 +24,58 @@ TransformWidget::~TransformWidget()
     delete ui;
 }
 
-Transform TransformWidget::transform() const
+const Transform &TransformWidget::transform() const
 {
-    return Transform {QPointF(ui->panXSpinBox->value(), ui->panYSpinBox->value()),
-                ui->zoomSpinBox->value(),
-                QPointF(ui->pixelAspectXSpinBox->value(), ui->pixelAspectYSpinBox->value()),
-                ui->rotationSpinBox->value()};
+    return m_transform;
 }
 
-void TransformWidget::setTransform(Transform arg)
+
+void TransformWidget::setTransform(const Transform &transform)
 {
-    if (ui->panXSpinBox->value() != arg.pan.x() ||
-            ui->panYSpinBox->value() != arg.pan.y() ||
-            ui->zoomSpinBox->value() != arg.zoom ||
-            ui->pixelAspectXSpinBox->value() != arg.pixelAspect.x() ||
-            ui->pixelAspectYSpinBox->value() != arg.pixelAspect.y() ||
-            ui->rotationSpinBox->value() != arg.rotation) {
-        ui->panXSpinBox->setValue(arg.pan.x());
-        ui->panYSpinBox->setValue(arg.pan.y());
-        ui->zoomSpinBox->setValue(arg.zoom);
-        ui->pixelAspectXSpinBox->setValue(arg.pixelAspect.x());
-        ui->pixelAspectYSpinBox->setValue(arg.pixelAspect.y());
-        ui->rotationSpinBox->setValue(arg.rotation);
-        emit transformChanged(arg);
+    if (m_transform != transform) {
+        m_transform = transform;
+        blockSignals(true);
+        ui->panXSpinBox->setValue(m_transform.pan().x());
+        ui->panYSpinBox->setValue(m_transform.pan().y());
+        ui->zoomSpinBox->setValue(m_transform.zoom());
+        ui->pixelAspectXSpinBox->setValue(m_transform.pixelAspect().x());
+        ui->pixelAspectYSpinBox->setValue(m_transform.pixelAspect().y());
+        ui->rotationSpinBox->setValue(m_transform.rotation());
+        blockSignals(false);
+        emit transformChanged(m_transform);
     }
 }
 
-void TransformWidget::sendTransform() {
-    emit transformChanged(transform());
+void TransformWidget::updateTransform() {
+    Transform transform;
+    transform.setOrigin(m_transform.origin());
+    transform.setPan(QPointF(ui->panXSpinBox->value(), ui->panYSpinBox->value()));
+    transform.setZoom(ui->zoomSpinBox->value());
+    transform.setPixelAspect(QPointF(ui->pixelAspectXSpinBox->value(), ui->pixelAspectYSpinBox->value()));
+    transform.setRotation(ui->rotationSpinBox->value());
+    if (m_transform != transform) {
+        emit transformChanged(transform);
+    }
 }
 
 void TransformWidget::clearPan() {
     ui->panXSpinBox->setValue(0.);
     ui->panYSpinBox->setValue(0.);
-    emit transformChanged(transform());
+    updateTransform();
 }
 
 void TransformWidget::clearZoom() {
     ui->zoomSpinBox->setValue(1.);
-    emit transformChanged(transform());
+    updateTransform();
 }
 
 void TransformWidget::clearPixelAspect() {
     ui->pixelAspectXSpinBox->setValue(1.);
     ui->pixelAspectYSpinBox->setValue(1.);
-    emit transformChanged(transform());
+    updateTransform();
 }
 
 void TransformWidget::clearRotation() {
     ui->rotationSpinBox->setValue(0.);
-    emit transformChanged(transform());
+    updateTransform();
 }

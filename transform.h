@@ -8,17 +8,17 @@
 class Transform : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QPointF origin READ origin WRITE setOrigin NOTIFY originChanged)
-    Q_PROPERTY(QPointF pan READ pan WRITE setPan NOTIFY panChanged)
-    Q_PROPERTY(qreal zoom READ zoom WRITE setZoom NOTIFY zoomChanged)
-    Q_PROPERTY(QPointF pixelAspect READ pixelAspect WRITE setPixelAspect NOTIFY pixelAspectChanged)
-    Q_PROPERTY(qreal rotation READ rotation WRITE setRotation NOTIFY rotationChanged)
+    Q_PROPERTY(QPointF origin READ origin WRITE setOrigin)
+    Q_PROPERTY(QPointF pan READ pan WRITE setPan)
+    Q_PROPERTY(qreal zoom READ zoom WRITE setZoom)
+    Q_PROPERTY(QPointF pixelAspect READ pixelAspect WRITE setPixelAspect)
+    Q_PROPERTY(qreal rotation READ rotation WRITE setRotation)
     Q_PROPERTY(QTransform matrix READ matrix)
     Q_PROPERTY(QTransform inverseMatrix READ inverseMatrix)
-    Q_ENUMS(pan zoom pixelAspect rotation)
+    Q_ENUMS(origin pan zoom pixelAspect rotation)
 public:
     explicit Transform(QObject *parent = nullptr);
-    explicit Transform(const Transform &transform, QObject *parent = nullptr);
+    Transform(const Transform &transform);
     QPointF origin() const;
     const QPointF &pan() const;
     qreal zoom() const;
@@ -26,13 +26,30 @@ public:
     qreal rotation() const;
     const QTransform &matrix();
     const QTransform &inverseMatrix();
+    const Transform &operator=(const Transform& other)
+    {
+        m_origin = other.m_origin;
+        m_pan = other.m_pan;
+        m_zoom = other.m_zoom;
+        m_pixelAspect = other.m_pixelAspect;
+        m_rotation = other.m_rotation;
+        emit changed(*this);
+        return *this;
+    }
+    friend inline bool operator==(const Transform& lhs, const Transform& rhs)
+    {
+        return lhs.m_origin == rhs.m_origin &&
+                lhs.m_pan == rhs.m_pan &&
+                lhs.m_zoom == rhs.m_zoom &&
+                lhs.m_pixelAspect == rhs.m_pixelAspect &&
+                lhs.m_rotation == rhs.m_rotation;
+    }
+    friend inline bool operator!=(const Transform& lhs, const Transform& rhs)
+    {
+        return !(lhs == rhs);
+    }
 
 signals:
-    void originChanged(const QPointF &origin);
-    void panChanged(const QPointF &pan);
-    void zoomChanged(const qreal zoom);
-    void pixelAspectChanged(const QPointF &pixelAspect);
-    void rotationChanged(const qreal rotation);
     void changed(const Transform &transform);    
 
 public slots:

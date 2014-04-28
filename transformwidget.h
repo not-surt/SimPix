@@ -21,21 +21,24 @@ class TransformWidget : public QWidget
 public:
     explicit TransformWidget(QWidget *parent = nullptr);
     ~TransformWidget();
-    Transform transform() const;
+    const Transform &transform() const;
 
 public slots:
-    void setTransform(Transform arg);
-    void sendTransform();
+    void setTransform(const Transform &transform);
+
+signals:
+    void transformChanged(const Transform &transform);
+
+private slots:
     void clearPan();
     void clearZoom();
     void clearPixelAspect();
     void clearRotation();
-
-signals:
-    void transformChanged(Transform arg);
+    void updateTransform();
 
 private:
     Ui::TransformWidget *ui;
+    Transform m_transform;
 };
 
 #endif // TRANSFORMWIDGET_H

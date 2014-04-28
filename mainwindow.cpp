@@ -3,6 +3,8 @@
 #include "newdialog.h"
 #include "canvas.h"
 #include "util.h"
+#include "colourswatch.h"
+#include "statusmousewidget.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -31,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionSaveAs, SIGNAL(triggered()), this, SLOT(saveAsImage()));
     QObject::connect(ui->actionClose, SIGNAL(triggered()), this, SLOT(closeImage()));
     QObject::connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(exit()));
+    QObject::connect(ui->actionMenu, SIGNAL(triggered(bool)), this->menuBar(), SLOT(setVisible(bool)));
+    QObject::connect(ui->actionStatusBar, SIGNAL(triggered(bool)), this->statusBar(), SLOT(setVisible(bool)));
     QObject::connect(ui->actionFullscreen, SIGNAL(triggered(bool)), this, SLOT(setFullscreen(bool)));
     QObject::connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
     QObject::connect(ui->actionAboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
@@ -60,6 +64,13 @@ MainWindow::MainWindow(QWidget *parent) :
     while (dock.hasNext()) {
         dockMenu->addAction(dock.next()->toggleViewAction());
     }
+
+    StatusMouseWidget *statusMouseWidget = new StatusMouseWidget();
+    statusMouseWidget->hide();
+    statusBar()->addWidget(statusMouseWidget);
+    QObject::connect(ui->canvas, SIGNAL(mouseEntered()), statusMouseWidget, SLOT(show()));
+    QObject::connect(ui->canvas, SIGNAL(mouseLeft()), statusMouseWidget, SLOT(hide()));
+    QObject::connect(ui->canvas, SIGNAL(pixelChanged(QPoint, uint)), statusMouseWidget, SLOT(setMouseInfo(QPoint, uint)));
 
     QSettings settings;
     settings.beginGroup("window");
@@ -234,14 +245,18 @@ bool MainWindow::closeImage(const bool doClose)
                 setImage();
             }
         }
+        else if (doClose) {
+            setImage();
+        }
     }
     return true;
 }
 
 void MainWindow::exit()
 {
-    closeImage();
-    close();
+    if (closeImage(true)) {
+        close();
+    }
 }
 
 void MainWindow::setFullscreen(bool fullscreen)
