@@ -30,7 +30,15 @@ void Canvas::paintEvent(QPaintEvent *event)
 //    painter.setRenderHint(QPainter::Antialiasing, true);
 //    painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
     if (m_image) {
-        painter.fillRect(rect(), QBrush(*canvasBackgroundPixmap));
+        if (!m_tiled || m_showAlpha) {
+            painter.fillRect(rect(), QBrush(*canvasBackgroundPixmap));
+        }
+        if (!m_showAlpha) {
+            painter.setCompositionMode(QPainter::CompositionMode_Source);
+        }
+        else {
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+        }
         if (!m_tiled) {
             painter.save();
             QRectF imageBounds = inverseMatrix.mapRect(QRectF(event->rect().topLeft(), event->rect().bottomRight() + QPoint(1, 1)));
@@ -90,7 +98,7 @@ void Canvas::mouseMoveEvent(QMouseEvent *event)
     if (rect().contains(event->pos())) {
         setFocus();
         if (m_image && pixel != lastPixel && m_image->data().rect().contains(pixel)) {
-            emit pixelChanged(pixel, m_image->data().pixel(pixel));
+            emit pixelChanged(pixel, m_image->data().pixel(pixel), m_image->isIndexed() ? m_image->data().pixelIndex(pixel) : -1);
         }
     }
     if (!panKeyDown && event->buttons() & Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
@@ -233,6 +241,11 @@ bool Canvas::showFrame() const
     return m_showFrame;
 }
 
+bool Canvas::showAlpha() const
+{
+    return m_showAlpha;
+}
+
 void Canvas::setImage(Image *const image)
 {
     m_image = image;
@@ -322,6 +335,15 @@ void Canvas::setShowFrame(const bool showFrame)
         m_showFrame = showFrame;
         update();
         emit showFrameChanged(showFrame);
+    }
+}
+
+void Canvas::setShowAlpha(bool showAlpha)
+{
+    if (m_showAlpha != showAlpha) {
+        m_showAlpha = showAlpha;
+        update();
+        emit showAlphaChanged(showAlpha);
     }
 }
 

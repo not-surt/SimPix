@@ -126,6 +126,11 @@ bool Image::dirty() const
     return m_dirty;
 }
 
+bool Image::isIndexed()
+{
+    return m_data.format() == QImage::Format_Indexed8;
+}
+
 void drawPixel(QImage &image, const QPoint &point, const uint colour, const void *const data = nullptr)
 {
     if (image.rect().contains(point)) {

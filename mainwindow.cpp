@@ -48,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QObject::connect(ui->actionTiled, SIGNAL(triggered(bool)), ui->canvas, SLOT(setTiled(bool)));
     QObject::connect(ui->actionShowFrame, SIGNAL(triggered(bool)), ui->canvas, SLOT(setShowFrame(bool)));
+    QObject::connect(ui->actionAlpha, SIGNAL(triggered(bool)), ui->canvas, SLOT(setShowAlpha(bool)));
 
     QMenu *toolBarMenu = new QMenu(this);
     ui->actionToolbars->setMenu(toolBarMenu);
@@ -70,7 +71,7 @@ MainWindow::MainWindow(QWidget *parent) :
     statusBar()->addWidget(statusMouseWidget);
     QObject::connect(ui->canvas, SIGNAL(mouseEntered()), statusMouseWidget, SLOT(show()));
     QObject::connect(ui->canvas, SIGNAL(mouseLeft()), statusMouseWidget, SLOT(hide()));
-    QObject::connect(ui->canvas, SIGNAL(pixelChanged(QPoint, uint)), statusMouseWidget, SLOT(setMouseInfo(QPoint, uint)));
+    QObject::connect(ui->canvas, SIGNAL(pixelChanged(QPoint, uint, int)), statusMouseWidget, SLOT(setMouseInfo(QPoint, uint, int)));
 
     QSettings settings;
     settings.beginGroup("window");

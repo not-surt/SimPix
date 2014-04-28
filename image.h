@@ -43,6 +43,7 @@ public:
     bool save(QString fileName = QString());
 
     bool dirty() const;
+    bool isIndexed();
 
 signals:
     void fileNameChanged(const QString &fileName);

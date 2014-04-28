@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>652</width>
+    <width>1010</width>
     <height>389</height>
    </rect>
   </property>
@@ -19,7 +19,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>652</width>
+     <width>1010</width>
      <height>29</height>
     </rect>
    </property>
@@ -184,6 +184,7 @@
    </attribute>
    <addaction name="actionTiled"/>
    <addaction name="actionShowFrame"/>
+   <addaction name="actionAlpha"/>
   </widget>
   <action name="actionNew">
    <property name="icon">
@@ -456,6 +457,20 @@
    </property>
    <property name="toolTip">
     <string>Show Frame</string>
+   </property>
+  </action>
+  <action name="actionAlpha">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Alpha</string>
+   </property>
+   <property name="toolTip">
+    <string>Alpha</string>
    </property>
   </action>
  </widget>
