@@ -7,8 +7,6 @@
 #include <QPainter>
 #include <QStringListModel>
 
-#include "color_dialog.hpp"
-
 PaletteWidget::PaletteWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::PaletteWidget)
@@ -41,10 +39,14 @@ void PaletteWidget::editColour(QModelIndex index)
         const QColor colour = index.data().value<QColor>();
         qDebug() << colour;
 //        const QColor result = QColorDialog::getColor(colour, this, tr("Edit Colour"), QColorDialog::DontUseNativeDialog | QColorDialog::ShowAlphaChannel);
-//        const QColor result = QColorDialog::getColor(colour, this);
-        Color_Dialog dialog(this);
-        dialog.setColor(colour);
-        dialog.exec();
+        const QColor result = QColorDialog::getColor(colour, this, QString(), QColorDialog::ShowAlphaChannel);
+//        Color_Dialog dialog(this);
+//        dialog.setColor(colour);
+//        dialog.exec();
+        if (result.isValid()) {
+//            index.data().setValue(result);
+            ui->paletteView->model()->setData(index, result);
+        }
     }
 }
 

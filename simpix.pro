@@ -11,7 +11,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = simpix
 TEMPLATE = app
 
-
 SOURCES += main.cpp\
         mainwindow.cpp \
     newdialog.cpp \
@@ -31,7 +30,9 @@ SOURCES += main.cpp\
     application.cpp \
     imagemodel.cpp \
     transformmodel.cpp \
-    statusmousewidget.cpp
+    statusmousewidget.cpp \
+    openglwindow.cpp \
+    canvaswindow.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
@@ -51,7 +52,9 @@ HEADERS  += mainwindow.h \
     application.h \
     imagemodel.h \
     transformmodel.h \
-    statusmousewidget.h
+    statusmousewidget.h \
+    openglwindow.h \
+    canvaswindow.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \
@@ -61,10 +64,7 @@ FORMS    += mainwindow.ui \
     colourcontextwidget.ui \
     statusmousewidget.ui
 
-#QMAKE_CXXFLAGS += -std=c++11
 CONFIG += c++11
-
-include(color_widgets/color_widgets.pri)
 
 OTHER_FILES += \
     paletteplugin.json \

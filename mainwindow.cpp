@@ -5,9 +5,11 @@
 #include "util.h"
 #include "colourswatch.h"
 #include "statusmousewidget.h"
+#include "canvaswindow.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QMouseEvent>
 #include <QSettings>
 
 const QString MainWindow::fileDialogFilterString = tr("PNG Image Files (*.png)");
@@ -32,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveImage()));
     QObject::connect(ui->actionSaveAs, SIGNAL(triggered()), this, SLOT(saveAsImage()));
     QObject::connect(ui->actionClose, SIGNAL(triggered()), this, SLOT(closeImage()));
-    QObject::connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(exit()));
+    QObject::connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
     QObject::connect(ui->actionMenu, SIGNAL(triggered(bool)), this->menuBar(), SLOT(setVisible(bool)));
     QObject::connect(ui->actionStatusBar, SIGNAL(triggered(bool)), this->statusBar(), SLOT(setVisible(bool)));
     QObject::connect(ui->actionFullscreen, SIGNAL(triggered(bool)), this, SLOT(setFullscreen(bool)));
@@ -49,6 +51,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionTiled, SIGNAL(triggered(bool)), ui->canvas, SLOT(setTiled(bool)));
     QObject::connect(ui->actionShowFrame, SIGNAL(triggered(bool)), ui->canvas, SLOT(setShowFrame(bool)));
     QObject::connect(ui->actionAlpha, SIGNAL(triggered(bool)), ui->canvas, SLOT(setShowAlpha(bool)));
+
+//    setCentralWidget(QWidget::createWindowContainer(new CanvasWindow()));
 
     QMenu *toolBarMenu = new QMenu(this);
     ui->actionToolbars->setMenu(toolBarMenu);
@@ -130,12 +134,18 @@ void MainWindow::setImage(Image *image)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    QSettings settings;
-    settings.beginGroup("window");
-    settings.setValue("geometry", saveGeometry());
-    settings.setValue("State", saveState());
-    settings.endGroup();
-    QMainWindow::closeEvent(event);
+    if (!closeImage()) {
+        event->ignore();
+    }
+    else {
+        qDebug() << "Herre!";
+        QSettings settings;
+        settings.beginGroup("window");
+        settings.setValue("geometry", saveGeometry());
+        settings.setValue("State", saveState());
+        settings.endGroup();
+        QMainWindow::closeEvent(event);
+    }
 }
 
 bool MainWindow::newImage()
@@ -253,13 +263,6 @@ bool MainWindow::closeImage(const bool doClose)
     return true;
 }
 
-void MainWindow::exit()
-{
-    if (closeImage(true)) {
-        close();
-    }
-}
-
 void MainWindow::setFullscreen(bool fullscreen)
 {
     if (fullscreen)
@@ -284,7 +287,6 @@ void MainWindow::about()
             "<p>%1 makes use of the following projects:"
             "<ul>"
             "<li><b>Qt</b> - <a href=\"http://qt-project.org\">project site</a></li>"
-            "<li>Mattia Basaglia's <b>Qt-Color-Picker</b> - <a href=\"https://github.com/mbasaglia/Qt-Color-Picker\">GitHub page</a></li>"
             "</ul></p>"
             ).arg(QCoreApplication::applicationName()).toLatin1()));
 }

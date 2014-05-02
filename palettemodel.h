@@ -29,6 +29,11 @@ public slots:
 private:
     Image *m_image;
 
+
+    // QAbstractItemModel interface
+public:
+    virtual bool setData(const QModelIndex &index, const QVariant &value, int role);
+    virtual Qt::ItemFlags flags(const QModelIndex &index) const;
 };
 
 #endif // PALETTEMODEL_H

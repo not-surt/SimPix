@@ -1,6 +1,7 @@
 #include "application.h"
 #include "mainwindow.h"
 #include <QDebug>
+#include "canvaswindow.h"
 
 Application::Application(int &argc, char **argv) :
     QApplication(argc, argv), window()
@@ -21,6 +22,10 @@ Application::Application(int &argc, char **argv) :
         );
 
     window.show();
+
+//    CanvasWindow *window = new CanvasWindow();
+//    QWidget *widget = QWidget::createWindowContainer(window);
+//    widget->show();
 }
 
 Application *Application::instance()

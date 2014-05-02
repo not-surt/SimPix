@@ -1,7 +1,6 @@
 #ifndef CANVAS_H
 #define CANVAS_H
 
-#include <QUndoCommand>
 #include <QWidget>
 #include <QPixmap>
 #include <memory>
@@ -66,17 +65,12 @@ private:
     QTransform inverseMatrix;
     QPoint lastMousePos;
     QPointF lastMouseImagePos;
-    static std::unique_ptr<QPixmap> backgroundPattern;
     bool panKeyDown;
-
-    void updateMatrix();
-
     bool m_showFrame;
-
-    // QWidget interface
     bool m_showAlpha;
 
 protected:
+    void updateMatrix();
     virtual void enterEvent(QEvent *const event);
     virtual void leaveEvent(QEvent * const event);
 };

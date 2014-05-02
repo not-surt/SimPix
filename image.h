@@ -12,6 +12,7 @@ class Image : public QObject
     Q_PROPERTY(QImage data READ data)
     Q_PROPERTY(Image::Format format READ format)
     Q_PROPERTY(uint contextColour READ contextColour WRITE setContextColour NOTIFY contextColourChanged)
+    Q_PROPERTY(Image::ContextColour activeContextColour READ activeContextColour WRITE setActiveContextColour NOTIFY activeContextColourChanged)
     Q_PROPERTY(bool dirty READ dirty)
     Q_ENUMS(data format primaryColour secondaryColour)
 public:
@@ -35,7 +36,7 @@ public:
 
     Image::Format format() const;
 
-    uint contextColour(const int context = Primary) const;
+    uint contextColour(const ContextColour contextColour = Primary) const;
 
     QUndoStack *undoStack = new QUndoStack(this);
 
@@ -45,17 +46,23 @@ public:
     bool dirty() const;
     bool isIndexed();
 
+    ContextColour activeContextColour() const;
+
 signals:
     void fileNameChanged(const QString &fileName);
     void changed(const QRegion &region);
     void contextColourChanged(const uint colour, const int context = Primary);
 
+    void activeContextColourChanged(uint arg);
+
 public slots:
-    void point(const QPoint &position, const bool secondary = false);
-    void stroke(const QPoint &a, const QPoint &b, const bool secondary = false);
-    void pick(const QPoint &position, const bool secondary = false);
-    void setContextColour(const uint colour, const int context = Primary);
+    void point(const QPoint &position, const ContextColour contextColour = Primary);
+    void stroke(const QPoint &a, const QPoint &b, const ContextColour contextColour = Primary);
+    void pick(const QPoint &position, const ContextColour contextColour = Primary);
+    void setContextColour(const uint colour, const ContextColour contextColour = Primary);
+    void setActiveContextColour(const ContextColour contextColour);
     void setFileName(const QString &fileName);
+
 
 private:
     QString m_fileName;
@@ -73,6 +80,7 @@ private:
     uint m_secondaryColour;
     uint m_eraserColour;
     bool m_dirty;
+    ContextColour m_activeContextColour;
 };
 
 Q_DECLARE_METATYPE(Image::Format)

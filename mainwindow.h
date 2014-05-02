@@ -30,7 +30,6 @@ public slots:
     void about();
     void aboutQt();
     bool closeImage(const bool doClose = true);
-    void exit();
     void license();
     void setImage(Image *image = nullptr);
 

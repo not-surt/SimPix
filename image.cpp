@@ -27,7 +27,7 @@ void StrokeCommand::redo()
 
 
 Image::Image(const Image &image, QObject *parent) :
-    QObject(parent), m_fileName(), m_data(image.constData()), m_primaryColour(image.m_primaryColour), m_secondaryColour(image.m_secondaryColour), m_eraserColour(image.m_eraserColour), m_dirty(true)
+    QObject(parent), m_fileName(), m_data(image.constData()), m_primaryColour(image.m_primaryColour), m_secondaryColour(image.m_secondaryColour), m_eraserColour(image.m_eraserColour), m_dirty(true), m_activeContextColour(Image::Primary)
 {
 
 }
@@ -40,12 +40,12 @@ Image::Image(const QSize &size, Image::Format format, QObject *parent) :
         m_data.setColor(1, qRgb(255, 255, 255));
         m_data.fill(0);
         m_primaryColour = 1;
-        m_secondaryColour = 0;
+        m_secondaryColour = m_eraserColour = 0;
     }
     else if (format == Image::RGBA) {
         m_data.fill(qRgba(0, 0, 0, 0));
         m_primaryColour = qRgba(255, 255, 255, 255);
-        m_secondaryColour = qRgba(0, 0, 0, 0);
+        m_secondaryColour = m_eraserColour = qRgba(0, 0, 0, 0);
     }
 }
 
@@ -129,6 +129,11 @@ bool Image::dirty() const
 bool Image::isIndexed()
 {
     return m_data.format() == QImage::Format_Indexed8;
+}
+
+Image::ContextColour Image::activeContextColour() const
+{
+    return m_activeContextColour;
 }
 
 void drawPixel(QImage &image, const QPoint &point, const uint colour, const void *const data = nullptr)
@@ -331,40 +336,40 @@ typedef bool (*ComparisonCallback)(QImage &image, const QPoint &point, const uin
 typedef void (*PointCallback)(QImage &image, const QPoint &point, const uint colour, const void *const data);
 typedef void (*SegmentCallback)(QImage &image, const QPoint &point0, const QPoint &point1, const uint colour, void (*pointCallback)(QImage &image, const QPoint &point, const uint colour, const void *const data), const void *const data, const bool inclusive);
 
-void Image::point(const QPoint &point, const bool secondary)
+void Image::point(const QPoint &point, const ContextColour contextColour)
 {
     m_dirty = true;
     PointCallback pointCallback = drawPixel;
-    pointCallback(m_data, point, contextColour(Primary), nullptr);
+    pointCallback(m_data, point, this->contextColour(contextColour), nullptr);
     emit changed(QRegion(QRect(point, QSize(1, 1))));
 }
 
-void Image::stroke(const QPoint &point0, const QPoint &point1, const bool secondary)
+void Image::stroke(const QPoint &point0, const QPoint &point1, const ContextColour contextColour)
 {
     m_dirty = true;
     PointCallback pointCallback = drawPixel;
     SegmentCallback segmentCallback = doLine;
-    segmentCallback(m_data, point0, point1, contextColour(Primary), pointCallback, nullptr, true);
+    segmentCallback(m_data, point0, point1, this->contextColour(contextColour), pointCallback, nullptr, true);
 //    undoStack->push(new StrokeCommand(*m_image, a, b));
 //    emit changed(QRect(a, b));
     emit changed(QRegion(data().rect()));
 }
 
-void Image::pick(const QPoint &point, const bool secondary)
+void Image::pick(const QPoint &point, const ContextColour contextColour)
 {
     if (m_data.rect().contains(point)) {
         if (format() == Indexed) {
-            setContextColour(m_data.pixelIndex(point), Primary);
+            setContextColour(m_data.pixelIndex(point), contextColour);
         }
         else if (format() == RGBA) {
-            setContextColour(m_data.pixel(point), Primary);
+            setContextColour(m_data.pixel(point), contextColour);
         }
     }
 }
 
-uint Image::contextColour(const int context) const
+uint Image::contextColour(const ContextColour contextColour) const
 {
-    switch (context) {
+    switch (contextColour) {
     default:
     case Primary:
         return m_primaryColour;
@@ -375,9 +380,9 @@ uint Image::contextColour(const int context) const
     }
 }
 
-void Image::setContextColour(uint colour, const int context)
+void Image::setContextColour(uint colour, const ContextColour contextColour)
 {
-    switch (context) {
+    switch (contextColour) {
     default:
     case Primary:
         if (m_primaryColour != colour) {
@@ -405,5 +410,13 @@ void Image::setFileName(const QString &fileName)
     if (m_fileName != fileName) {
         m_fileName = fileName;
         emit fileNameChanged(fileName);
+    }
+}
+
+void Image::setActiveContextColour(const ContextColour contextColour)
+{
+    if (m_activeContextColour != contextColour) {
+        m_activeContextColour = contextColour;
+        emit activeContextColourChanged(contextColour);
     }
 }

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>192</width>
-    <height>87</height>
+    <height>117</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,38 +20,6 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QLabel" name="redLabel">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>&amp;Red</string>
-     </property>
-     <property name="buddy">
-      <cstring>redSpinBox</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="2">
-    <widget class="QSpinBox" name="redSpinBox">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maximum">
-      <number>255</number>
-     </property>
-     <property name="value">
-      <number>0</number>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="greenLabel">
      <property name="sizePolicy">
@@ -100,6 +68,38 @@
      </property>
     </widget>
    </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="redLabel">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>&amp;Red</string>
+     </property>
+     <property name="buddy">
+      <cstring>redSpinBox</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QSpinBox" name="redSpinBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximum">
+      <number>255</number>
+     </property>
+     <property name="value">
+      <number>0</number>
+     </property>
+    </widget>
+   </item>
    <item row="3" column="2">
     <widget class="QSpinBox" name="blueSpinBox">
      <property name="sizePolicy">
@@ -117,71 +117,28 @@
     </widget>
    </item>
    <item row="0" column="1">
-    <widget class="Gradient_Slider" name="redSlider">
-     <property name="focusPolicy">
-      <enum>Qt::NoFocus</enum>
-     </property>
-     <property name="maximum">
-      <number>255</number>
-     </property>
-     <property name="pageStep">
-      <number>16</number>
-     </property>
-     <property name="invertedAppearance">
-      <bool>false</bool>
-     </property>
-     <property name="invertedControls">
-      <bool>false</bool>
+    <widget class="QSlider" name="redSlider">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
    <item row="1" column="1">
-    <widget class="Gradient_Slider" name="greenSlider">
-     <property name="focusPolicy">
-      <enum>Qt::NoFocus</enum>
-     </property>
-     <property name="maximum">
-      <number>255</number>
-     </property>
-     <property name="pageStep">
-      <number>16</number>
-     </property>
-     <property name="invertedAppearance">
-      <bool>false</bool>
-     </property>
-     <property name="invertedControls">
-      <bool>false</bool>
+    <widget class="QSlider" name="greenSlider">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
    <item row="3" column="1">
-    <widget class="Gradient_Slider" name="blueSlider">
-     <property name="focusPolicy">
-      <enum>Qt::NoFocus</enum>
-     </property>
-     <property name="maximum">
-      <number>255</number>
-     </property>
-     <property name="pageStep">
-      <number>16</number>
-     </property>
-     <property name="invertedAppearance">
-      <bool>false</bool>
-     </property>
-     <property name="invertedControls">
-      <bool>false</bool>
+    <widget class="QSlider" name="blueSlider">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>Gradient_Slider</class>
-   <extends>QSlider</extends>
-   <header>gradient_slider.hpp</header>
-  </customwidget>
- </customwidgets>
  <tabstops>
   <tabstop>redSpinBox</tabstop>
   <tabstop>greenSpinBox</tabstop>
@@ -195,12 +152,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>124</x>
-     <y>17</y>
+     <x>103</x>
+     <y>20</y>
     </hint>
     <hint type="destinationlabel">
-     <x>198</x>
-     <y>16</y>
+     <x>153</x>
+     <y>24</y>
     </hint>
    </hints>
   </connection>
@@ -211,12 +168,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>79</x>
-     <y>40</y>
+     <x>80</x>
+     <y>62</y>
     </hint>
     <hint type="destinationlabel">
-     <x>200</x>
-     <y>44</y>
+     <x>157</x>
+     <y>65</y>
     </hint>
    </hints>
   </connection>
@@ -227,12 +184,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>117</x>
-     <y>76</y>
+     <x>84</x>
+     <y>91</y>
     </hint>
     <hint type="destinationlabel">
-     <x>192</x>
-     <y>72</y>
+     <x>168</x>
+     <y>90</y>
     </hint>
    </hints>
   </connection>
@@ -243,12 +200,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>180</x>
-     <y>75</y>
+     <x>162</x>
+     <y>104</y>
     </hint>
     <hint type="destinationlabel">
-     <x>132</x>
-     <y>68</y>
+     <x>102</x>
+     <y>90</y>
     </hint>
    </hints>
   </connection>
@@ -259,12 +216,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>196</x>
-     <y>42</y>
+     <x>155</x>
+     <y>51</y>
     </hint>
     <hint type="destinationlabel">
-     <x>93</x>
-     <y>43</y>
+     <x>98</x>
+     <y>54</y>
     </hint>
    </hints>
   </connection>
@@ -275,12 +232,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>196</x>
-     <y>16</y>
+     <x>154</x>
+     <y>27</y>
     </hint>
     <hint type="destinationlabel">
-     <x>112</x>
-     <y>18</y>
+     <x>75</x>
+     <y>26</y>
     </hint>
    </hints>
   </connection>

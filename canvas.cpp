@@ -7,8 +7,6 @@
 #include "util.h"
 #include "transform.h"
 
-std::unique_ptr<QPixmap> Canvas::backgroundPattern = nullptr;
-
 Canvas::Canvas(QWidget *parent) :
     QWidget(parent), m_image(0), m_transform(), m_tiled(false), panKeyDown(false), m_showFrame(false)
 {
@@ -144,7 +142,8 @@ void Canvas::mouseReleaseEvent(QMouseEvent *event)
     else if (event->button() == Qt::RightButton) {
         if (m_image) {
             const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
-            m_image->pick(pixel);
+            Image::ContextColour context = (event->modifiers() & Qt::SHIFT) ? Image::Secondary : Image::Primary;
+            m_image->pick(pixel, context);
         }
         QApplication::restoreOverrideCursor();
         event->accept();
