@@ -32,6 +32,11 @@ public:
     ~ImageData();
     uint pixel(const QPoint &position) const;
     void setPixel(const QPoint &position, uint colour);
+    GLuint texture() const;
+    QSize size() const;
+    ImageDataFormat format() const;
+    GLuint framebuffer() const;
+    GLuint vertexBuffer() const;
 private:
     QSize m_size;
     ImageDataFormat m_format;

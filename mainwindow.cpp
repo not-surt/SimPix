@@ -6,6 +6,7 @@
 #include "colourswatch.h"
 #include "statusmousewidget.h"
 #include "canvaswindow.h"
+#include "application.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -18,13 +19,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), m_image(0)
 {    
+    Application *const app = (Application *)qApp;
     canvasBackgroundPixmap = generateBackgroundPixmap(32);
     swatchBackgroundPixmap = generateBackgroundPixmap(16);
 
     ui->setupUi(this);
 
-    canvas = new CanvasWindow();
+    canvas = new CanvasWindow(&app->context());
     setCentralWidget(QWidget::createWindowContainer(canvas));
+//    canvas = (Canvas *)centralWidget();
 
     // Copy actions to window. Is there a better way?
     QList<QMenu *> menus = ui->menuBar->findChildren<QMenu *>();

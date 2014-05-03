@@ -2,33 +2,32 @@
 #define TRANSFORM_H
 
 #include <QObject>
-#include <QPointF>
-#include <QTransform>
+#include <QMatrix4x4>
+#include <QVector3D>
 #include <QOpenGLFunctions>
 
-void qTransformToGlslMatrix(const QTransform &transform, GLfloat *const matrix);
 
 class Transform : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QPointF origin READ origin WRITE setOrigin)
-    Q_PROPERTY(QPointF pan READ pan WRITE setPan)
+    Q_PROPERTY(QVector3D origin READ origin WRITE setOrigin)
+    Q_PROPERTY(QVector3D pan READ pan WRITE setPan)
     Q_PROPERTY(qreal zoom READ zoom WRITE setZoom)
-    Q_PROPERTY(QPointF pixelAspect READ pixelAspect WRITE setPixelAspect)
+    Q_PROPERTY(QVector3D pixelAspect READ pixelAspect WRITE setPixelAspect)
     Q_PROPERTY(qreal rotation READ rotation WRITE setRotation)
-    Q_PROPERTY(QTransform matrix READ matrix)
-    Q_PROPERTY(QTransform inverseMatrix READ inverseMatrix)
+    Q_PROPERTY(QMatrix4x4 matrix READ matrix)
+    Q_PROPERTY(QMatrix4x4 inverseMatrix READ inverseMatrix)
     Q_ENUMS(origin pan zoom pixelAspect rotation)
 public:
     explicit Transform(QObject *parent = nullptr);
     Transform(const Transform &transform);
-    QPointF origin() const;
-    const QPointF &pan() const;
+    const QVector3D &origin() const;
+    const QVector3D &pan() const;
     qreal zoom() const;
-    const QPointF &pixelAspect() const;
+    const QVector3D &pixelAspect() const;
     qreal rotation() const;
-    const QTransform &matrix();
-    const QTransform &inverseMatrix();
+    const QMatrix4x4 &matrix();
+    const QMatrix4x4 &inverseMatrix();
     const Transform &operator=(const Transform& other)
     {
         m_origin = other.m_origin;
@@ -59,22 +58,22 @@ signals:
     void changed(const Transform &transform);    
 
 public slots:
-    void setOrigin(const QPointF &origin);
-    void setPan(const QPointF &pan);
+    void setOrigin(const QVector3D &origin);
+    void setPan(const QVector3D &pan);
     void setZoom(const qreal zoom);
-    void setPixelAspect(const QPointF &pixelAspect);
+    void setPixelAspect(const QVector3D &pixelAspect);
     void setRotation(const qreal rotation);
 
 private:
-    QPointF m_origin;
-    QPointF m_pan;
+    QVector3D m_origin;
+    QVector3D m_pan;
     qreal m_zoom;
-    QPointF m_pixelAspect;
+    QVector3D m_pixelAspect;
     qreal m_rotation;
-    QTransform m_matrix;
-    QTransform m_inverseMatrix;
+    QMatrix4x4 m_matrix;
+    QMatrix4x4 m_inverseMatrix;
     bool dirty;
-    void updateMatrix();
+    void updateMatrices();
 };
 
 #endif // TRANSFORM_H

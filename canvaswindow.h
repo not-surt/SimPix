@@ -73,7 +73,7 @@ private:
     QTransform matrix;
     QTransform inverseMatrix;
     QPoint lastMousePos;
-    QPointF lastMouseImagePos;
+    QVector3D lastMouseImagePos;
     bool panKeyDown;
     bool m_showFrame;
     bool m_showAlpha;

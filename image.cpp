@@ -457,13 +457,13 @@ ImageData::ImageData(const QSize &size, ImageDataFormat format, const GLubyte *c
 
     glGenBuffers((GLsizei)1, &m_vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-    const GLfloat DATA[][2] = {
-        {0., 0.},
-        {(GLfloat)size.width(), 0.},
-        {0., (GLfloat)size.height()},
-        {(GLfloat)size.width(), (GLfloat)size.height()}
+    const GLfloat DATA[][3] = {
+        {0.f, 0.f, 0.f},
+        {(GLfloat)size.width(), 0.f, 0.f},
+        {0.f, (GLfloat)size.height(), 0.f},
+        {(GLfloat)size.width(), (GLfloat)size.height(), 0.f}
     };
-    glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), DATA, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(GLfloat), DATA, GL_STATIC_DRAW);
 }
 
 ImageData::~ImageData()
@@ -482,4 +482,29 @@ uint ImageData::pixel(const QPoint &position) const
 
 void ImageData::setPixel(const QPoint &position, uint colour)
 {
+}
+
+GLuint ImageData::texture() const
+{
+    return m_texture;
+}
+
+QSize ImageData::size() const
+{
+    return m_size;
+}
+
+ImageDataFormat ImageData::format() const
+{
+    return m_format;
+}
+
+GLuint ImageData::framebuffer() const
+{
+    return m_framebuffer;
+}
+
+GLuint ImageData::vertexBuffer() const
+{
+    return m_vertexBuffer;
 }

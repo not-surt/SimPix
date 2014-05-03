@@ -49,9 +49,9 @@ void TransformWidget::setTransform(const Transform &transform)
 void TransformWidget::updateTransform() {
     Transform transform;
     transform.setOrigin(m_transform.origin());
-    transform.setPan(QPointF(ui->panXSpinBox->value(), ui->panYSpinBox->value()));
+    transform.setPan(QVector3D(ui->panXSpinBox->value(), ui->panYSpinBox->value(), 0.f));
     transform.setZoom(ui->zoomSpinBox->value());
-    transform.setPixelAspect(QPointF(ui->pixelAspectXSpinBox->value(), ui->pixelAspectYSpinBox->value()));
+    transform.setPixelAspect(QVector3D(ui->pixelAspectXSpinBox->value(), ui->pixelAspectYSpinBox->value(), 0.f));
     transform.setRotation(ui->rotationSpinBox->value());
     if (m_transform != transform) {
         emit transformChanged(transform);

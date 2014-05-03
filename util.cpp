@@ -4,6 +4,19 @@
 #include <QPainter>
 #include <QTextStream>
 
+void qTransformFillGlslMat3(const QTransform &transform, GLfloat *const matrix)
+{
+    matrix[0] = transform.m11();
+    matrix[1] = transform.m12();
+    matrix[2] = transform.m13();
+    matrix[3] = transform.m21();
+    matrix[4] = transform.m22();
+    matrix[5] = transform.m23();
+    matrix[6] = transform.m31();
+    matrix[7] = transform.m32();
+    matrix[8] = transform.m33();
+}
+
 QPixmap *generateBackgroundPixmap(const uint size)
 {
     QPixmap *pattern = new QPixmap(size, size);

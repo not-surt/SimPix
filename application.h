@@ -17,14 +17,15 @@ class Application : public QApplication, public QOpenGLFunctions
 public:
     explicit Application(int &argc, char **argv);
     ~Application();
-    void makeContextCurrent();
+    void contextMakeCurrent();
+    void contextDoneCurrent();
     QSurfaceFormat &format();
     QOpenGLContext &context();
 //    bool addSampler();
     bool addShader(const QString &name, const QOpenGLShader::ShaderType type, const QString &src);
-    GLuint shader(const QString &name) const;
+    QOpenGLShader *shader(const QString &name);
     bool addProgram(const QString &name, const QStringList &shaders);
-    GLuint program(const QString &name) const;
+    QOpenGLShaderProgram *program(const QString &name);
 
 private:
     GLuint processShader(const GLenum type, const QString &src);

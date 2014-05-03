@@ -17,7 +17,7 @@ Canvas::Canvas(QWidget *parent) :
 
 void Canvas::resizeEvent(QResizeEvent *event)
 {
-    m_transform.setOrigin(QPoint(event->size().width() / 2, event->size().height() / 2));
+    m_transform.setOrigin(QVector3D(event->size().width() / 2, event->size().height() / 2, 0));
     update();
     QWidget::resizeEvent(event);
 }
@@ -42,20 +42,20 @@ void Canvas::paintEvent(QPaintEvent *event)
             QRectF imageBounds = m_transform.inverseMatrix().mapRect(QRectF(event->rect().topLeft(), event->rect().bottomRight() + QPoint(1, 1)));
             QRect imageRect = QRect(QPoint((int)floor(imageBounds.left()), (int)floor(imageBounds.top())),
                                     QPoint((int)ceil(imageBounds.right()), (int)ceil(imageBounds.bottom()))).intersected(m_image->data().rect());
-            painter.setTransform(m_transform.matrix());
+            painter.setTransform(m_transform.matrix().toTransform());
             painter.drawImage(imageRect, m_image->data(), imageRect);
             painter.restore();
         }
         else {
             painter.save();
             QBrush brush = QBrush(m_image->data());
-            brush.setTransform(m_transform.matrix());
+            brush.setTransform(m_transform.matrix().toTransform());
             painter.fillRect(rect(), brush);
             painter.restore();
         }
         if (m_showFrame) {
             painter.save();
-            painter.setTransform(m_transform.matrix());
+            painter.setTransform(m_transform.matrix().toTransform());
             QPen pen;
             pen.setWidth(0);
             pen.setColor(Qt::white);
@@ -111,7 +111,7 @@ void Canvas::mouseMoveEvent(QMouseEvent *event)
 
     }
     else if (panKeyDown || event->buttons() & Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
-        const QPointF delta = mouseImagePosition - m_transform.inverseMatrix().map(QPointF(lastMousePos));
+        const QVector3D delta = QVector3D(mouseImagePosition) - m_transform.inverseMatrix().map(QVector3D(lastMousePos));
         Transform transform = m_transform;
         transform.setPan(transform.pan() + delta);
         setTransform(transform);
@@ -158,11 +158,11 @@ void Canvas::wheelEvent(QWheelEvent *event)
     const bool transformAroundCursor = true;
     if (event->modifiers() & Qt::SHIFT) {
         Transform transform = m_transform;
-        const qreal angle = event->angleDelta().y() > 0 ? 15 : (event->angleDelta().y() < 0 ? -15 : 0);
+        const qreal angle = event->angleDelta().y() > 0 ? 15.f : (event->angleDelta().y() < 0 ? -15.f : 0.f);
         transform.setRotation(transform.rotation() + angle);
         if (transformAroundCursor) {
-            const QPointF mouseImagePosition = m_transform.inverseMatrix().map(QPointF(event->pos()));
-            const QPointF mouseDelta = mouseImagePosition - transform.pan();
+            const QVector3D mouseImagePosition = m_transform.inverseMatrix().map(QVector3D(event->pos()));
+            const QVector3D mouseDelta = mouseImagePosition - transform.pan();
             qDebug() << mouseDelta;
         }
         setTransform(transform);
@@ -170,10 +170,10 @@ void Canvas::wheelEvent(QWheelEvent *event)
     }
     else {
         Transform transform = m_transform;
-        const qreal scale = event->angleDelta().y() > 0 ? 2 : (event->angleDelta().y() < 0 ? .5 : 1);
+        const qreal scale = event->angleDelta().y() > 0 ? 2.f : (event->angleDelta().y() < 0 ? .5f : 1.f);
         transform.setZoom(transform.zoom() * scale);
         if (transformAroundCursor) {
-            const QPointF mouseImagePosition = m_transform.inverseMatrix().map(QPointF(event->pos()));
+            const QVector3D mouseImagePosition = m_transform.inverseMatrix().map(QVector3D(event->pos()));
 
         }
         setTransform(transform);
@@ -248,39 +248,21 @@ void Canvas::setImage(Image *const image)
 {
     m_image = image;
     Transform transform;
-    transform.setOrigin(QPointF(width() / 2, height() / 2));
-    transform.setPan(QPointF(0, 0));
-    transform.setZoom(1.);
-    transform.setPixelAspect(QPointF(1., 1.));
-    transform.setRotation(0.);
+    transform.setOrigin(QVector3D(width() / 2, height() / 2, 0.f));
+    transform.setPan(QVector3D(0.f, 0.f, 0.f));
+    transform.setZoom(1.f);
+    transform.setPixelAspect(QVector3D(1.f, 1.f, 0.f));
+    transform.setRotation(0.f);
     if (image) {
         setAttribute(Qt::WA_OpaquePaintEvent, true);
         setAttribute(Qt::WA_NoSystemBackground, true);
-        transform.setPan(-QPointF((qreal)m_image->data().width() / 2., (qreal)m_image->data().height() / 2.));
+        transform.setPan(-QVector3D((qreal)m_image->data().width() / 2.f, (qreal)m_image->data().height() / 2.f, 0.f));
     }
     else {
         setAttribute(Qt::WA_OpaquePaintEvent, false);
         setAttribute(Qt::WA_NoSystemBackground, false);
     }
     setTransform(transform);
-}
-
-inline qreal fsel(const qreal a, const qreal b, const qreal c) {
-  return a >= 0 ? b : c;
-}
-
-inline qreal clamp(qreal value, const qreal min, const qreal max)
-{
-   value = fsel(value - min, value, min);
-   return fsel(value - max, max, value);
-}
-
-inline qreal wrap(qreal value, const qreal min, const qreal max)
-{
-    const qreal range = max - min;
-    const qreal  quotient = (value - min) / range;
-    const qreal  remainder = quotient - floor(quotient);
-    return remainder * range + min;
 }
 
 void Canvas::setTransform(const Transform &transform, const bool limit)
@@ -290,17 +272,19 @@ void Canvas::setTransform(const Transform &transform, const bool limit)
         if (limit) {
             if (m_image) {
                 if (!m_tiled) {
-                    m_transform.setPan(QPointF(clamp(m_transform.pan().x(), (qreal)-m_image->data().width(), 0.),
-                                               clamp(m_transform.pan().y(), (qreal)-m_image->data().height(), 0.)));
+                    m_transform.setPan(QVector3D(clamp(m_transform.pan().x(), (qreal)-m_image->data().width(), 0.f),
+                                                 clamp(m_transform.pan().y(), (qreal)-m_image->data().height(), 0.f),
+                                                 0.f));
                 }
                 else {
-                    m_transform.setPan(QPointF(wrap(m_transform.pan().x(), (qreal)-m_image->data().width(), 0.),
-                                               wrap(m_transform.pan().y(), (qreal)-m_image->data().height(), 0.)));
+                    m_transform.setPan(QVector3D(wrap(m_transform.pan().x(), (qreal)-m_image->data().width(), 0.f),
+                                                 wrap(m_transform.pan().y(), (qreal)-m_image->data().height(), 0.f),
+                                                 0.f));
                 }
             }
-            m_transform.setZoom(clamp(m_transform.zoom(), 1./16., 256.));
-            m_transform.setPixelAspect(QPointF(clamp(m_transform.pixelAspect().x(), 1./16., 16.), clamp(m_transform.pixelAspect().y(), 1./16., 16.)));
-            m_transform.setRotation(wrap(m_transform.rotation(), 0., 360.));
+            m_transform.setZoom(clamp(m_transform.zoom(), 1.f/16.f, 256.f));
+            m_transform.setPixelAspect(QVector3D(clamp(m_transform.pixelAspect().x(), 1.f/16.f, 16.f), clamp(m_transform.pixelAspect().y(), 1.f/16.f, 16.f), 0.f));
+            m_transform.setRotation(wrap(m_transform.rotation(), 0.f, 360.f));
         }
         update();
         emit transformChanged(m_transform);

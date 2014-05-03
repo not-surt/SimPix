@@ -1,21 +1,8 @@
 #include "transform.h"
 #include <QOpenGLFunctions>
 
-void qTransformToGlslMatrix(const QTransform &transform, GLfloat *const matrix)
-{
-    matrix[0] = transform.m11();
-    matrix[1] = transform.m12();
-    matrix[2] = transform.m13();
-    matrix[3] = transform.m21();
-    matrix[4] = transform.m22();
-    matrix[5] = transform.m23();
-    matrix[6] = transform.m31();
-    matrix[7] = transform.m32();
-    matrix[8] = transform.m33();
-}
-
 Transform::Transform(QObject *parent) :
-    QObject(parent), m_origin(0., 0.), m_pan(0., 0.), m_zoom(1.), m_pixelAspect(1., 1.), m_rotation(0.), dirty(true)
+    QObject(parent), m_origin(0.f, 0.f, 0.f), m_pan(0.f, 0.f, 0.f), m_zoom(1.f), m_pixelAspect(0.f, 0.f, 0.f), m_rotation(0.f), dirty(true)
 {
 }
 
@@ -24,7 +11,7 @@ Transform::Transform(const Transform &transform):
 {
 }
 
-void Transform::setOrigin(const QPointF &origin)
+void Transform::setOrigin(const QVector3D &origin)
 {
     if (m_origin != origin) {
         dirty = true;
@@ -33,7 +20,7 @@ void Transform::setOrigin(const QPointF &origin)
     }
 }
 
-void Transform::setPan(const QPointF &pan)
+void Transform::setPan(const QVector3D &pan)
 {
     if (m_pan != pan) {
         dirty = true;
@@ -51,7 +38,7 @@ void Transform::setZoom(const qreal zoom)
     }
 }
 
-void Transform::setPixelAspect(const QPointF &pixelAspect)
+void Transform::setPixelAspect(const QVector3D &pixelAspect)
 {
     if (m_pixelAspect != pixelAspect) {
         dirty = true;
@@ -69,12 +56,12 @@ void Transform::setRotation(const qreal rotation)
     }
 }
 
-QPointF Transform::origin() const
+const QVector3D &Transform::origin() const
 {
     return m_origin;
 }
 
-const QPointF &Transform::pan() const
+const QVector3D &Transform::pan() const
 {
     return m_pan;
 }
@@ -84,7 +71,7 @@ qreal Transform::zoom() const
     return m_zoom;
 }
 
-const QPointF &Transform::pixelAspect() const
+const QVector3D &Transform::pixelAspect() const
 {
     return m_pixelAspect;
 }
@@ -94,29 +81,29 @@ qreal Transform::rotation() const
     return m_rotation;
 }
 
-const QTransform &Transform::matrix()
+const QMatrix4x4 &Transform::matrix()
 {
     if (dirty) {
         dirty = false;
-        updateMatrix();
+        updateMatrices();
     }
     return m_matrix;
 }
 
-const QTransform &Transform::inverseMatrix()
+const QMatrix4x4 &Transform::inverseMatrix()
 {
     if (dirty) {
         dirty = false;
-        updateMatrix();
+        updateMatrices();
     }
     return m_inverseMatrix;
 }
 
-void Transform::updateMatrix()
+void Transform::updateMatrices()
 {
-    m_matrix = QTransform();
+    m_matrix = QMatrix4x4();
     m_matrix.translate(m_origin.x(), m_origin.y());
-    m_matrix.rotate(m_rotation);
+    m_matrix.rotate(m_rotation, 0.f, 0.f, 1.f);
     m_matrix.scale(m_zoom * m_pixelAspect.x(), m_zoom * m_pixelAspect.y());
     m_matrix.translate(m_pan.x(), m_pan.y());
     m_inverseMatrix = m_matrix.inverted();

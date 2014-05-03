@@ -31,22 +31,25 @@ Application::Application(int &argc, char **argv) :
     m_format.setProfile(QSurfaceFormat::NoProfile);
     m_format.setSamples(8);
 
-    m_context.setFormat(m_format);
-    m_context.create();
-
     m_offscreen.setFormat(m_format);
     m_offscreen.create();
     if (m_offscreen.format() != m_offscreen.requestedFormat()) {
         qDebug() << "Couldn't set requested OpenGL surface format!" << endl << "Requested: " << m_offscreen.requestedFormat() << endl << "Created: " << m_offscreen.format();
     }
 
-    makeContextCurrent();
+//    m_context.setFormat(m_format);
+    m_context.setFormat(m_offscreen.format());
+    m_context.create();
+
+    contextMakeCurrent();
     initializeOpenGLFunctions();
-    //load shaders/programs
+
     addShader("image.vert", QOpenGLShader::Vertex, fileToString(":/shaders/image.vert"));
     addShader("image.frag", QOpenGLShader::Fragment, fileToString(":/shaders/image.frag"));
-
-    addProgram("image", QStringList() << "image.vert" << "image.frag");
+    addProgram("image", QStringList()
+               << "image.vert"
+               << "image.frag");
+    contextDoneCurrent();
 
     m_window.show();
 }
@@ -64,9 +67,14 @@ Application::~Application()
     }
 }
 
-void Application::makeContextCurrent()
+void Application::contextMakeCurrent()
 {
     m_context.makeCurrent(&m_offscreen);
+}
+
+void Application::contextDoneCurrent()
+{
+    m_context.doneCurrent();
 }
 
 QSurfaceFormat &Application::format()
@@ -102,9 +110,9 @@ bool Application::addShader(const QString &name, const QOpenGLShader::ShaderType
     return error;
 }
 
-GLuint Application::shader(const QString &name) const
+QOpenGLShader *Application::shader(const QString &name)
 {
-    return m_shaders.value(name)->shaderId();
+    return m_shaders.value(name);
 }
 
 bool Application::addProgram(const QString &name, const QStringList &shaders)
@@ -142,7 +150,7 @@ bool Application::addProgram(const QString &name, const QStringList &shaders)
     return error;
 }
 
-GLuint Application::program(const QString &name) const
+QOpenGLShaderProgram *Application::program(const QString &name)
 {
-    return m_programs.value(name)->programId();
+    return m_programs.value(name);
 }

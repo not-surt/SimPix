@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "canvas.h"
 #include "canvaswindow.h"
 #include "image.h"
 
@@ -40,6 +41,7 @@ private:
     Ui::MainWindow *ui;
     Image *m_image;
     CanvasWindow *canvas;
+//    Canvas *canvas;
 
     static const QString fileDialogFilterString;
 };
