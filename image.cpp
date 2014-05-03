@@ -3,6 +3,8 @@
 #include <QDebug>
 #include <QColor>
 #include <QUndoStack>
+#include <QOpenGLFramebufferObjectFormat>
+#include <QOpenGLFramebufferObject>
 
 StrokeCommand::StrokeCommand(const Image &image, const QPoint &point0, const QPoint &point1, QUndoCommand *parent)
     : QUndoCommand(parent), image(image), point0(point0), point1(point1)
@@ -29,7 +31,8 @@ void StrokeCommand::redo()
 Image::Image(const Image &image, QObject *parent) :
     QObject(parent), m_fileName(), m_data(image.constData()), m_primaryColour(image.m_primaryColour), m_secondaryColour(image.m_secondaryColour), m_eraserColour(image.m_eraserColour), m_dirty(true), m_activeContextColour(Image::Primary)
 {
-
+    QOpenGLFramebufferObjectFormat fboFormat;
+    m_fbo = new QOpenGLFramebufferObject(m_data.size(), fboFormat);
 }
 
 Image::Image(const QSize &size, Image::Format format, QObject *parent) :
@@ -47,6 +50,8 @@ Image::Image(const QSize &size, Image::Format format, QObject *parent) :
         m_primaryColour = qRgba(255, 255, 255, 255);
         m_secondaryColour = m_eraserColour = qRgba(0, 0, 0, 0);
     }
+    QOpenGLFramebufferObjectFormat fboFormat;
+    m_fbo = new QOpenGLFramebufferObject(m_data.size(), fboFormat);
 }
 
 Image::Image(const QString &fileName, const char *format, QObject *parent) :
@@ -71,10 +76,15 @@ Image::Image(const QString &fileName, const char *format, QObject *parent) :
             m_secondaryColour = qRgba(0, 0, 0, 0);
         }
     }
+    QOpenGLFramebufferObjectFormat fboFormat;
+    fboFormat.setInternalTextureFormat(GL_R8);
+    m_fbo = new QOpenGLFramebufferObject(m_data.size(), fboFormat);
+    qDebug() << m_fbo->isValid();
 }
 
 Image::~Image()
 {
+    delete m_fbo;
     delete undoStack;
 }
 
@@ -419,4 +429,57 @@ void Image::setActiveContextColour(const ContextColour contextColour)
         m_activeContextColour = contextColour;
         emit activeContextColourChanged(contextColour);
     }
+}
+
+const ImageDataFormatDefinition IMAGE_DATA_FORMATS[] = {
+    {"Indexed", GL_R8, GL_RED, GL_BYTE, 1},
+    {"RGBA", GL_RGBA8, GL_RGBA, GL_BYTE, 4},
+    {"", 0, 0, 0, 0}
+};
+
+ImageData::ImageData(const QSize &size, ImageDataFormat format, const GLubyte *const data) :
+    m_size(size), m_format(format)
+{
+    initializeOpenGLFunctions();
+
+    const ImageDataFormatDefinition *const FORMAT = &IMAGE_DATA_FORMATS[(int)format];
+
+    glGenTextures((GLsizei)1, &m_texture);
+    glBindBuffer(GL_TEXTURE_BUFFER, m_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, FORMAT->INTERNAL_FORMAT, size.width(), size.height(), 0, FORMAT->FORMAT, GL_UNSIGNED_BYTE, data);
+
+    glGenFramebuffers((GLsizei)1, &m_framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture, 0);
+    const GLenum BUFFERS[] = {GL_COLOR_ATTACHMENT0};
+    glDrawBuffers(1, BUFFERS);
+    glViewport(0, 0, size.width(), size.height());
+
+    glGenBuffers((GLsizei)1, &m_vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+    const GLfloat DATA[][2] = {
+        {0., 0.},
+        {(GLfloat)size.width(), 0.},
+        {0., (GLfloat)size.height()},
+        {(GLfloat)size.width(), (GLfloat)size.height()}
+    };
+    glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), DATA, GL_STATIC_DRAW);
+}
+
+ImageData::~ImageData()
+{
+    initializeOpenGLFunctions();
+
+    glDeleteTextures(1, &m_texture);
+    glDeleteFramebuffers(1, &m_framebuffer);
+    glDeleteBuffers(1, &m_vertexBuffer);
+}
+
+uint ImageData::pixel(const QPoint &position) const
+{
+    return 0;
+}
+
+void ImageData::setPixel(const QPoint &position, uint colour)
+{
 }

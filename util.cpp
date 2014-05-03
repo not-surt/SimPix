@@ -1,6 +1,8 @@
 #include "util.h"
 
+#include <QFile>
 #include <QPainter>
+#include <QTextStream>
 
 QPixmap *generateBackgroundPixmap(const uint size)
 {
@@ -16,3 +18,12 @@ QPixmap *generateBackgroundPixmap(const uint size)
 
 QPixmap *canvasBackgroundPixmap;
 QPixmap *swatchBackgroundPixmap;
+
+QString fileToString(QString fileName)
+{
+    QFile data(fileName);
+    if (data.open(QFile::ReadOnly)) {
+        return QTextStream(&data).readAll();
+    }
+    return QString();
+}

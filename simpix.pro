@@ -71,7 +71,10 @@ OTHER_FILES += \
     simpix.rc \
     images/simpix-48x48.png \
     images/simpix.ico \
-    text/LICENSE
+    text/LICENSE \
+    image.vert \
+    shaders/image.frag \
+    shaders/image.vert
 
 RESOURCES += \
     simpix.qrc

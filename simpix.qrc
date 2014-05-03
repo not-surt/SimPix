@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>images/simpix-48x48.png</file>
         <file>text/LICENSE</file>
+        <file>shaders/image.frag</file>
+        <file>shaders/image.vert</file>
     </qresource>
 </RCC>

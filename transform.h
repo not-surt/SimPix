@@ -4,6 +4,9 @@
 #include <QObject>
 #include <QPointF>
 #include <QTransform>
+#include <QOpenGLFunctions>
+
+void qTransformToGlslMatrix(const QTransform &transform, GLfloat *const matrix);
 
 class Transform : public QObject
 {
@@ -33,6 +36,9 @@ public:
         m_zoom = other.m_zoom;
         m_pixelAspect = other.m_pixelAspect;
         m_rotation = other.m_rotation;
+        m_matrix = other.m_matrix;
+        m_inverseMatrix = other.m_inverseMatrix;
+        dirty = other.dirty;
         emit changed(*this);
         return *this;
     }

@@ -20,7 +20,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {    
     canvasBackgroundPixmap = generateBackgroundPixmap(32);
     swatchBackgroundPixmap = generateBackgroundPixmap(16);
+
     ui->setupUi(this);
+
+    canvas = new CanvasWindow();
+    setCentralWidget(QWidget::createWindowContainer(canvas));
 
     // Copy actions to window. Is there a better way?
     QList<QMenu *> menus = ui->menuBar->findChildren<QMenu *>();
@@ -42,17 +46,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionAboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
     QObject::connect(ui->actionLicense, SIGNAL(triggered()), this, SLOT(license()));
 
-    QObject::connect(this, SIGNAL(imageChanged(Image *const)), ui->canvas, SLOT(setImage(Image *const)));
+    QObject::connect(this, SIGNAL(imageChanged(Image *const)), canvas, SLOT(setImage(Image *const)));
     QObject::connect(this, SIGNAL(imageChanged(Image *const)), ui->paletteWidget, SLOT(setImage(Image *const)));
 
-    QObject::connect(ui->transformWidget, SIGNAL(transformChanged(Transform)), ui->canvas, SLOT(setTransform(Transform)));
-    QObject::connect(ui->canvas, SIGNAL(transformChanged(Transform)), ui->transformWidget, SLOT(setTransform(Transform)));
+    QObject::connect(ui->transformWidget, SIGNAL(transformChanged(Transform)), canvas, SLOT(setTransform(Transform)));
+    QObject::connect(canvas, SIGNAL(transformChanged(Transform)), ui->transformWidget, SLOT(setTransform(Transform)));
 
-    QObject::connect(ui->actionTiled, SIGNAL(triggered(bool)), ui->canvas, SLOT(setTiled(bool)));
-    QObject::connect(ui->actionShowFrame, SIGNAL(triggered(bool)), ui->canvas, SLOT(setShowFrame(bool)));
-    QObject::connect(ui->actionAlpha, SIGNAL(triggered(bool)), ui->canvas, SLOT(setShowAlpha(bool)));
-
-//    setCentralWidget(QWidget::createWindowContainer(new CanvasWindow()));
+    QObject::connect(ui->actionTiled, SIGNAL(triggered(bool)), canvas, SLOT(setTiled(bool)));
+    QObject::connect(ui->actionShowFrame, SIGNAL(triggered(bool)), canvas, SLOT(setShowFrame(bool)));
+    QObject::connect(ui->actionAlpha, SIGNAL(triggered(bool)), canvas, SLOT(setShowAlpha(bool)));
 
     QMenu *toolBarMenu = new QMenu(this);
     ui->actionToolbars->setMenu(toolBarMenu);
@@ -71,11 +73,11 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     StatusMouseWidget *statusMouseWidget = new StatusMouseWidget();
-    statusMouseWidget->hide();
+//    statusMouseWidget->hide();
     statusBar()->addWidget(statusMouseWidget);
-    QObject::connect(ui->canvas, SIGNAL(mouseEntered()), statusMouseWidget, SLOT(show()));
-    QObject::connect(ui->canvas, SIGNAL(mouseLeft()), statusMouseWidget, SLOT(hide()));
-    QObject::connect(ui->canvas, SIGNAL(pixelChanged(QPoint, uint, int)), statusMouseWidget, SLOT(setMouseInfo(QPoint, uint, int)));
+//    QObject::connect(canvas, SIGNAL(mouseEntered()), statusMouseWidget, SLOT(show()));
+//    QObject::connect(canvas, SIGNAL(mouseLeft()), statusMouseWidget, SLOT(hide()));
+    QObject::connect(canvas, SIGNAL(mousePixelChanged(QPoint, uint, int)), statusMouseWidget, SLOT(setMouseInfo(QPoint, uint, int)));
 
     QSettings settings;
     settings.beginGroup("window");
@@ -107,11 +109,11 @@ void MainWindow::setImage(Image *image)
 {
     if (m_image != image) {
         if (image) {
-            QObject::connect(image, SIGNAL(changed(const QRegion &)), ui->canvas, SLOT(updateImage(const QRegion &)));
+            QObject::connect(image, SIGNAL(changed(const QRegion &)), canvas, SLOT(updateImage(const QRegion &)));
             qRegisterMetaType<Image::ContextColour>("Image::ContextColour");
             QObject::connect(image, SIGNAL(contextColourChanged(const uint, const int)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
-            QObject::connect(ui->canvas, SIGNAL(clicked(const QPoint &)), image, SLOT(point(const QPoint &)));
-            QObject::connect(ui->canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), image, SLOT(stroke(const QPoint &, const QPoint &)));
+            QObject::connect(canvas, SIGNAL(clicked(const QPoint &)), image, SLOT(point(const QPoint &)));
+            QObject::connect(canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), image, SLOT(stroke(const QPoint &, const QPoint &)));
             QObject::connect(ui->actionUndo, SIGNAL(triggered()), image->undoStack, SLOT(undo()));
             QObject::connect(ui->actionRedo, SIGNAL(triggered()), image->undoStack, SLOT(redo()));
             setWindowFilePath(image->fileName());
@@ -121,9 +123,9 @@ void MainWindow::setImage(Image *image)
         }
         emit imageChanged(image);
         if (m_image) {
-            QObject::disconnect(m_image, SIGNAL(changed(const QRegion &)), ui->canvas, SLOT(updateImage(const QRegion &)));
-            QObject::disconnect(ui->canvas, SIGNAL(clicked(const QPoint &)), m_image, SLOT(point(const QPoint &)));
-            QObject::disconnect(ui->canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), m_image, SLOT(stroke(const QPoint &, const QPoint &)));
+            QObject::disconnect(m_image, SIGNAL(changed(const QRegion &)), canvas, SLOT(updateImage(const QRegion &)));
+            QObject::disconnect(canvas, SIGNAL(clicked(const QPoint &)), m_image, SLOT(point(const QPoint &)));
+            QObject::disconnect(canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), m_image, SLOT(stroke(const QPoint &, const QPoint &)));
             QObject::disconnect(ui->actionUndo, SIGNAL(triggered()), m_image->undoStack, SLOT(undo()));
             QObject::disconnect(ui->actionRedo, SIGNAL(triggered()), m_image->undoStack, SLOT(redo()));
             m_image->deleteLater();
@@ -138,11 +140,10 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->ignore();
     }
     else {
-        qDebug() << "Herre!";
         QSettings settings;
         settings.beginGroup("window");
         settings.setValue("geometry", saveGeometry());
-        settings.setValue("State", saveState());
+        settings.setValue("state", saveState());
         settings.endGroup();
         QMainWindow::closeEvent(event);
     }
@@ -298,7 +299,7 @@ void MainWindow::aboutQt()
 
 void MainWindow::license()
 {
-    QFile data("://text/LICENSE");
+    QFile data(":/text/LICENSE");
     QString text;
     if (data.open(QFile::ReadOnly)) {
         QTextStream stream(&data);

@@ -4,6 +4,57 @@
 #include <QImage>
 #include <QQueue>
 #include <QUndoStack>
+#define GL_GLEXT_PROTOTYPES
+#include <QOpenGLFunctions>
+
+class QOpenGLFramebufferObject;
+
+struct ImageDataFormatDefinition {
+    char NAME[16];
+    GLint INTERNAL_FORMAT;
+    GLint FORMAT;
+    GLint ENUM;
+    GLint SIZE;
+};
+
+extern const ImageDataFormatDefinition IMAGE_DATA_FORMATS[];
+
+enum class ImageDataFormat {
+    Indexed,
+    RGBA,
+};
+
+class ImageData : public QObject, public QOpenGLFunctions
+{
+    Q_OBJECT
+public:
+    explicit ImageData(const QSize &size, ImageDataFormat format, const GLubyte *const data = nullptr);
+    ~ImageData();
+    uint pixel(const QPoint &position) const;
+    void setPixel(const QPoint &position, uint colour);
+private:
+    QSize m_size;
+    ImageDataFormat m_format;
+    GLuint m_texture;
+    GLuint m_framebuffer;
+    GLuint m_vertexBuffer;
+};
+
+class ImageLayerCel : public QObject
+{
+    Q_OBJECT
+private:
+    qreal m_begin, m_end;
+    ImageData *m_texture;
+    // transform
+};
+
+class ImageLayer : public QObject
+{
+    Q_OBJECT
+private:
+    QList<ImageLayerCel> m_cels;
+};
 
 class Image : public QObject
 {
@@ -81,6 +132,7 @@ private:
     uint m_eraserColour;
     bool m_dirty;
     ContextColour m_activeContextColour;
+    QOpenGLFramebufferObject *m_fbo;
 };
 
 Q_DECLARE_METATYPE(Image::Format)

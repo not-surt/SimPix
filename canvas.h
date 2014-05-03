@@ -19,13 +19,6 @@ class Canvas : public QWidget
 
 public:
     explicit Canvas(QWidget *parent = nullptr);
-    void resizeEvent(QResizeEvent *);
-    void mousePressEvent(QMouseEvent *);
-    void mouseMoveEvent(QMouseEvent *);
-    void mouseReleaseEvent(QMouseEvent *);
-    void wheelEvent(QWheelEvent *);
-    void keyPressEvent(QKeyEvent * event);
-    void keyReleaseEvent(QKeyEvent * event);
     Image *image() const;
     Transform transform() const;
     bool tiled() const;
@@ -50,29 +43,31 @@ signals:
     void showFrameChanged(const bool showFrame);
     void mouseEntered();
     void mouseLeft();
-    void pixelChanged(const QPoint &position, const uint colour, const int index);
+    void mousePixelChanged(const QPoint &position, const uint colour, const int index);
     void showAlphaChanged(bool showAlpha);
 
 protected:
     virtual void paintEvent(QPaintEvent *event);
+    virtual void resizeEvent(QResizeEvent *);
+    virtual void mousePressEvent(QMouseEvent *);
+    virtual void mouseMoveEvent(QMouseEvent *);
+    virtual void mouseReleaseEvent(QMouseEvent *);
+    virtual void wheelEvent(QWheelEvent *);
     virtual void tabletEvent(QTabletEvent *event);
+    virtual void keyPressEvent(QKeyEvent * event);
+    virtual void keyReleaseEvent(QKeyEvent * event);
+    virtual void enterEvent(QEvent *const event);
+    virtual void leaveEvent(QEvent * const event);
 
 private:
     Image *m_image;
     Transform m_transform;
     bool m_tiled;
-    QTransform matrix;
-    QTransform inverseMatrix;
     QPoint lastMousePos;
     QPointF lastMouseImagePos;
     bool panKeyDown;
     bool m_showFrame;
     bool m_showAlpha;
-
-protected:
-    void updateMatrix();
-    virtual void enterEvent(QEvent *const event);
-    virtual void leaveEvent(QEvent * const event);
 };
 
 #endif // CANVAS_H

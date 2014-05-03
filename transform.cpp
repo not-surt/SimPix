@@ -1,4 +1,18 @@
 #include "transform.h"
+#include <QOpenGLFunctions>
+
+void qTransformToGlslMatrix(const QTransform &transform, GLfloat *const matrix)
+{
+    matrix[0] = transform.m11();
+    matrix[1] = transform.m12();
+    matrix[2] = transform.m13();
+    matrix[3] = transform.m21();
+    matrix[4] = transform.m22();
+    matrix[5] = transform.m23();
+    matrix[6] = transform.m31();
+    matrix[7] = transform.m32();
+    matrix[8] = transform.m33();
+}
 
 Transform::Transform(QObject *parent) :
     QObject(parent), m_origin(0., 0.), m_pan(0., 0.), m_zoom(1.), m_pixelAspect(1., 1.), m_rotation(0.), dirty(true)
@@ -55,6 +69,11 @@ void Transform::setRotation(const qreal rotation)
     }
 }
 
+QPointF Transform::origin() const
+{
+    return m_origin;
+}
+
 const QPointF &Transform::pan() const
 {
     return m_pan;
@@ -91,11 +110,6 @@ const QTransform &Transform::inverseMatrix()
         updateMatrix();
     }
     return m_inverseMatrix;
-}
-
-QPointF Transform::origin() const
-{
-    return m_origin;
 }
 
 void Transform::updateMatrix()
