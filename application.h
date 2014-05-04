@@ -23,9 +23,9 @@ public:
     QOpenGLContext &context();
 //    bool addSampler();
     bool addShader(const QString &name, const QOpenGLShader::ShaderType type, const QString &src);
-    QOpenGLShader *shader(const QString &name);
+    GLuint shader(const QString &name);
     bool addProgram(const QString &name, const QStringList &shaders);
-    QOpenGLShaderProgram *program(const QString &name);
+    GLuint program(const QString &name);
 
 private:
     GLuint processShader(const GLenum type, const QString &src);

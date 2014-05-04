@@ -37,7 +37,7 @@ public:
         m_rotation = other.m_rotation;
         m_matrix = other.m_matrix;
         m_inverseMatrix = other.m_inverseMatrix;
-        dirty = other.dirty;
+        matricesDirty = other.matricesDirty;
         emit changed(*this);
         return *this;
     }
@@ -72,7 +72,7 @@ private:
     qreal m_rotation;
     QMatrix4x4 m_matrix;
     QMatrix4x4 m_inverseMatrix;
-    bool dirty;
+    bool matricesDirty;
     void updateMatrices();
 };
 

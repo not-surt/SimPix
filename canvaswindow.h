@@ -23,13 +23,14 @@ public:
     CanvasWindow(QOpenGLContext *const shareContext = nullptr);
     virtual void initialize();
     virtual void render();
-    virtual void render(QPainter *painter);
     Image *image() const;
     Transform transform() const;
     bool tiled() const;
     bool showFrame() const;
     bool showAlpha() const;
     QRect rect() const;
+    const QMatrix4x4 &matrix();
+    const QMatrix4x4 &inverseMatrix();
 
 public slots:
     void setImage(Image *const image);
@@ -70,13 +71,15 @@ private:
     Image *m_image;
     Transform m_transform;
     bool m_tiled;
-    QTransform matrix;
-    QTransform inverseMatrix;
     QPoint lastMousePos;
     QVector3D lastMouseImagePos;
     bool panKeyDown;
     bool m_showFrame;
     bool m_showAlpha;
+    QMatrix4x4 m_matrix;
+    QMatrix4x4 m_inverseMatrix;
+    bool matricesDirty;
+    void updateMatrices();
 };
 
 #endif // CANVASWINDOW_H

@@ -432,9 +432,9 @@ void Image::setActiveContextColour(const ContextColour contextColour)
 }
 
 const ImageDataFormatDefinition IMAGE_DATA_FORMATS[] = {
-    {"Indexed", GL_R8, GL_RED, GL_BYTE, 1},
-    {"RGBA", GL_RGBA8, GL_RGBA, GL_BYTE, 4},
-    {"", 0, 0, 0, 0}
+    {ImageDataFormat::Indexed, "Indexed", GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte)},
+    {ImageDataFormat::RGBA, "RGBA", GL_RGBA8UI, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte) * 4},
+    {ImageDataFormat::Invalid, "", 0, 0, 0, 0}
 };
 
 ImageData::ImageData(const QSize &size, ImageDataFormat format, const GLubyte *const data) :
@@ -445,8 +445,8 @@ ImageData::ImageData(const QSize &size, ImageDataFormat format, const GLubyte *c
     const ImageDataFormatDefinition *const FORMAT = &IMAGE_DATA_FORMATS[(int)format];
 
     glGenTextures((GLsizei)1, &m_texture);
-    glBindBuffer(GL_TEXTURE_BUFFER, m_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, FORMAT->INTERNAL_FORMAT, size.width(), size.height(), 0, FORMAT->FORMAT, GL_UNSIGNED_BYTE, data);
+    glBindTexture(GL_TEXTURE_2D, m_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, FORMAT->INTERNAL_FORMAT, size.width(), size.height(), 0, FORMAT->FORMAT, FORMAT->ENUM, data);
 
     glGenFramebuffers((GLsizei)1, &m_framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
@@ -457,13 +457,13 @@ ImageData::ImageData(const QSize &size, ImageDataFormat format, const GLubyte *c
 
     glGenBuffers((GLsizei)1, &m_vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-    const GLfloat DATA[][3] = {
+    const GLfloat vertices[][3] = {
         {0.f, 0.f, 0.f},
         {(GLfloat)size.width(), 0.f, 0.f},
         {0.f, (GLfloat)size.height(), 0.f},
         {(GLfloat)size.width(), (GLfloat)size.height(), 0.f}
     };
-    glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(GLfloat), DATA, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 }
 
 ImageData::~ImageData()

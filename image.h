@@ -9,7 +9,14 @@
 
 class QOpenGLFramebufferObject;
 
+enum class ImageDataFormat {
+    Indexed,
+    RGBA,
+    Invalid,
+};
+
 struct ImageDataFormatDefinition {
+    ImageDataFormat id;
     char NAME[16];
     GLint INTERNAL_FORMAT;
     GLint FORMAT;
@@ -18,11 +25,6 @@ struct ImageDataFormatDefinition {
 };
 
 extern const ImageDataFormatDefinition IMAGE_DATA_FORMATS[];
-
-enum class ImageDataFormat {
-    Indexed,
-    RGBA,
-};
 
 class ImageData : public QObject, public QOpenGLFunctions
 {

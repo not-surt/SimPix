@@ -110,9 +110,9 @@ bool Application::addShader(const QString &name, const QOpenGLShader::ShaderType
     return error;
 }
 
-QOpenGLShader *Application::shader(const QString &name)
+GLuint Application::shader(const QString &name)
 {
-    return m_shaders.value(name);
+    return m_shaders.value(name)->shaderId();
 }
 
 bool Application::addProgram(const QString &name, const QStringList &shaders)
@@ -150,7 +150,7 @@ bool Application::addProgram(const QString &name, const QStringList &shaders)
     return error;
 }
 
-QOpenGLShaderProgram *Application::program(const QString &name)
+GLuint Application::program(const QString &name)
 {
-    return m_programs.value(name);
+    return m_programs.value(name)->programId();
 }

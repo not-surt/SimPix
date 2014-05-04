@@ -2,19 +2,19 @@
 #include <QOpenGLFunctions>
 
 Transform::Transform(QObject *parent) :
-    QObject(parent), m_origin(0.f, 0.f, 0.f), m_pan(0.f, 0.f, 0.f), m_zoom(1.f), m_pixelAspect(0.f, 0.f, 0.f), m_rotation(0.f), dirty(true)
+    QObject(parent), m_origin(0.f, 0.f, 0.f), m_pan(0.f, 0.f, 0.f), m_zoom(1.f), m_pixelAspect(0.f, 0.f, 0.f), m_rotation(0.f), matricesDirty(true)
 {
 }
 
 Transform::Transform(const Transform &transform):
-    QObject(transform.parent()), m_origin(transform.m_origin), m_pan(transform.m_pan), m_zoom(transform.m_zoom), m_pixelAspect(transform.m_pixelAspect), m_rotation(transform.m_rotation), dirty(true)
+    QObject(transform.parent()), m_origin(transform.m_origin), m_pan(transform.m_pan), m_zoom(transform.m_zoom), m_pixelAspect(transform.m_pixelAspect), m_rotation(transform.m_rotation), matricesDirty(true)
 {
 }
 
 void Transform::setOrigin(const QVector3D &origin)
 {
     if (m_origin != origin) {
-        dirty = true;
+        matricesDirty = true;
         m_origin = origin;
         emit changed(*this);
     }
@@ -23,7 +23,7 @@ void Transform::setOrigin(const QVector3D &origin)
 void Transform::setPan(const QVector3D &pan)
 {
     if (m_pan != pan) {
-        dirty = true;
+        matricesDirty = true;
         m_pan = pan;
         emit changed(*this);
     }
@@ -32,7 +32,7 @@ void Transform::setPan(const QVector3D &pan)
 void Transform::setZoom(const qreal zoom)
 {
     if (m_zoom != zoom) {
-        dirty = true;
+        matricesDirty = true;
         m_zoom = zoom;
         emit changed(*this);
     }
@@ -41,7 +41,7 @@ void Transform::setZoom(const qreal zoom)
 void Transform::setPixelAspect(const QVector3D &pixelAspect)
 {
     if (m_pixelAspect != pixelAspect) {
-        dirty = true;
+        matricesDirty = true;
         m_pixelAspect = pixelAspect;
         emit changed(*this);
     }
@@ -50,7 +50,7 @@ void Transform::setPixelAspect(const QVector3D &pixelAspect)
 void Transform::setRotation(const qreal rotation)
 {
     if (m_rotation != rotation) {
-        dirty = true;
+        matricesDirty = true;
         m_rotation = rotation;
         emit changed(*this);
     }
@@ -83,8 +83,7 @@ qreal Transform::rotation() const
 
 const QMatrix4x4 &Transform::matrix()
 {
-    if (dirty) {
-        dirty = false;
+    if (matricesDirty) {
         updateMatrices();
     }
     return m_matrix;
@@ -92,8 +91,7 @@ const QMatrix4x4 &Transform::matrix()
 
 const QMatrix4x4 &Transform::inverseMatrix()
 {
-    if (dirty) {
-        dirty = false;
+    if (matricesDirty) {
         updateMatrices();
     }
     return m_inverseMatrix;
@@ -107,4 +105,5 @@ void Transform::updateMatrices()
     m_matrix.scale(m_zoom * m_pixelAspect.x(), m_zoom * m_pixelAspect.y());
     m_matrix.translate(m_pan.x(), m_pan.y());
     m_inverseMatrix = m_matrix.inverted();
+    matricesDirty = false;
 }
