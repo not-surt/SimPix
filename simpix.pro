@@ -14,7 +14,6 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     newdialog.cpp \
-    canvas.cpp \
     colourselector.cpp \
     transformwidget.cpp \
     palettemodel.cpp \
@@ -36,7 +35,6 @@ SOURCES += main.cpp\
 
 HEADERS  += mainwindow.h \
     newdialog.h \
-    canvas.h \
     colourselector.h \
     transformwidget.h \
     palettemodel.h \

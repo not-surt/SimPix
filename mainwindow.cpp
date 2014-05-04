@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "newdialog.h"
-#include "canvas.h"
 #include "util.h"
 #include "colourswatch.h"
 #include "statusmousewidget.h"

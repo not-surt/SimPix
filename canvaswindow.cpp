@@ -45,7 +45,6 @@ void CanvasWindow::render()
 
         switch (image.format()) {
         case QImage::Format_Invalid:
-            return;
         case QImage::Format_Indexed8:
         case QImage::Format_ARGB32:
             break;
@@ -67,21 +66,36 @@ void CanvasWindow::render()
             format = ImageDataFormat::RGBA;
             break;
         default:
+            format = ImageDataFormat::Invalid;
             qDebug() << "Invalid image format";
             return;
         }
 
-        //        image = QGLWidget::convertToGLFormat(image);
-        image = image.rgbSwapped();
+        ImagePaletteData *palette = nullptr;
+        if (!image.colorTable().isEmpty()) {
+            palette = new ImagePaletteData(image.colorTable().size(), (GLubyte *)image.colorTable().constData());
+            qDebug() << QString::number(palette->colour(0), 16) << QString::number(palette->colour(1), 16);
+        }
+
         ImageData data(image.size(), format, image.constBits());
+        data.setPixel(QPoint(1, 1), qRgba(255, 0, 0, 127));
+        qDebug() << QString::number(data.pixel(QPoint(1, 1)), 16) << QString::number(data.pixel(QPoint(2, 2)), 16);
 
         m_context.makeCurrent(this);
         initializeOpenGLFunctions();
+
 
         glActiveTexture(GL_TEXTURE0 + 0);
         glBindTexture(GL_TEXTURE_2D, data.texture());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        glActiveTexture(GL_TEXTURE0 + 1);
+        if (palette) {
+            glBindTexture(GL_TEXTURE_2D, palette->texture());
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        }
 
         GLuint program = app->program("image");
         glUseProgram(program);
@@ -89,12 +103,22 @@ void CanvasWindow::render()
         GLint positionLocation = glGetAttribLocation(program, "position");
 
         GLint textureUnitLocation = glGetUniformLocation(program, "textureUnit");
+
+        GLint isIndexedLocation = glGetUniformLocation(program, "isIndexed");
+        GLint hasPaletteLocation = glGetUniformLocation(program, "hasPalette");
+        GLint paletteTextureUnitLocation = glGetUniformLocation(program, "paletteTextureUnit");
+
         GLint matrixLocation = glGetUniformLocation(program, "matrix");
 
         QMatrix4x4 matrix;
         matrix = this->matrix();
 
         glUniform1i(textureUnitLocation, 0);
+
+        glUniform1i(isIndexedLocation, (format == ImageDataFormat::Indexed));
+        glUniform1i(hasPaletteLocation, (palette != nullptr));
+        glUniform1i(paletteTextureUnitLocation, 1);
+
         glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, matrix.constData());
 
         glBindBuffer(GL_ARRAY_BUFFER, data.vertexBuffer());
@@ -106,7 +130,7 @@ void CanvasWindow::render()
 
         glUseProgram(0);
 
-//        m_context.doneCurrent(); // why stop draw?
+//        m_context.doneCurrent(); // why crash?
     }
 }
 
@@ -375,6 +399,13 @@ void CanvasWindow::setTransform(const Transform &transform, const bool limit)
                     m_transform.setPan(QVector3D(clamp(m_transform.pan().x(), (qreal)-m_image->data().width(), 0.f),
                                                clamp(m_transform.pan().y(), (qreal)-m_image->data().height(), 0.f),
                                                0.f));
+//                    QPointF imageCentreScreenPosition = m_transform.matrix().map(QPointF((float)m_image->data().width() / 2.f, (float)m_image->data().height() / 2.f));
+//                    qDebug() << imageCentreScreenPosition;
+//                    QVector3D clampedImageCentreScreenPosition = QVector3D(clamp(imageCentreScreenPosition.x(), 0.f, (float)width()),
+//                                                                         clamp(imageCentreScreenPosition.y(), 0.f, (float)height()),
+//                                                                         0.f);
+//                    qDebug() << clampedImageCentreScreenPosition;
+//                    m_transform.setPan(m_transform.inverseMatrix().map(clampedImageCentreScreenPosition));
                 }
                 else {
                     m_transform.setPan(QVector3D(wrap(m_transform.pan().x(), (qreal)-m_image->data().width(), 0.f),

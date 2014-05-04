@@ -6,7 +6,7 @@
 
 #include "ui_transformwidget.h"
 
-#include "canvas.h"
+#include "transform.h"
 
 namespace Ui {
 class TransformWidget;

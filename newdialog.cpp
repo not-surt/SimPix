@@ -53,6 +53,9 @@ NewDialog::NewDialog(QWidget *parent) :
 
     ui->modeComboBox->addItem("Indexed", Image::Indexed);
     ui->modeComboBox->addItem("RGBA", Image::RGBA);
+//    for (int i = 0; IMAGE_DATA_FORMATS[i].id != ImageDataFormat::Invalid; ++i) {
+//        ui->modeComboBox->addItem(IMAGE_DATA_FORMATS[i].NAME, (int)IMAGE_DATA_FORMATS[i].id);
+//    }
 
     QMenu *presetMenu = new QMenu();
     for (int i = 0; sizePresets[i].isValid() || sizePresets[i+1].isValid(); ++i) {

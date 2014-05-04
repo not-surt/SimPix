@@ -13,7 +13,7 @@
   <property name="dockNestingEnabled">
    <bool>true</bool>
   </property>
-  <widget class="Canvas" name="canvas"/>
+  <widget class="QWidget" name="canvas"/>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
@@ -476,12 +476,6 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
-  <customwidget>
-   <class>Canvas</class>
-   <extends>QWidget</extends>
-   <header>canvas.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>ColourSelector</class>
    <extends>QWidget</extends>

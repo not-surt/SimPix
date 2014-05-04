@@ -26,31 +26,59 @@ struct ImageDataFormatDefinition {
 
 extern const ImageDataFormatDefinition IMAGE_DATA_FORMATS[];
 
-class ImageData : public QObject, public QOpenGLFunctions
+union Pixel {
+    GLubyte index;
+    GLuint rgba;
+    GLubyte bytes[4];
+    struct {
+        GLubyte r;
+        GLubyte g;
+        GLubyte b;
+        GLubyte a;
+    } components;
+};
+
+class TextureData : public QOpenGLFunctions
 {
-    Q_OBJECT
 public:
-    explicit ImageData(const QSize &size, ImageDataFormat format, const GLubyte *const data = nullptr);
-    ~ImageData();
-    uint pixel(const QPoint &position) const;
-    void setPixel(const QPoint &position, uint colour);
-    GLuint texture() const;
+    explicit TextureData(const QSize &size, const ImageDataFormat format, const GLubyte *const data = nullptr);
+    ~TextureData();
+    uint pixel(const QPoint &position);
+    void setPixel(const QPoint &position, const uint colour);
     QSize size() const;
     ImageDataFormat format() const;
+    GLuint texture() const;
     GLuint framebuffer() const;
-    GLuint vertexBuffer() const;
-private:
+protected:
     QSize m_size;
     ImageDataFormat m_format;
     GLuint m_texture;
     GLuint m_framebuffer;
+};
+
+class ImagePaletteData : public TextureData
+{
+public:
+    explicit ImagePaletteData(const GLuint length, const GLubyte *const data = nullptr);
+    uint colour(const uint index);
+    void setColour(const uint index, uint colour);
+    GLuint length() const;
+};
+
+class ImageData : public TextureData
+{
+public:
+    explicit ImageData(const QSize &size, const ImageDataFormat format, const GLubyte *const data = nullptr);
+    ~ImageData();
+    GLuint vertexBuffer() const;
+protected:
     GLuint m_vertexBuffer;
 };
 
 class ImageLayerCel : public QObject
 {
     Q_OBJECT
-private:
+protected:
     qreal m_begin, m_end;
     ImageData *m_texture;
     // transform
@@ -59,7 +87,7 @@ private:
 class ImageLayer : public QObject
 {
     Q_OBJECT
-private:
+protected:
     QList<ImageLayerCel> m_cels;
 };
 
@@ -106,6 +134,8 @@ public:
 
     ContextColour activeContextColour() const;
 
+    ImageData *imageData();
+
 signals:
     void fileNameChanged(const QString &fileName);
     void changed(const QRegion &region);
@@ -122,9 +152,10 @@ public slots:
     void setFileName(const QString &fileName);
 
 
-private:
+protected:
     QString m_fileName;
     QImage m_data;
+    ImageData *m_imageData;
     QQueue<QPoint> recentPoints;
     static const int recentPointsMax = 5;
     void addRecentPoint(const QPoint &point)
@@ -139,7 +170,6 @@ private:
     uint m_eraserColour;
     bool m_dirty;
     ContextColour m_activeContextColour;
-    QOpenGLFramebufferObject *m_fbo;
 };
 
 Q_DECLARE_METATYPE(Image::Format)
@@ -155,7 +185,7 @@ public:
     void undo();
     void redo();
 
-private:
+protected:
     const QPoint &point0, &point1;
     const Image &image;
 //    Image dirty;

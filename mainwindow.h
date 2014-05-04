@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "canvas.h"
 #include "canvaswindow.h"
 #include "image.h"
 
