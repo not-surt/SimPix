@@ -43,6 +43,12 @@ TextureData::TextureData(const QSize &size, const ImageDataFormat format, const 
 
     glGenTextures((GLsizei)1, &m_texture);
     glBindTexture(GL_TEXTURE_2D, m_texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexImage2D(GL_TEXTURE_2D, 0, FORMAT->INTERNAL_FORMAT, size.width(), size.height(), 0, FORMAT->FORMAT, FORMAT->ENUM, data);
 
     glGenFramebuffers((GLsizei)1, &m_framebuffer);
@@ -128,8 +134,8 @@ ImageData::ImageData(const QSize &size, const ImageDataFormat format, const GLub
     const GLfloat vertices[][3] = {
         {0.f, 0.f, 0.f},
         {(GLfloat)size.width(), 0.f, 0.f},
+        {(GLfloat)size.width(), (GLfloat)size.height(), 0.f},
         {0.f, (GLfloat)size.height(), 0.f},
-        {(GLfloat)size.width(), (GLfloat)size.height(), 0.f}
     };
     glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 }

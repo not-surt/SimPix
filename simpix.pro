@@ -27,8 +27,6 @@ SOURCES += main.cpp\
     colourswatchdelegate.cpp \
     util.cpp \
     application.cpp \
-    imagemodel.cpp \
-    transformmodel.cpp \
     statusmousewidget.cpp \
     openglwindow.cpp \
     canvaswindow.cpp
@@ -48,8 +46,6 @@ HEADERS  += mainwindow.h \
     colourswatch.h \
     util.h \
     application.h \
-    imagemodel.h \
-    transformmodel.h \
     statusmousewidget.h \
     openglwindow.h \
     canvaswindow.h
@@ -72,7 +68,9 @@ OTHER_FILES += \
     text/LICENSE \
     image.vert \
     shaders/image.frag \
-    shaders/image.vert
+    shaders/frame.frag \
+    shaders/checkerboard.frag \
+    shaders/canvas.vert
 
 RESOURCES += \
     simpix.qrc

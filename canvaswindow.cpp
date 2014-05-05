@@ -32,10 +32,49 @@ void CanvasWindow::render()
     Application *const app = (Application *)qApp;
     m_context.makeCurrent(this);
     initializeOpenGLFunctions();
-    glEnable(GL_MULTISAMPLE);
+//    glEnable(GL_MULTISAMPLE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_BLEND);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
     glClearColor(0.25, 0.25, 0.5, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    m_context.makeCurrent(this);
+    initializeOpenGLFunctions();
+
+    glActiveTexture(GL_TEXTURE0 + 0);
+    GLuint canvasVertexBuffer;
+    glGenBuffers((GLsizei)1, &canvasVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, canvasVertexBuffer);
+    const GLfloat vertices[][3] = {
+        {0.f, 0.f, 0.f},
+        {(GLfloat)width(), 0.f, 0.f},
+        {(GLfloat)width(), (GLfloat)height(), 0.f},
+        {0.f, (GLfloat)height(), 0.f},
+    };
+    glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+    GLuint program = app->program("checkerboard");
+    glUseProgram(program);
+    GLint positionAttrib = glGetAttribLocation(program, "position");
+    GLint matrixUniform = glGetUniformLocation(program, "matrix");
+    GLint textureMatrixUniform = glGetUniformLocation(program, "textureMatrix");
+    GLint sizeUniform = glGetUniformLocation(program, "size");
+    GLint colour0Uniform = glGetUniformLocation(program, "colour0");
+    GLint colour1Uniform = glGetUniformLocation(program, "colour1");
+    QMatrix4x4 matrix = this->matrix();
+    glUniform2f(sizeUniform, 32.f, 32.f);
+    glUniform4i(colour0Uniform, 127, 127, 127, 255);
+    glUniform4i(colour1Uniform, 95, 95, 95, 255);
+    glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, matrix.constData());
+    glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, QMatrix4x4().constData());
+    glBindBuffer(GL_ARRAY_BUFFER, canvasVertexBuffer);
+    glEnableVertexAttribArray(positionAttrib);
+    glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    glDisableVertexAttribArray(positionAttrib);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     if (m_image) {
 
@@ -84,54 +123,97 @@ void CanvasWindow::render()
         m_context.makeCurrent(this);
         initializeOpenGLFunctions();
 
+        if (m_showAlpha) {
+            glEnable(GL_BLEND);
+        }
+        else {
+            glDisable(GL_BLEND);
+        }
+
 
         glActiveTexture(GL_TEXTURE0 + 0);
         glBindTexture(GL_TEXTURE_2D, data.texture());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-        glActiveTexture(GL_TEXTURE0 + 1);
         if (palette) {
+            glActiveTexture(GL_TEXTURE0 + 1);
             glBindTexture(GL_TEXTURE_2D, palette->texture());
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         }
 
         GLuint program = app->program("image");
         glUseProgram(program);
 
-        GLint positionLocation = glGetAttribLocation(program, "position");
+        GLint positionAttrib = glGetAttribLocation(program, "position");
 
-        GLint textureUnitLocation = glGetUniformLocation(program, "textureUnit");
+        GLint textureUnitUniform = glGetUniformLocation(program, "textureUnit");
 
-        GLint isIndexedLocation = glGetUniformLocation(program, "isIndexed");
-        GLint hasPaletteLocation = glGetUniformLocation(program, "hasPalette");
-        GLint paletteTextureUnitLocation = glGetUniformLocation(program, "paletteTextureUnit");
+        GLint isIndexedUniform = glGetUniformLocation(program, "isIndexed");
+        GLint hasPaletteUniform = glGetUniformLocation(program, "hasPalette");
+        GLint paletteTextureUnitUniform = glGetUniformLocation(program, "paletteTextureUnit");
 
-        GLint matrixLocation = glGetUniformLocation(program, "matrix");
+        GLint matrixUniform = glGetUniformLocation(program, "matrix");
+        GLint textureMatrixUniform = glGetUniformLocation(program, "textureMatrix");
 
-        QMatrix4x4 matrix;
-        matrix = this->matrix();
 
-        glUniform1i(textureUnitLocation, 0);
+        glUniform1i(textureUnitUniform, 0);
 
-        glUniform1i(isIndexedLocation, (format == ImageDataFormat::Indexed));
-        glUniform1i(hasPaletteLocation, (palette != nullptr));
-        glUniform1i(paletteTextureUnitLocation, 1);
+        glUniform1i(isIndexedUniform, (format == ImageDataFormat::Indexed));
+        glUniform1i(hasPaletteUniform, (palette != nullptr));
+        glUniform1i(paletteTextureUnitUniform, 1);
 
-        glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, matrix.constData());
+        if (m_tiled) {
+            glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, this->matrix().constData());
+            glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, m_transform.inverseMatrix().constData());
 
-        glBindBuffer(GL_ARRAY_BUFFER, data.vertexBuffer());
-        glEnableVertexAttribArray(positionLocation);
-        glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        glDisableVertexAttribArray(positionLocation);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindBuffer(GL_ARRAY_BUFFER, canvasVertexBuffer);
+            glEnableVertexAttribArray(positionAttrib);
+            glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+            glDisableVertexAttribArray(positionAttrib);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        }
+        else {
+            glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (this->matrix() * m_transform.matrix()).constData());
+            glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, QMatrix4x4().constData());
+
+            glBindBuffer(GL_ARRAY_BUFFER, data.vertexBuffer());
+            glEnableVertexAttribArray(positionAttrib);
+            glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+            glDisableVertexAttribArray(positionAttrib);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        }
 
         glUseProgram(0);
 
+        if (m_showFrame) {
+            GLuint program = app->program("frame");
+            glUseProgram(program);
+            GLint matrixUniform = glGetUniformLocation(program, "matrix");
+            GLint textureMatrixUniform = glGetUniformLocation(program, "textureMatrix");
+            GLint colourUniform = glGetUniformLocation(program, "colour");
+            glUniform4i(colourUniform, 255, 255, 255, 127);
+            glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (this->matrix() * m_transform.matrix()).constData());
+            glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, QMatrix4x4().constData());
+
+            GLint positionAttrib = glGetAttribLocation(program, "position");
+            glBindBuffer(GL_ARRAY_BUFFER, data.vertexBuffer());
+            glEnableVertexAttribArray(positionAttrib);
+            glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+            glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+            glDisableVertexAttribArray(positionAttrib);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        }
+
 //        m_context.doneCurrent(); // why crash?
     }
+
+    glDeleteBuffers(1, &canvasVertexBuffer);
 }
 
 void CanvasWindow::resizeEvent(QResizeEvent *event)
@@ -363,7 +445,6 @@ void CanvasWindow::updateMatrices()
 {
     m_matrix = QMatrix4x4();
     m_matrix.ortho(0., (float)width(), (float)height(), 0.f, -1.f, 1.f);
-    m_matrix *= m_transform.matrix();
     m_inverseMatrix = m_matrix.inverted();
     matricesDirty = false;
 }
@@ -417,7 +498,6 @@ void CanvasWindow::setTransform(const Transform &transform, const bool limit)
             m_transform.setPixelAspect(QVector3D(clamp(m_transform.pixelAspect().x(), 1.f/16.f, 16.f), clamp(m_transform.pixelAspect().y(), 1.f/16.f, 16.f), 0.f));
             m_transform.setRotation(wrap(m_transform.rotation(), 0.f, 360.f));
         }
-        matricesDirty = true;
         update();
         emit transformChanged(m_transform);
     }

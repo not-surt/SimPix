@@ -44,11 +44,17 @@ Application::Application(int &argc, char **argv) :
     contextMakeCurrent();
     initializeOpenGLFunctions();
 
-    addShader("image.vert", QOpenGLShader::Vertex, fileToString(":/shaders/image.vert"));
+    addShader("canvas.vert", QOpenGLShader::Vertex, fileToString(":/shaders/canvas.vert"));
+
     addShader("image.frag", QOpenGLShader::Fragment, fileToString(":/shaders/image.frag"));
-    addProgram("image", QStringList()
-               << "image.vert"
-               << "image.frag");
+    addProgram("image", QStringList() << "canvas.vert" << "image.frag");
+
+    addShader("frame.frag", QOpenGLShader::Fragment, fileToString(":/shaders/frame.frag"));
+    addProgram("frame", QStringList() << "canvas.vert" << "frame.frag");
+
+    addShader("checkerboard.frag", QOpenGLShader::Fragment, fileToString(":/shaders/checkerboard.frag"));
+    addProgram("checkerboard", QStringList() << "canvas.vert" << "checkerboard.frag");
+
     contextDoneCurrent();
 
     m_window.show();
