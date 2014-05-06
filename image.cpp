@@ -339,7 +339,8 @@ bool Image::save(QString fileName)
         QImage qImage = QImage(data, m_imageData->size().width(), m_imageData->size().height(), format);
         if (m_paletteData && (format == QImage::Format_Indexed8)) {
             uchar *palette = m_paletteData->readData();
-            std::vector<QRgb> vector((QRgb *)palette, (QRgb *)(palette + m_paletteData->length()));
+            std::vector<QRgb> vector((QRgb *)palette, ((QRgb *)palette) + m_paletteData->length());
+            qDebug() << QVector<QRgb>::fromStdVector(vector);
             qImage.setColorTable(QVector<QRgb>::fromStdVector(vector));
             delete palette;
         }
