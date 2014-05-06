@@ -156,12 +156,12 @@ bool MainWindow::newImage()
     if (!closeImage(false)) {
         return false;
     }
-    NewDialog *dialog = new NewDialog(this);
-    if (dialog->exec()) {
-        Image *newImage = new Image(dialog->imageSize(), dialog->mode());
-        setImage(newImage);
-        return true;
-    }
+//    NewDialog *dialog = new NewDialog(this);
+//    if (dialog->exec()) {
+//        Image *newImage = new Image(dialog->imageSize(), dialog->mode());
+//        setImage(newImage);
+//        return true;
+//    }
     return false;
 }
 

@@ -31,6 +31,7 @@ public:
     QRect rect() const;
     const QMatrix4x4 &matrix();
     const QMatrix4x4 &inverseMatrix();
+    GLuint vertexBuffer() const;
 
 public slots:
     void setImage(Image *const image);
@@ -80,6 +81,7 @@ private:
     QMatrix4x4 m_inverseMatrix;
     bool matricesDirty;
     void updateMatrices();
+    GLuint m_vertexBuffer;
 };
 
 #endif // CANVASWINDOW_H

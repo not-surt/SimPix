@@ -10,7 +10,7 @@
 #include <QGLWidget>
 
 CanvasWindow::CanvasWindow(QOpenGLContext *const shareContext) :
-    OpenGLWindow(), m_context(), m_image(0), m_transform(), m_tiled(false), panKeyDown(false), m_showFrame(false), matricesDirty(true)
+    OpenGLWindow(), m_context(), m_image(0), m_transform(), m_tiled(false), panKeyDown(false), m_showFrame(false), matricesDirty(true), m_vertexBuffer(0)
 {
 //    setFocusPolicy(Qt::WheelFocus);
 //    setMouseTracking(true);
@@ -36,90 +36,38 @@ void CanvasWindow::render()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_BLEND);
     glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
-    glClearColor(0.25, 0.25, 0.5, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
+//    glClearColor(0.25, 0.25, 0.5, 1.0);
+//    glClear(GL_COLOR_BUFFER_BIT);
 
     m_context.makeCurrent(this);
     initializeOpenGLFunctions();
 
-    glActiveTexture(GL_TEXTURE0 + 0);
-    GLuint canvasVertexBuffer;
-    glGenBuffers((GLsizei)1, &canvasVertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, canvasVertexBuffer);
-    const GLfloat vertices[][3] = {
-        {0.f, 0.f, 0.f},
-        {(GLfloat)width(), 0.f, 0.f},
-        {(GLfloat)width(), (GLfloat)height(), 0.f},
-        {0.f, (GLfloat)height(), 0.f},
-    };
-    glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-    GLuint program = app->program("checkerboard");
-    glUseProgram(program);
-    GLint positionAttrib = glGetAttribLocation(program, "position");
-    GLint matrixUniform = glGetUniformLocation(program, "matrix");
-    GLint textureMatrixUniform = glGetUniformLocation(program, "textureMatrix");
-    GLint sizeUniform = glGetUniformLocation(program, "size");
-    GLint colour0Uniform = glGetUniformLocation(program, "colour0");
-    GLint colour1Uniform = glGetUniformLocation(program, "colour1");
-    QMatrix4x4 matrix = this->matrix();
-    glUniform2f(sizeUniform, 32.f, 32.f);
-    glUniform4i(colour0Uniform, 127, 127, 127, 255);
-    glUniform4i(colour1Uniform, 95, 95, 95, 255);
-    glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, matrix.constData());
-    glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, QMatrix4x4().constData());
-    glBindBuffer(GL_ARRAY_BUFFER, canvasVertexBuffer);
-    glEnableVertexAttribArray(positionAttrib);
-    glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    if (!m_tiled || m_showAlpha) {
+        glActiveTexture(GL_TEXTURE0 + 0);
+        GLuint program = app->program("checkerboard");
+        glUseProgram(program);
+        GLint positionAttrib = glGetAttribLocation(program, "position");
+        GLint matrixUniform = glGetUniformLocation(program, "matrix");
+        GLint textureMatrixUniform = glGetUniformLocation(program, "textureMatrix");
+        GLint sizeUniform = glGetUniformLocation(program, "size");
+        GLint colour0Uniform = glGetUniformLocation(program, "colour0");
+        GLint colour1Uniform = glGetUniformLocation(program, "colour1");
+        glUniform2f(sizeUniform, 32.f, 32.f);
+        glUniform4i(colour0Uniform, 127, 127, 127, 255);
+        glUniform4i(colour1Uniform, 95, 95, 95, 255);
+        glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, this->matrix().constData());
+        glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, QMatrix4x4().constData());
+        glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+        glEnableVertexAttribArray(positionAttrib);
+        glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-    glDisableVertexAttribArray(positionAttrib);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glDisableVertexAttribArray(positionAttrib);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
 
     if (m_image) {
-
-        app->contextMakeCurrent();
-        initializeOpenGLFunctions();
-        QImage image(m_image->data());
-
-        switch (image.format()) {
-        case QImage::Format_Invalid:
-        case QImage::Format_Indexed8:
-        case QImage::Format_ARGB32:
-            break;
-        case QImage::Format_Mono:
-        case QImage::Format_MonoLSB:
-            image = image.convertToFormat(QImage::Format_Indexed8);
-            break;
-        default:
-            image = image.convertToFormat(QImage::Format_ARGB32);
-            break;
-        }
-
-        ImageDataFormat format;
-        switch (image.format()) {
-        case QImage::Format_Indexed8:
-            format = ImageDataFormat::Indexed;
-            break;
-        case QImage::Format_ARGB32:
-            format = ImageDataFormat::RGBA;
-            break;
-        default:
-            format = ImageDataFormat::Invalid;
-            qDebug() << "Invalid image format";
-            return;
-        }
-
-        ImagePaletteData *palette = nullptr;
-        if (!image.colorTable().isEmpty()) {
-            palette = new ImagePaletteData(image.colorTable().size(), (GLubyte *)image.colorTable().constData());
-            qDebug() << QString::number(palette->colour(0), 16) << QString::number(palette->colour(1), 16);
-        }
-
-        ImageData data(image.size(), format, image.constBits());
-        data.setPixel(QPoint(1, 1), qRgba(255, 0, 0, 127));
-        qDebug() << QString::number(data.pixel(QPoint(1, 1)), 16) << QString::number(data.pixel(QPoint(2, 2)), 16);
-
         m_context.makeCurrent(this);
         initializeOpenGLFunctions();
 
@@ -132,11 +80,11 @@ void CanvasWindow::render()
 
 
         glActiveTexture(GL_TEXTURE0 + 0);
-        glBindTexture(GL_TEXTURE_2D, data.texture());
+        glBindTexture(GL_TEXTURE_2D, m_image->imageData()->texture());
 
-        if (palette) {
+        if (m_image->paletteData()) {
             glActiveTexture(GL_TEXTURE0 + 1);
-            glBindTexture(GL_TEXTURE_2D, palette->texture());
+            glBindTexture(GL_TEXTURE_2D, m_image->paletteData()->texture());
         }
 
         GLuint program = app->program("image");
@@ -156,15 +104,15 @@ void CanvasWindow::render()
 
         glUniform1i(textureUnitUniform, 0);
 
-        glUniform1i(isIndexedUniform, (format == ImageDataFormat::Indexed));
-        glUniform1i(hasPaletteUniform, (palette != nullptr));
+        glUniform1i(isIndexedUniform, (m_image->imageData()->format() == ImageDataFormat::Indexed));
+        glUniform1i(hasPaletteUniform, (m_image->paletteData() != nullptr));
         glUniform1i(paletteTextureUnitUniform, 1);
 
         if (m_tiled) {
             glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, this->matrix().constData());
             glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, m_transform.inverseMatrix().constData());
 
-            glBindBuffer(GL_ARRAY_BUFFER, canvasVertexBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
             glEnableVertexAttribArray(positionAttrib);
             glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
@@ -177,7 +125,7 @@ void CanvasWindow::render()
             glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (this->matrix() * m_transform.matrix()).constData());
             glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, QMatrix4x4().constData());
 
-            glBindBuffer(GL_ARRAY_BUFFER, data.vertexBuffer());
+            glBindBuffer(GL_ARRAY_BUFFER, m_image->imageData()->vertexBuffer());
             glEnableVertexAttribArray(positionAttrib);
             glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
@@ -200,7 +148,7 @@ void CanvasWindow::render()
             glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, QMatrix4x4().constData());
 
             GLint positionAttrib = glGetAttribLocation(program, "position");
-            glBindBuffer(GL_ARRAY_BUFFER, data.vertexBuffer());
+            glBindBuffer(GL_ARRAY_BUFFER, m_image->imageData()->vertexBuffer());
             glEnableVertexAttribArray(positionAttrib);
             glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
@@ -212,8 +160,6 @@ void CanvasWindow::render()
 
 //        m_context.doneCurrent(); // why crash?
     }
-
-    glDeleteBuffers(1, &canvasVertexBuffer);
 }
 
 void CanvasWindow::resizeEvent(QResizeEvent *event)
@@ -221,6 +167,16 @@ void CanvasWindow::resizeEvent(QResizeEvent *event)
     m_context.makeCurrent(this);
     initializeOpenGLFunctions();
     glViewport(0, 0, (GLint)event->size().width(), (GLint)event->size().height());
+    glDeleteBuffers((GLsizei)1, &m_vertexBuffer);
+    glGenBuffers((GLsizei)1, &m_vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+    const GLfloat vertices[][3] = {
+        {0.f, 0.f, 0.f},
+        {(GLfloat)event->size().width(), 0.f, 0.f},
+        {(GLfloat)event->size().width(), (GLfloat)event->size().height(), 0.f},
+        {0.f, (GLfloat)event->size().height(), 0.f},
+    };
+    glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
     m_context.doneCurrent();
     m_transform.setOrigin(QVector3D(event->size().width() / 2.f, event->size().height() / 2.f, 0.f));
     matricesDirty = true;
@@ -423,6 +379,11 @@ bool CanvasWindow::showAlpha() const
 QRect CanvasWindow::rect() const
 {
     return QRect(0, 0, width(), height());
+}
+
+GLuint CanvasWindow::vertexBuffer() const
+{
+    return m_vertexBuffer;
 }
 
 const QMatrix4x4 &CanvasWindow::matrix()

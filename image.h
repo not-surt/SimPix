@@ -17,11 +17,11 @@ enum class ImageDataFormat {
 
 struct ImageDataFormatDefinition {
     ImageDataFormat id;
-    char NAME[16];
-    GLint INTERNAL_FORMAT;
-    GLint FORMAT;
-    GLint ENUM;
-    GLint SIZE;
+    char name[16];
+    GLint internalFormat;
+    GLint format;
+    GLint glEnum;
+    GLint size;
 };
 
 extern const ImageDataFormatDefinition IMAGE_DATA_FORMATS[];
@@ -56,10 +56,10 @@ protected:
     GLuint m_framebuffer;
 };
 
-class ImagePaletteData : public TextureData
+class PaletteData : public TextureData
 {
 public:
-    explicit ImagePaletteData(const GLuint length, const GLubyte *const data = nullptr);
+    explicit PaletteData(const GLuint length, const GLubyte *const data = nullptr);
     uint colour(const uint index);
     void setColour(const uint index, uint colour);
     GLuint length() const;
@@ -112,8 +112,8 @@ public:
         Secondary,
         Eraser,
     };
-    explicit Image(const Image &image, QObject *parent = nullptr);
-    explicit Image(const QSize &size, Format format, QObject *parent = nullptr);
+//    explicit Image(const Image &image, QObject *parent = nullptr);
+//    explicit Image(const QSize &size, Format format, QObject *parent = nullptr);
     explicit Image(const QString &fileName, const char *format = nullptr, QObject *parent = nullptr);
     ~Image();
 
@@ -135,6 +135,7 @@ public:
     ContextColour activeContextColour() const;
 
     ImageData *imageData();
+    PaletteData *paletteData();
 
 signals:
     void fileNameChanged(const QString &fileName);
@@ -156,6 +157,7 @@ protected:
     QString m_fileName;
     QImage m_data;
     ImageData *m_imageData;
+    PaletteData *m_paletteData;
     QQueue<QPoint> recentPoints;
     static const int recentPointsMax = 5;
     void addRecentPoint(const QPoint &point)

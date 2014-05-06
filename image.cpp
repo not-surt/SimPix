@@ -5,6 +5,7 @@
 #include <QUndoStack>
 #include <QOpenGLFramebufferObjectFormat>
 #include <QOpenGLFramebufferObject>
+#include "application.h"
 
 StrokeCommand::StrokeCommand(const Image &image, const QPoint &point0, const QPoint &point1, QUndoCommand *parent)
     : QUndoCommand(parent), image(image), point0(point0), point1(point1)
@@ -34,12 +35,12 @@ const ImageDataFormatDefinition IMAGE_DATA_FORMATS[] = {
     {ImageDataFormat::Invalid, "", 0, 0, 0, 0}
 };
 
-TextureData::TextureData(const QSize &size, const ImageDataFormat format, const GLubyte *const data) :
-    m_size(size), m_format(format)
+TextureData::TextureData(const QSize &size, const ImageDataFormat _format, const GLubyte *const data) :
+    m_size(size), m_format(_format)
 {
     initializeOpenGLFunctions();
 
-    const ImageDataFormatDefinition *const FORMAT = &IMAGE_DATA_FORMATS[(int)format];
+    const ImageDataFormatDefinition *const format = &IMAGE_DATA_FORMATS[(int)_format];
 
     glGenTextures((GLsizei)1, &m_texture);
     glBindTexture(GL_TEXTURE_2D, m_texture);
@@ -49,7 +50,7 @@ TextureData::TextureData(const QSize &size, const ImageDataFormat format, const 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexImage2D(GL_TEXTURE_2D, 0, FORMAT->INTERNAL_FORMAT, size.width(), size.height(), 0, FORMAT->FORMAT, FORMAT->ENUM, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, format->internalFormat, size.width(), size.height(), 0, format->format, format->glEnum, data);
 
     glGenFramebuffers((GLsizei)1, &m_framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
@@ -71,14 +72,14 @@ uint TextureData::pixel(const QPoint &position)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
     uint colour = 0;
-    glReadPixels(position.x(), position.y(), 1, 1, IMAGE_DATA_FORMATS[(int)m_format].FORMAT, IMAGE_DATA_FORMATS[(int)m_format].ENUM, &colour);
+    glReadPixels(position.x(), position.y(), 1, 1, IMAGE_DATA_FORMATS[(int)m_format].format, IMAGE_DATA_FORMATS[(int)m_format].glEnum, &colour);
     return colour;
 }
 
 void TextureData::setPixel(const QPoint &position, const uint colour)
 {
     glBindTexture(GL_TEXTURE_2D, m_texture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, position.x(), position.y(), 1, 1, IMAGE_DATA_FORMATS[(int)m_format].FORMAT, IMAGE_DATA_FORMATS[(int)m_format].ENUM, &colour);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, position.x(), position.y(), 1, 1, IMAGE_DATA_FORMATS[(int)m_format].format, IMAGE_DATA_FORMATS[(int)m_format].glEnum, &colour);
 }
 
 GLuint TextureData::texture() const
@@ -101,23 +102,23 @@ GLuint TextureData::framebuffer() const
     return m_framebuffer;
 }
 
-ImagePaletteData::ImagePaletteData(const GLuint length, const GLubyte *const data) :
+PaletteData::PaletteData(const GLuint length, const GLubyte *const data) :
     TextureData(QSize(length, 1), ImageDataFormat::RGBA, data)
 {
 
 }
 
-uint ImagePaletteData::colour(const uint index)
+uint PaletteData::colour(const uint index)
 {
     return pixel(QPoint(index, 0));
 }
 
-void ImagePaletteData::setColour(const uint index, uint colour)
+void PaletteData::setColour(const uint index, uint colour)
 {
     setPixel(QPoint(index, 0), colour);
 }
 
-uint ImagePaletteData::length() const
+uint PaletteData::length() const
 {
     return m_size.width();
 }
@@ -126,8 +127,6 @@ ImageData::ImageData(const QSize &size, const ImageDataFormat format, const GLub
     TextureData(size, format, data)
 {
     initializeOpenGLFunctions();
-
-    const ImageDataFormatDefinition *const FORMAT = &IMAGE_DATA_FORMATS[(int)format];
 
     glGenBuffers((GLsizei)1, &m_vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
@@ -152,53 +151,105 @@ GLuint ImageData::vertexBuffer() const
     return m_vertexBuffer;
 }
 
-Image::Image(const Image &image, QObject *parent) :
-    QObject(parent), m_fileName(), m_data(image.constData()), m_primaryColour(image.m_primaryColour), m_secondaryColour(image.m_secondaryColour), m_eraserColour(image.m_eraserColour), m_dirty(true), m_activeContextColour(Image::Primary)
-{
-    // m_imageData
-}
+//Image::Image(const Image &image, QObject *parent) :
+//    QObject(parent), m_fileName(), m_data(image.constData()), m_primaryColour(image.m_primaryColour), m_secondaryColour(image.m_secondaryColour), m_eraserColour(image.m_eraserColour), m_dirty(true), m_activeContextColour(Image::Primary)
+//{
+//    // m_imageData
+//}
 
-Image::Image(const QSize &size, Image::Format format, QObject *parent) :
-    QObject(parent), m_fileName(), m_data(size, static_cast<QImage::Format>(format)), m_dirty(true)
+//Image::Image(const QSize &size, Image::Format format, QObject *parent) :
+//    QObject(parent), m_fileName(), m_data(size, static_cast<QImage::Format>(format)), m_dirty(true)
+//{
+//    // m_imageData
+//    if (format == Image::Indexed) {
+//        m_data.setColor(0, qRgb(0, 0, 0));
+//        m_data.setColor(1, qRgb(255, 255, 255));
+//        m_data.fill(0);
+//        m_primaryColour = 1;
+//        m_secondaryColour = m_eraserColour = 0;
+//    }
+//    else if (format == Image::RGBA) {
+//        m_data.fill(qRgba(0, 0, 0, 0));
+//        m_primaryColour = qRgba(255, 255, 255, 255);
+//        m_secondaryColour = m_eraserColour = qRgba(0, 0, 0, 0);
+//    }
+//}
+
+Image::Image(const QString &fileName, const char *fileFormat, QObject *parent) :
+//    QObject(parent), m_fileName(fileName), m_data(fileName, format), m_dirty(false)
+    QObject(parent), m_fileName(fileName), m_dirty(false)
 {
-    // m_imageData
-    if (format == Image::Indexed) {
-        m_data.setColor(0, qRgb(0, 0, 0));
-        m_data.setColor(1, qRgb(255, 255, 255));
-        m_data.fill(0);
-        m_primaryColour = 1;
-        m_secondaryColour = m_eraserColour = 0;
+//    // m_imageData
+//    if (!m_data.isNull()) {
+//        if (m_data.format() != QImage::Format_Indexed8 && m_data.format() != QImage::Format_ARGB32) {
+//            if (m_data.colorTable().size() != 0) {
+//                m_data = m_data.convertToFormat(QImage::Format_Indexed8);
+//            }
+//            else {
+//                m_data = m_data.convertToFormat(QImage::Format_ARGB32);
+//            }
+//        }
+
+//        if (m_data.format() == QImage::Format_Indexed8) {
+//            m_primaryColour = m_data.colorTable().size() - 1;
+//            m_secondaryColour = 0;
+//        }
+//        else if (m_data.format() == QImage::Format_ARGB32) {
+//            m_primaryColour = qRgba(255, 255, 255, 255);
+//            m_secondaryColour = qRgba(0, 0, 0, 0);
+//        }
+//    }
+
+    ((Application *)qApp)->contextMakeCurrent();
+    QImage image(fileName, fileFormat);
+
+    if (!image.isNull()) {
+        switch (image.format()) {
+        case QImage::Format_Invalid:
+        case QImage::Format_Indexed8:
+        case QImage::Format_ARGB32:
+            break;
+        case QImage::Format_Mono:
+        case QImage::Format_MonoLSB:
+            image = image.convertToFormat(QImage::Format_Indexed8);
+            break;
+        default:
+            image = image.convertToFormat(QImage::Format_ARGB32);
+            break;
+        }
     }
-    else if (format == Image::RGBA) {
-        m_data.fill(qRgba(0, 0, 0, 0));
+
+    m_data = image;
+    if (m_data.format() == QImage::Format_Indexed8) {
+        m_primaryColour = m_data.colorTable().size() - 1;
+        m_secondaryColour = 0;
+    }
+    else if (m_data.format() == QImage::Format_ARGB32) {
         m_primaryColour = qRgba(255, 255, 255, 255);
-        m_secondaryColour = m_eraserColour = qRgba(0, 0, 0, 0);
+        m_secondaryColour = qRgba(0, 0, 0, 0);
     }
-}
 
-Image::Image(const QString &fileName, const char *format, QObject *parent) :
-    QObject(parent), m_fileName(fileName), m_data(fileName, format), m_dirty(false)
-{
-    // m_imageData
-    if (!m_data.isNull()) {
-        if (m_data.format() != QImage::Format_Indexed8 && m_data.format() != QImage::Format_ARGB32) {
-            if (m_data.colorTable().size() != 0) {
-                m_data = m_data.convertToFormat(QImage::Format_Indexed8);
-            }
-            else {
-                m_data = m_data.convertToFormat(QImage::Format_ARGB32);
-            }
-        }
-
-        if (m_data.format() == QImage::Format_Indexed8) {
-            m_primaryColour = m_data.colorTable().size() - 1;
-            m_secondaryColour = 0;
-        }
-        else if (m_data.format() == QImage::Format_ARGB32) {
-            m_primaryColour = qRgba(255, 255, 255, 255);
-            m_secondaryColour = qRgba(0, 0, 0, 0);
-        }
+    ImageDataFormat format;
+    switch (image.format()) {
+    case QImage::Format_Indexed8:
+        format = ImageDataFormat::Indexed;
+        break;
+    case QImage::Format_ARGB32:
+        format = ImageDataFormat::RGBA;
+        break;
+    default:
+        format = ImageDataFormat::Invalid;
+        qDebug() << "Invalid image format";
+        return;
     }
+
+    m_paletteData = nullptr;
+    if (!image.colorTable().isEmpty()) {
+        m_paletteData = new PaletteData(image.colorTable().size(), (GLubyte *)image.colorTable().constData());
+    }
+
+    m_imageData = new ImageData(image.size(), format, image.constBits());
+
 }
 
 Image::~Image()
@@ -257,6 +308,11 @@ bool Image::dirty() const
 ImageData *Image::imageData()
 {
     return m_imageData;
+}
+
+PaletteData *Image::paletteData()
+{
+    return m_paletteData;
 }
 
 bool Image::isIndexed()
