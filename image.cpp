@@ -70,6 +70,8 @@ TextureData::~TextureData()
 
 uint TextureData::pixel(const QPoint &position)
 {
+    initializeOpenGLFunctions();
+
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
     uint colour = 0;
     glReadPixels(position.x(), position.y(), 1, 1, IMAGE_DATA_FORMATS[(int)m_format].format, IMAGE_DATA_FORMATS[(int)m_format].glEnum, &colour);
@@ -78,6 +80,8 @@ uint TextureData::pixel(const QPoint &position)
 
 void TextureData::setPixel(const QPoint &position, const uint colour)
 {
+    initializeOpenGLFunctions();
+
     glBindTexture(GL_TEXTURE_2D, m_texture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, position.x(), position.y(), 1, 1, IMAGE_DATA_FORMATS[(int)m_format].format, IMAGE_DATA_FORMATS[(int)m_format].glEnum, &colour);
 }
@@ -100,6 +104,24 @@ ImageDataFormat TextureData::format() const
 GLuint TextureData::framebuffer() const
 {
     return m_framebuffer;
+}
+
+GLubyte *TextureData::readData(GLubyte *const _data)
+{
+    initializeOpenGLFunctions();
+
+    uchar *data = (_data != nullptr) ? _data : new uchar[m_size.width() * m_size.height() * IMAGE_DATA_FORMATS[(int)m_format].size];
+    glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
+    glReadPixels(0, 0, m_size.width(), m_size.height(), IMAGE_DATA_FORMATS[(int)m_format].format, IMAGE_DATA_FORMATS[(int)m_format].glEnum, data);
+    return data;
+}
+
+void TextureData::writeData(const GLubyte *const data)
+{
+    initializeOpenGLFunctions();
+
+    glBindTexture(GL_TEXTURE_2D, m_texture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_size.width(), m_size.height(), IMAGE_DATA_FORMATS[(int)m_format].format, IMAGE_DATA_FORMATS[(int)m_format].glEnum, data);
 }
 
 PaletteData::PaletteData(const GLuint length, const GLubyte *const data) :
@@ -219,15 +241,7 @@ Image::Image(const QString &fileName, const char *fileFormat, QObject *parent) :
         }
     }
 
-    m_data = image;
-    if (m_data.format() == QImage::Format_Indexed8) {
-        m_primaryColour = m_data.colorTable().size() - 1;
-        m_secondaryColour = 0;
-    }
-    else if (m_data.format() == QImage::Format_ARGB32) {
-        m_primaryColour = qRgba(255, 255, 255, 255);
-        m_secondaryColour = qRgba(0, 0, 0, 0);
-    }
+    m_data = image; //////////////////////
 
     ImageDataFormat format;
     switch (image.format()) {
@@ -246,6 +260,22 @@ Image::Image(const QString &fileName, const char *fileFormat, QObject *parent) :
     m_paletteData = nullptr;
     if (!image.colorTable().isEmpty()) {
         m_paletteData = new PaletteData(image.colorTable().size(), (GLubyte *)image.colorTable().constData());
+    }
+
+    switch (format) {
+    case ImageDataFormat::Indexed:
+        if (m_paletteData && m_paletteData->length() > 0) {
+            m_primaryColour = m_paletteData->colour(m_paletteData->length() - 1);
+        }
+        else {
+            m_primaryColour = 255;
+        }
+        m_secondaryColour = 0;
+        break;
+    case ImageDataFormat::RGBA:
+        m_primaryColour = qRgba(255, 255, 255, 255);
+        m_secondaryColour = qRgba(0, 0, 0, 0);
+        break;
     }
 
     m_imageData = new ImageData(image.size(), format, image.constBits());
@@ -286,16 +316,39 @@ const QString &Image::fileName() const
 
 bool Image::save(QString fileName)
 {
+
     bool saved = false;
     if (fileName.isNull()) {
         fileName = m_fileName;
     }
     if (!fileName.isNull()) {
-        saved = m_data.save(fileName);
+        ((Application *)qApp)->contextMakeCurrent();
+        uchar *data = m_imageData->readData();
+        QImage::Format format;
+        switch (m_imageData->format()) {
+        case ImageDataFormat::Indexed:
+            format = QImage::Format_Indexed8;
+            break;
+        case ImageDataFormat::RGBA:
+            format = QImage::Format_ARGB32;
+            break;
+        default:
+            delete data;
+            return false;
+        }
+        QImage qImage = QImage(data, m_imageData->size().width(), m_imageData->size().height(), format);
+        if (m_paletteData && (format == QImage::Format_Indexed8)) {
+            uchar *palette = m_paletteData->readData();
+            std::vector<QRgb> vector((QRgb *)palette, (QRgb *)(palette + m_paletteData->length()));
+            qImage.setColorTable(QVector<QRgb>::fromStdVector(vector));
+            delete palette;
+        }
+        saved = qImage.save(fileName);
         if (saved) {
             m_dirty = false;
             m_fileName = fileName;
         }
+        delete data;
     }
     return saved;
 }
@@ -549,10 +602,10 @@ void Image::pick(const QPoint &point, const ContextColour contextColour)
 {
     if (m_data.rect().contains(point)) {
         if (format() == Indexed) {
-            setContextColour(m_data.pixelIndex(point), contextColour);
+            setContextColour(m_imageData->pixel(point), contextColour);
         }
         else if (format() == RGBA) {
-            setContextColour(m_data.pixel(point), contextColour);
+            setContextColour(m_imageData->pixel(point), contextColour);
         }
     }
 }

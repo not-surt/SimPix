@@ -49,6 +49,8 @@ public:
     ImageDataFormat format() const;
     GLuint texture() const;
     GLuint framebuffer() const;
+    GLubyte *readData(GLubyte *const data = nullptr);
+    void writeData(const GLubyte *const data);
 protected:
     QSize m_size;
     ImageDataFormat m_format;
