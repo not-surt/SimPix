@@ -22,6 +22,18 @@ inline qreal wrap(qreal value, const qreal min, const qreal max)
     return remainder * range + min;
 }
 
+class ObjectSignalBlocker
+{
+public:
+    ObjectSignalBlocker(QObject *const object) :
+        m_object(object), m_oldBlockSignalsState(object->blockSignals(true)) {}
+    ~ObjectSignalBlocker() { m_object->blockSignals(m_oldBlockSignalsState); }
+
+private:
+    QObject *const m_object;
+    const bool m_oldBlockSignalsState;
+};
+
 QPixmap *generateBackgroundPixmap(const uint size = 32);
 extern QPixmap *canvasBackgroundPixmap;
 extern QPixmap *swatchBackgroundPixmap;

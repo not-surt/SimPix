@@ -1,7 +1,7 @@
 #ifndef NEWDIALOG_H
 #define NEWDIALOG_H
 
-#include "image.h"
+#include "scene.h"
 
 #include <QDialog>
 
@@ -14,16 +14,11 @@ Q_DECLARE_METATYPE(QImage::Format)
 class NewDialog : public QDialog
 {
     Q_OBJECT
-    Q_PROPERTY(QSize imageSize READ imageSize)
-    Q_PROPERTY(Image::Format mode READ mode)
-    Q_PROPERTY(int palette READ palette)
-    Q_ENUMS(size mode palette)
-
 public:
     explicit NewDialog(QWidget *parent = nullptr);
     ~NewDialog();
     QSize imageSize() const;
-    Image::Format mode() const;
+    ImageDataFormat mode() const;
     int palette() const;
 protected:
     virtual void closeEvent(QCloseEvent *event);

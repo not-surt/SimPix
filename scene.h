@@ -1,7 +1,7 @@
-#ifndef IMAGE_H
-#define IMAGE_H
+#ifndef SCENE_H
+#define SCENE_H
 
-#include <QImage>
+#include <QSize>
 #include <QQueue>
 #include <QUndoStack>
 #define GL_GLEXT_PROTOTYPES
@@ -73,6 +73,7 @@ public:
     explicit ImageData(const QSize &size, const ImageDataFormat format, const GLubyte *const data = nullptr);
     ~ImageData();
     GLuint vertexBuffer() const;
+    const QRect &rect();
 protected:
     GLuint m_vertexBuffer;
 };
@@ -82,7 +83,8 @@ class ImageLayerCel : public QObject
     Q_OBJECT
 protected:
     qreal m_begin, m_end;
-    ImageData *m_texture;
+    ImageData *m_imageData;
+    PaletteData *m_paletteData;
     // transform
 };
 
@@ -93,36 +95,26 @@ protected:
     QList<ImageLayerCel> m_cels;
 };
 
-class Image : public QObject
+class Scene : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged)
-    Q_PROPERTY(QImage data READ data)
-    Q_PROPERTY(Image::Format format READ format)
+    Q_PROPERTY(ImageDataFormat format READ format)
     Q_PROPERTY(uint contextColour READ contextColour WRITE setContextColour NOTIFY contextColourChanged)
-    Q_PROPERTY(Image::ContextColour activeContextColour READ activeContextColour WRITE setActiveContextColour NOTIFY activeContextColourChanged)
     Q_PROPERTY(bool dirty READ dirty)
     Q_ENUMS(data format primaryColour secondaryColour)
 public:
-    enum Format {
-        Invalid = QImage::Format_Invalid,
-        Indexed = QImage::Format_Indexed8,
-        RGBA = QImage::Format_ARGB32,
-    };
     enum ContextColour {
         Primary,
         Secondary,
         Eraser,
     };
 //    explicit Image(const Image &image, QObject *parent = nullptr);
-//    explicit Image(const QSize &size, Format format, QObject *parent = nullptr);
-    explicit Image(const QString &fileName, const char *format = nullptr, QObject *parent = nullptr);
-    ~Image();
+    explicit Scene(const QSize &size, ImageDataFormat format, QObject *parent = nullptr);
+    explicit Scene(const QString &fileName, const char *format = nullptr, QObject *parent = nullptr);
+    ~Scene();
 
-    QImage &data();
-    const QImage &constData() const;
-
-    Image::Format format() const;
+    ImageDataFormat format() const;
 
     uint contextColour(const ContextColour contextColour = Primary) const;
 
@@ -132,7 +124,6 @@ public:
     bool save(QString fileName = QString());
 
     bool dirty() const;
-    bool isIndexed();
 
     ContextColour activeContextColour() const;
 
@@ -157,33 +148,27 @@ public slots:
 
 protected:
     QString m_fileName;
-    QImage m_data;
     ImageData *m_imageData;
     PaletteData *m_paletteData;
-    QQueue<QPoint> recentPoints;
-    static const int recentPointsMax = 5;
-    void addRecentPoint(const QPoint &point)
-    {
-        recentPoints.enqueue(point);
-        while (recentPoints.length() > recentPointsMax) {
-            recentPoints.dequeue();
-        }
-    }
-    uint m_primaryColour;
-    uint m_secondaryColour;
-    uint m_eraserColour;
+//    QQueue<QPoint> recentPoints;
+//    static const int recentPointsMax = 5;
+//    void addRecentPoint(const QPoint &point)
+//    {
+//        recentPoints.enqueue(point);
+//        while (recentPoints.length() > recentPointsMax) {
+//            recentPoints.dequeue();
+//        }
+//    }
+    uint m_contextColours[3];
     bool m_dirty;
     ContextColour m_activeContextColour;
 };
-
-Q_DECLARE_METATYPE(Image::Format)
-Q_DECLARE_METATYPE(Image::ContextColour)
 
 
 class StrokeCommand : public QUndoCommand
 {
 public:
-    StrokeCommand(const Image &image, const QPoint &point0, const QPoint &point1, QUndoCommand *parent = nullptr);
+    StrokeCommand(const Scene &image, const QPoint &point0, const QPoint &point1, QUndoCommand *parent = nullptr);
     ~StrokeCommand();
 
     void undo();
@@ -191,8 +176,8 @@ public:
 
 protected:
     const QPoint &point0, &point1;
-    const Image &image;
+    const Scene &image;
 //    Image dirty;
 };
 
-#endif // IMAGE_H
+#endif // SCENE_H

@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QDebug>
 
-#include "image.h"
+#include "scene.h"
 
 static const QSize sizePresets[] = {
     {50, 50}, {100, 100}, {200, 200},
@@ -51,8 +51,8 @@ NewDialog::NewDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->modeComboBox->addItem("Indexed", Image::Indexed);
-    ui->modeComboBox->addItem("RGBA", Image::RGBA);
+    ui->modeComboBox->addItem("Indexed", (int)ImageDataFormat::Indexed);
+    ui->modeComboBox->addItem("RGBA", (int)ImageDataFormat::RGBA);
 //    for (int i = 0; IMAGE_DATA_FORMATS[i].id != ImageDataFormat::Invalid; ++i) {
 //        ui->modeComboBox->addItem(IMAGE_DATA_FORMATS[i].NAME, (int)IMAGE_DATA_FORMATS[i].id);
 //    }
@@ -94,7 +94,6 @@ void NewDialog::setPreset() {
 void NewDialog::closeEvent(QCloseEvent *event)
 {
     // Why no work?! >:(
-    qDebug() << "CLOSE!";
     QDialog::closeEvent(event);
 }
 
@@ -103,9 +102,9 @@ QSize NewDialog::imageSize() const
     return QSize(ui->widthSpinBox->value(), ui->heightSpinBox->value());
 }
 
-Image::Format NewDialog::mode() const
+ImageDataFormat NewDialog::mode() const
 {
-    return static_cast<Image::Format>(ui->modeComboBox->currentData().toInt());
+    return static_cast<ImageDataFormat>(ui->modeComboBox->currentData().toInt());
 }
 
 int NewDialog::palette() const

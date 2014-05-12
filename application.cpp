@@ -2,7 +2,7 @@
 #include "mainwindow.h"
 #include <QDebug>
 #include <QOpenGLShader>
-#include "canvaswindow.h"
+#include "scenewindow.h"
 #include "util.h"
 #include <exception>
 
@@ -54,6 +54,14 @@ Application::Application(int &argc, char **argv) :
 
     addShader("checkerboard.frag", QOpenGLShader::Fragment, fileToString(":/shaders/checkerboard.frag"));
     addProgram("checkerboard", QStringList() << "canvas.vert" << "checkerboard.frag");
+
+    addShader("brush.vert", QOpenGLShader::Vertex, fileToString(":/shaders/brush.vert"));
+
+    addShader("ellipsebrush.frag", QOpenGLShader::Fragment, fileToString(":/shaders/ellipsebrush.frag"));
+    addProgram("ellipsebrush", QStringList() << "brush.vert" << "ellipsebrush.frag");
+
+    addShader("rectanglebrush.frag", QOpenGLShader::Fragment, fileToString(":/shaders/rectanglebrush.frag"));
+    addProgram("rectanglebrush", QStringList() << "brush.vert" << "rectanglebrush.frag");
 
     contextDoneCurrent();
 

@@ -1,4 +1,4 @@
-#include "canvaswindow.h"
+#include "scenewindow.h"
 
 #include <QPainter>
 #include <QWheelEvent>
@@ -9,27 +9,25 @@
 #include <QOpenGLShaderProgram>
 #include <QGLWidget>
 
-CanvasWindow::CanvasWindow(QOpenGLContext *const shareContext) :
+SceneWindow::SceneWindow(QOpenGLContext *const shareContext) :
     OpenGLWindow(), m_context(), m_image(0), m_transform(), m_tiled(false), panKeyDown(false), m_showFrame(false), matricesDirty(true), m_vertexBuffer(0)
 {
 //    setFocusPolicy(Qt::WheelFocus);
 //    setMouseTracking(true);
-    Application *const app = (Application *)qApp;
-    m_context.setFormat(app->format());
-//    m_context.setShareContext(&app->context());
-    app->context().setShareContext(&m_context);
+    m_context.setFormat(APP->format());
+//    m_context.setShareContext(&APP->context());
+    APP->context().setShareContext(&m_context);
     m_context.create();
     qDebug() << "Share: " << m_context.shareContext();
     setImage(0);
 }
 
-void CanvasWindow::initialize()
+void SceneWindow::initialize()
 {
 }
 
-void CanvasWindow::render()
+void SceneWindow::render()
 {
-    Application *const app = (Application *)qApp;
     m_context.makeCurrent(this);
     initializeOpenGLFunctions();
 //    glEnable(GL_MULTISAMPLE);
@@ -44,7 +42,7 @@ void CanvasWindow::render()
 
     if (!m_tiled || m_showAlpha) {
         glActiveTexture(GL_TEXTURE0 + 0);
-        GLuint program = app->program("checkerboard");
+        GLuint program = APP->program("checkerboard");
         glUseProgram(program);
         GLint positionAttrib = glGetAttribLocation(program, "position");
         GLint matrixUniform = glGetUniformLocation(program, "matrix");
@@ -87,7 +85,7 @@ void CanvasWindow::render()
             glBindTexture(GL_TEXTURE_2D, m_image->paletteData()->texture());
         }
 
-        GLuint program = app->program("image");
+        GLuint program = APP->program("image");
         glUseProgram(program);
 
         GLint positionAttrib = glGetAttribLocation(program, "position");
@@ -138,7 +136,7 @@ void CanvasWindow::render()
         glUseProgram(0);
 
         if (m_showFrame) {
-            GLuint program = app->program("frame");
+            GLuint program = APP->program("frame");
             glUseProgram(program);
             GLint matrixUniform = glGetUniformLocation(program, "matrix");
             GLint textureMatrixUniform = glGetUniformLocation(program, "textureMatrix");
@@ -162,7 +160,7 @@ void CanvasWindow::render()
     }
 }
 
-void CanvasWindow::resizeEvent(QResizeEvent *event)
+void SceneWindow::resizeEvent(QResizeEvent *event)
 {
     m_context.makeCurrent(this);
     initializeOpenGLFunctions();
@@ -184,7 +182,7 @@ void CanvasWindow::resizeEvent(QResizeEvent *event)
     OpenGLWindow::resizeEvent(event);
 }
 
-void CanvasWindow::mousePressEvent(QMouseEvent *event)
+void SceneWindow::mousePressEvent(QMouseEvent *event)
 {
     lastMousePos = event->pos();
     lastMouseImagePos = m_transform.inverseMatrix().map(QVector3D(event->pos()));
@@ -205,15 +203,15 @@ void CanvasWindow::mousePressEvent(QMouseEvent *event)
     }
 }
 
-void CanvasWindow::mouseMoveEvent(QMouseEvent *event)
+void SceneWindow::mouseMoveEvent(QMouseEvent *event)
 {
     const QVector3D mouseImagePosition = m_transform.inverseMatrix().map(QVector3D(event->pos()));
     const QPoint lastPixel = QPoint(floor(lastMouseImagePos.x()), floor(lastMouseImagePos.y()));
     const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
     if (rect().contains(event->pos())) {
 //        setFocus();
-        if (m_image && pixel != lastPixel && m_image->data().rect().contains(pixel)) {
-            emit mousePixelChanged(pixel, m_image->data().pixel(pixel), m_image->isIndexed() ? m_image->data().pixelIndex(pixel) : -1);
+        if (m_image && pixel != lastPixel && m_image->imageData()->rect().contains(pixel)) {
+            emit mousePixelChanged(pixel, m_image->imageData()->pixel(pixel), m_image->imageData()->format() == ImageDataFormat::Indexed ? m_image->imageData()->pixel(pixel) : -1);
         }
     }
     else {
@@ -244,7 +242,7 @@ void CanvasWindow::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
-void CanvasWindow::mouseReleaseEvent(QMouseEvent *event)
+void SceneWindow::mouseReleaseEvent(QMouseEvent *event)
 {
     QPointF mouseImagePosition = m_transform.inverseMatrix().map(QPointF(event->pos()));
     if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
@@ -262,7 +260,7 @@ void CanvasWindow::mouseReleaseEvent(QMouseEvent *event)
     else if (event->button() == Qt::RightButton) {
         if (m_image) {
             const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
-            Image::ContextColour context = (event->modifiers() & Qt::SHIFT) ? Image::Secondary : Image::Primary;
+            Scene::ContextColour context = (event->modifiers() & Qt::SHIFT) ? Scene::Secondary : Scene::Primary;
             m_image->pick(pixel, context);
         }
         QApplication::restoreOverrideCursor();
@@ -273,7 +271,7 @@ void CanvasWindow::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void CanvasWindow::wheelEvent(QWheelEvent *event)
+void SceneWindow::wheelEvent(QWheelEvent *event)
 {
     const bool transformAroundCursor = true;
     if (event->modifiers() & Qt::SHIFT) {
@@ -283,7 +281,6 @@ void CanvasWindow::wheelEvent(QWheelEvent *event)
         if (transformAroundCursor) {
             const QVector3D mouseImagePosition = m_transform.inverseMatrix().map(QVector3D(event->pos()));
             const QVector3D mouseDelta = mouseImagePosition - transform.pan();
-            qDebug() << mouseDelta;
         }
         setTransform(transform);
         event->accept();
@@ -301,9 +298,8 @@ void CanvasWindow::wheelEvent(QWheelEvent *event)
     }
 }
 
-void CanvasWindow::tabletEvent(QTabletEvent *event)
+void SceneWindow::tabletEvent(QTabletEvent *event)
 {
-    qDebug() << event;
     if (false) {
         event->accept();
     }
@@ -312,7 +308,7 @@ void CanvasWindow::tabletEvent(QTabletEvent *event)
     }
 }
 
-void CanvasWindow::keyPressEvent(QKeyEvent *event)
+void SceneWindow::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Space && !event->isAutoRepeat()) {
         panKeyDown = true;
@@ -326,7 +322,7 @@ void CanvasWindow::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void CanvasWindow::keyReleaseEvent(QKeyEvent *event)
+void SceneWindow::keyReleaseEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Space && !event->isAutoRepeat()) {
         panKeyDown = false;
@@ -339,54 +335,54 @@ void CanvasWindow::keyReleaseEvent(QKeyEvent *event)
     }
 }
 
-void CanvasWindow::enterEvent(QEvent *const event)
+void SceneWindow::enterEvent(QEvent *const event)
 {
     if (m_image) {
         emit mouseEntered();
     }
 }
 
-void CanvasWindow::leaveEvent(QEvent *const event)
+void SceneWindow::leaveEvent(QEvent *const event)
 {
     emit mouseLeft();
 }
 
-Image *CanvasWindow::image() const
+Scene *SceneWindow::image() const
 {
     return m_image;
 }
 
-Transform CanvasWindow::transform() const
+Transform SceneWindow::transform() const
 {
     return m_transform;
 }
 
-bool CanvasWindow::tiled() const
+bool SceneWindow::tiled() const
 {
     return m_tiled;
 }
 
-bool CanvasWindow::showFrame() const
+bool SceneWindow::showFrame() const
 {
     return m_showFrame;
 }
 
-bool CanvasWindow::showAlpha() const
+bool SceneWindow::showAlpha() const
 {
     return m_showAlpha;
 }
 
-QRect CanvasWindow::rect() const
+QRect SceneWindow::rect() const
 {
     return QRect(0, 0, width(), height());
 }
 
-GLuint CanvasWindow::vertexBuffer() const
+GLuint SceneWindow::vertexBuffer() const
 {
     return m_vertexBuffer;
 }
 
-const QMatrix4x4 &CanvasWindow::matrix()
+const QMatrix4x4 &SceneWindow::matrix()
 {
     if (matricesDirty) {
         updateMatrices();
@@ -394,7 +390,7 @@ const QMatrix4x4 &CanvasWindow::matrix()
     return m_matrix;
 }
 
-const QMatrix4x4 &CanvasWindow::inverseMatrix()
+const QMatrix4x4 &SceneWindow::inverseMatrix()
 {
     if (matricesDirty) {
         updateMatrices();
@@ -402,7 +398,7 @@ const QMatrix4x4 &CanvasWindow::inverseMatrix()
     return m_inverseMatrix;
 }
 
-void CanvasWindow::updateMatrices()
+void SceneWindow::updateMatrices()
 {
     m_matrix = QMatrix4x4();
     m_matrix.ortho(0., (float)width(), (float)height(), 0.f, -1.f, 1.f);
@@ -410,7 +406,7 @@ void CanvasWindow::updateMatrices()
     matricesDirty = false;
 }
 
-void CanvasWindow::setImage(Image *const image)
+void SceneWindow::setImage(Scene *const image)
 {
     m_image = image;
     Transform transform;
@@ -422,7 +418,7 @@ void CanvasWindow::setImage(Image *const image)
     if (image) {
 //        setAttribute(Qt::WA_OpaquePaintEvent, true);
 //        setAttribute(Qt::WA_NoSystemBackground, true);
-        transform.setPan(-QVector3D(floor((qreal)m_image->data().width() / 2.f), floor((qreal)m_image->data().height() / 2.f), 0.f));
+        transform.setPan(-QVector3D(floor((qreal)m_image->imageData()->size().width() / 2.f), floor((qreal)m_image->imageData()->size().height() / 2.f), 0.f));
     }
     else {
 //        setAttribute(Qt::WA_OpaquePaintEvent, false);
@@ -431,27 +427,25 @@ void CanvasWindow::setImage(Image *const image)
     setTransform(transform);
 }
 
-void CanvasWindow::setTransform(const Transform &transform, const bool limit)
+void SceneWindow::setTransform(const Transform &transform, const bool limit)
 {
     if (m_transform != transform) {
         m_transform = transform;
         if (limit) {
             if (m_image) {
                 if (!m_tiled) {
-                    m_transform.setPan(QVector3D(clamp(m_transform.pan().x(), (qreal)-m_image->data().width(), 0.f),
-                                               clamp(m_transform.pan().y(), (qreal)-m_image->data().height(), 0.f),
+                    m_transform.setPan(QVector3D(clamp(m_transform.pan().x(), (qreal)-m_image->imageData()->size().width(), 0.f),
+                                               clamp(m_transform.pan().y(), (qreal)-m_image->imageData()->size().height(), 0.f),
                                                0.f));
 //                    QPointF imageCentreScreenPosition = m_transform.matrix().map(QPointF((float)m_image->data().width() / 2.f, (float)m_image->data().height() / 2.f));
-//                    qDebug() << imageCentreScreenPosition;
 //                    QVector3D clampedImageCentreScreenPosition = QVector3D(clamp(imageCentreScreenPosition.x(), 0.f, (float)width()),
 //                                                                         clamp(imageCentreScreenPosition.y(), 0.f, (float)height()),
 //                                                                         0.f);
-//                    qDebug() << clampedImageCentreScreenPosition;
 //                    m_transform.setPan(m_transform.inverseMatrix().map(clampedImageCentreScreenPosition));
                 }
                 else {
-                    m_transform.setPan(QVector3D(wrap(m_transform.pan().x(), (qreal)-m_image->data().width(), 0.f),
-                                               wrap(m_transform.pan().y(), (qreal)-m_image->data().height(), 0.f),
+                    m_transform.setPan(QVector3D(wrap(m_transform.pan().x(), (qreal)-m_image->imageData()->size().width(), 0.f),
+                                               wrap(m_transform.pan().y(), (qreal)-m_image->imageData()->size().height(), 0.f),
                                                0.f));
                 }
             }
@@ -464,18 +458,19 @@ void CanvasWindow::setTransform(const Transform &transform, const bool limit)
     }
 }
 
-void CanvasWindow::updateImage(const QRegion &region)
+void SceneWindow::updateImage(const QRegion &region)
 {
-//    update(matrix.map(region)); // Too slow
-    if (!m_tiled) {
+    if (!m_tiled && !region.isEmpty()) {
+//        update(matrix.map(region)); // Too slow
 //        update(m_transform.matrix().mapRect(region.boundingRect()));
         update();
+
     }
     else {
         update();
     }
 }
-void CanvasWindow::setTiled(const bool tiled)
+void SceneWindow::setTiled(const bool tiled)
 {
     if (m_tiled != tiled) {
         m_tiled = tiled;
@@ -484,7 +479,7 @@ void CanvasWindow::setTiled(const bool tiled)
     }
 }
 
-void CanvasWindow::setShowFrame(const bool showFrame)
+void SceneWindow::setShowFrame(const bool showFrame)
 {
     if (m_showFrame != showFrame) {
         m_showFrame = showFrame;
@@ -493,7 +488,7 @@ void CanvasWindow::setShowFrame(const bool showFrame)
     }
 }
 
-void CanvasWindow::setShowAlpha(bool showAlpha)
+void SceneWindow::setShowAlpha(bool showAlpha)
 {
     if (m_showAlpha != showAlpha) {
         m_showAlpha = showAlpha;
@@ -502,6 +497,6 @@ void CanvasWindow::setShowAlpha(bool showAlpha)
     }
 }
 
-void CanvasWindow::update() {
+void SceneWindow::update() {
     renderLater();
 }

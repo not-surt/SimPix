@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QColor>
 #include <ui_palettewidget.h>
-#include "image.h"
+#include "scene.h"
 
 namespace Ui {
 class PaletteWidget;
@@ -13,24 +13,22 @@ class PaletteWidget;
 class PaletteWidget : public QWidget
 {
     Q_OBJECT
-    Q_PROPERTY(Image *image READ image WRITE setImage)
+    Q_PROPERTY(Scene *image READ image WRITE setImage)
     Q_ENUMS(image)
 
 public:
     explicit PaletteWidget(QWidget *parent = nullptr);
     ~PaletteWidget();
-    Image *image() const;
+    Scene *image() const;
 
 
 signals:
-    void primaryColourChanged(const uint colour);
-    void secondaryColourChanged(const uint colour);
+    void colourChanged(const uint colour);
 
 public slots:
-    void setImage(Image *const image);
+    void setImage(Scene *const image);
     void editColour(QModelIndex index);
-    void setPrimaryColour(QModelIndex index);
-    void setSecondaryColour(QModelIndex index);
+    void setColour(QModelIndex index);
 
 private:
     Ui::PaletteWidget *ui;

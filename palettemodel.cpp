@@ -29,7 +29,7 @@ QVariant PaletteModel::data(const QModelIndex &index, int role) const
     }
 
     if (role == Qt::DisplayRole) {
-        ((Application *)qApp)->contextMakeCurrent();
+        APP->contextMakeCurrent();
         QRgb colour = m_image->paletteData()->colour(index.row());
         return QColor(qRed(colour), qGreen(colour), qBlue(colour), qAlpha(colour));
     }
@@ -52,12 +52,12 @@ QVariant PaletteModel::headerData(int section, Qt::Orientation orientation, int 
     }
 }
 
-Image *PaletteModel::image() const
+Scene *PaletteModel::image() const
 {
     return m_image;
 }
 
-void PaletteModel::setImage(Image *image)
+void PaletteModel::setImage(Scene *image)
 {
     beginResetModel();
     m_image = image;
@@ -71,7 +71,7 @@ bool PaletteModel::setData(const QModelIndex &index, const QVariant &value, int 
         return false;
     }
     else {
-        ((Application *)qApp)->contextMakeCurrent();
+        APP->contextMakeCurrent();
         m_image->paletteData()->setColour(index.row(), value.value<QColor>().rgba());
         emit dataChanged(index, index);
         return true;

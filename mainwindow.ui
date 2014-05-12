@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1010</width>
-    <height>389</height>
+    <height>494</height>
    </rect>
   </property>
   <property name="dockNestingEnabled">
@@ -111,9 +111,11 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionBrush"/>
-   <addaction name="actionFloodfill"/>
-   <addaction name="actionPipette"/>
+   <addaction name="actionToolPaint"/>
+   <addaction name="actionToolErase"/>
+   <addaction name="actionToolPick"/>
+   <addaction name="actionToolSelect"/>
+   <addaction name="actionToolTransform"/>
   </widget>
   <widget class="QDockWidget" name="paletteDockWidget">
    <property name="windowTitle">
@@ -185,6 +187,26 @@
    <addaction name="actionTiled"/>
    <addaction name="actionShowFrame"/>
    <addaction name="actionAlpha"/>
+  </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>LeftToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionModePixel"/>
+   <addaction name="actionModeBrush"/>
+   <addaction name="actionModeLasso"/>
+   <addaction name="actionModePolygon"/>
+   <addaction name="actionModeLine"/>
+   <addaction name="actionModeRectangle"/>
+   <addaction name="actionModeEllipse"/>
+   <addaction name="actionModeFlood"/>
+   <addaction name="actionModeMatchColour"/>
   </widget>
   <action name="actionNew">
    <property name="icon">
@@ -277,25 +299,40 @@
     <string>Ctrl+Shift+Z</string>
    </property>
   </action>
-  <action name="actionBrush">
+  <action name="actionToolPaint">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Brush</string>
+    <string>Paint</string>
+   </property>
+   <property name="toolTip">
+    <string>Paint</string>
    </property>
    <property name="shortcut">
     <string>1</string>
    </property>
   </action>
-  <action name="actionFloodfill">
+  <action name="actionToolErase">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Floodfill</string>
+    <string>Erase</string>
+   </property>
+   <property name="toolTip">
+    <string>Erase</string>
    </property>
    <property name="shortcut">
     <string>2</string>
    </property>
   </action>
-  <action name="actionPipette">
+  <action name="actionToolPick">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Pipette</string>
+    <string>Pick</string>
    </property>
    <property name="shortcut">
     <string>3</string>
@@ -471,6 +508,106 @@
    </property>
    <property name="toolTip">
     <string>Alpha</string>
+   </property>
+  </action>
+  <action name="actionToolSelect">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Select</string>
+   </property>
+   <property name="toolTip">
+    <string>Select</string>
+   </property>
+   <property name="shortcut">
+    <string>4</string>
+   </property>
+  </action>
+  <action name="actionToolTransform">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Transform</string>
+   </property>
+   <property name="shortcut">
+    <string>5</string>
+   </property>
+  </action>
+  <action name="actionModePixel">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Pixel</string>
+   </property>
+   <property name="toolTip">
+    <string>Pixel</string>
+   </property>
+  </action>
+  <action name="actionModeBrush">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Brush</string>
+   </property>
+  </action>
+  <action name="actionModeLasso">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Lasso</string>
+   </property>
+  </action>
+  <action name="actionModePolygon">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Polygon</string>
+   </property>
+  </action>
+  <action name="actionModeLine">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Line</string>
+   </property>
+  </action>
+  <action name="actionModeRectangle">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Rectangle</string>
+   </property>
+  </action>
+  <action name="actionModeEllipse">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Ellipse</string>
+   </property>
+  </action>
+  <action name="actionModeFlood">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Flood</string>
+   </property>
+  </action>
+  <action name="actionModeMatchColour">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Match Colour</string>
    </property>
   </action>
  </widget>

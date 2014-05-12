@@ -19,7 +19,6 @@ SOURCES += main.cpp\
     palettemodel.cpp \
     palettewidget.cpp \
     paletteview.cpp \
-    image.cpp \
     paletteplugin.cpp \
     transform.cpp \
     colourcontextwidget.cpp \
@@ -29,7 +28,8 @@ SOURCES += main.cpp\
     application.cpp \
     statusmousewidget.cpp \
     openglwindow.cpp \
-    canvaswindow.cpp
+    scene.cpp \
+    scenewindow.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
@@ -38,7 +38,6 @@ HEADERS  += mainwindow.h \
     palettemodel.h \
     palettewidget.h \
     paletteview.h \
-    image.h \
     paletteplugin.h \
     transform.h \
     colourcontextwidget.h \
@@ -48,7 +47,8 @@ HEADERS  += mainwindow.h \
     application.h \
     statusmousewidget.h \
     openglwindow.h \
-    canvaswindow.h
+    scene.h \
+    scenewindow.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \
@@ -70,7 +70,10 @@ OTHER_FILES += \
     shaders/image.frag \
     shaders/frame.frag \
     shaders/checkerboard.frag \
-    shaders/canvas.vert
+    shaders/canvas.vert \
+    shaders/ellipsebrush.frag \
+    shaders/rectanglebrush.frag \
+    shaders/brush.vert
 
 RESOURCES += \
     simpix.qrc

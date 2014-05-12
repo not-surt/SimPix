@@ -1,18 +1,18 @@
-#ifndef CANVASWINDOW_H
-#define CANVASWINDOW_H
+#ifndef SCENEWINDOW_H
+#define SCENEWINDOW_H
 
 #include "openglwindow.h"
 #include <QPixmap>
 #include <memory>
-#include "image.h"
+#include "scene.h"
 #include "transform.h"
 
 class QOpenGLContext;
 
-class CanvasWindow : public OpenGLWindow
+class SceneWindow : public OpenGLWindow
 {
     Q_OBJECT
-    Q_PROPERTY(Image *image READ image WRITE setImage NOTIFY imageChanged)
+    Q_PROPERTY(Scene *image READ image WRITE setImage NOTIFY imageChanged)
     Q_PROPERTY(Transform transform READ transform WRITE setTransform NOTIFY transformChanged)
     Q_PROPERTY(bool tiled READ tiled WRITE setTiled NOTIFY tiledChanged)
     Q_PROPERTY(bool showFrame READ showFrame WRITE setShowFrame NOTIFY showFrameChanged)
@@ -20,10 +20,10 @@ class CanvasWindow : public OpenGLWindow
     Q_ENUMS(image transform)
 
 public:
-    CanvasWindow(QOpenGLContext *const shareContext = nullptr);
+    SceneWindow(QOpenGLContext *const shareContext = nullptr);
     virtual void initialize();
     virtual void render();
-    Image *image() const;
+    Scene *image() const;
     Transform transform() const;
     bool tiled() const;
     bool showFrame() const;
@@ -34,15 +34,15 @@ public:
     GLuint vertexBuffer() const;
 
 public slots:
-    void setImage(Image *const image);
+    void setImage(Scene *const image);
     void setTransform(const Transform &transform, const bool limit = true);
     void setTiled(const bool tiled);
     void setShowFrame(const bool showFrame);
     void setShowAlpha(bool showAlpha);
-    void updateImage(const QRegion &region);
+    void updateImage(const QRegion &region = QRegion());
 
 signals:
-    void imageChanged(Image *image);
+    void imageChanged(Scene *image);
     void transformChanged(const Transform &transform);
     void tiledChanged(const bool tiled);
     void showFrameChanged(const bool showFrame);
@@ -69,7 +69,7 @@ protected:
 
 private:
     QOpenGLContext m_context;
-    Image *m_image;
+    Scene *m_image;
     Transform m_transform;
     bool m_tiled;
     QPoint lastMousePos;
@@ -84,4 +84,4 @@ private:
     GLuint m_vertexBuffer;
 };
 
-#endif // CANVASWINDOW_H
+#endif // SCENEWINDOW_H

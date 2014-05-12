@@ -6,5 +6,8 @@
         <file>shaders/canvas.vert</file>
         <file>shaders/frame.frag</file>
         <file>shaders/checkerboard.frag</file>
+        <file>shaders/brush.vert</file>
+        <file>shaders/ellipsebrush.frag</file>
+        <file>shaders/rectanglebrush.frag</file>
     </qresource>
 </RCC>

@@ -39,4 +39,6 @@ private:
     MainWindow m_window;
 };
 
+#define APP (static_cast<Application *>(qApp))
+
 #endif // APPLICATION_H

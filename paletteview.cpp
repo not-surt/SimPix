@@ -8,11 +8,8 @@
 PaletteView::PaletteView(QWidget *parent) :
     QListView(parent)
 {
-    PaletteModel *model = new PaletteModel(0);
-    setModel(model);
-    QAbstractItemDelegate *old = itemDelegate();
+    setModel(new PaletteModel(0));
     setItemDelegate(new ColourSwatchDelegate());
-    delete old;
     setSelectionMode(QAbstractItemView::ExtendedSelection);
     setDragEnabled(true);
     setDropIndicatorShown(true);
@@ -25,12 +22,12 @@ PaletteView::PaletteView(QWidget *parent) :
     setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
 }
 
-Image *PaletteView::image() const
+Scene *PaletteView::image() const
 {
     return ((PaletteModel *)model())->image();
 }
 
-void PaletteView::setImage(Image *image)
+void PaletteView::setImage(Scene *image)
 {
     ((PaletteModel *)model())->setImage(image);
 }

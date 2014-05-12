@@ -3,21 +3,21 @@
 
 #include <QListView>
 #include <QStyledItemDelegate>
-#include "image.h"
+#include "scene.h"
 
 class PaletteView : public QListView
 {
     Q_OBJECT
-    Q_PROPERTY(Image *image READ image WRITE setImage)
+    Q_PROPERTY(Scene *image READ image WRITE setImage)
     Q_ENUMS(image)
 public:
     explicit PaletteView(QWidget *parent = nullptr);
-    Image *image() const;
+    Scene *image() const;
 
 signals:
 
 public slots:
-    void setImage(Image *image);
+    void setImage(Scene *image);
 
 
     // QWidget interface

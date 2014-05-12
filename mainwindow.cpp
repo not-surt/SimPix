@@ -4,7 +4,7 @@
 #include "util.h"
 #include "colourswatch.h"
 #include "statusmousewidget.h"
-#include "canvaswindow.h"
+#include "scenewindow.h"
 #include "application.h"
 
 #include <QFileDialog>
@@ -18,13 +18,12 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), m_image(0)
 {    
-    Application *const app = (Application *)qApp;
     canvasBackgroundPixmap = generateBackgroundPixmap(32);
     swatchBackgroundPixmap = generateBackgroundPixmap(16);
 
     ui->setupUi(this);
 
-    canvas = new CanvasWindow(&app->context());
+    canvas = new SceneWindow(&APP->context());
     setCentralWidget(QWidget::createWindowContainer(canvas));
 //    canvas = (Canvas *)centralWidget();
 
@@ -48,8 +47,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionAboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
     QObject::connect(ui->actionLicense, SIGNAL(triggered()), this, SLOT(license()));
 
-    QObject::connect(this, SIGNAL(imageChanged(Image *const)), canvas, SLOT(setImage(Image *const)));
-    QObject::connect(this, SIGNAL(imageChanged(Image *const)), ui->paletteWidget, SLOT(setImage(Image *const)));
+    QObject::connect(this, SIGNAL(imageChanged(Scene *const)), canvas, SLOT(setImage(Scene *const)));
+    QObject::connect(this, SIGNAL(imageChanged(Scene *const)), ui->paletteWidget, SLOT(setImage(Scene *const)));
 
     QObject::connect(ui->transformWidget, SIGNAL(transformChanged(Transform)), canvas, SLOT(setTransform(Transform)));
     QObject::connect(canvas, SIGNAL(transformChanged(Transform)), ui->transformWidget, SLOT(setTransform(Transform)));
@@ -102,17 +101,17 @@ MainWindow::~MainWindow()
     delete swatchBackgroundPixmap;
 }
 
-Image *MainWindow::image() const
+Scene *MainWindow::image() const
 {
     return m_image;
 }
 
-void MainWindow::setImage(Image *image)
+void MainWindow::setImage(Scene *image)
 {
     if (m_image != image) {
         if (image) {
             QObject::connect(image, SIGNAL(changed(const QRegion &)), canvas, SLOT(updateImage(const QRegion &)));
-            qRegisterMetaType<Image::ContextColour>("Image::ContextColour");
+            QObject::connect(ui->paletteWidget, SIGNAL(colourChanged(const uint)), canvas, SLOT(updateImage()));
             QObject::connect(image, SIGNAL(contextColourChanged(const uint, const int)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
             QObject::connect(canvas, SIGNAL(clicked(const QPoint &)), image, SLOT(point(const QPoint &)));
             QObject::connect(canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), image, SLOT(stroke(const QPoint &, const QPoint &)));
@@ -126,6 +125,8 @@ void MainWindow::setImage(Image *image)
         emit imageChanged(image);
         if (m_image) {
             QObject::disconnect(m_image, SIGNAL(changed(const QRegion &)), canvas, SLOT(updateImage(const QRegion &)));
+            QObject::disconnect(ui->paletteWidget, SIGNAL(colourChanged(const uint)), canvas, SLOT(updateImage()));
+            QObject::disconnect(m_image, SIGNAL(contextColourChanged(const uint, const int)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
             QObject::disconnect(canvas, SIGNAL(clicked(const QPoint &)), m_image, SLOT(point(const QPoint &)));
             QObject::disconnect(canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), m_image, SLOT(stroke(const QPoint &, const QPoint &)));
             QObject::disconnect(ui->actionUndo, SIGNAL(triggered()), m_image->undoStack, SLOT(undo()));
@@ -156,12 +157,12 @@ bool MainWindow::newImage()
     if (!closeImage(false)) {
         return false;
     }
-//    NewDialog *dialog = new NewDialog(this);
-//    if (dialog->exec()) {
-//        Image *newImage = new Image(dialog->imageSize(), dialog->mode());
-//        setImage(newImage);
-//        return true;
-//    }
+    NewDialog *dialog = new NewDialog(this);
+    if (dialog->exec()) {
+        Scene *newImage = new Scene(dialog->imageSize(), dialog->mode());
+        setImage(newImage);
+        return true;
+    }
     return false;
 }
 
@@ -175,8 +176,8 @@ bool MainWindow::openImage()
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), settings.value("lastOpened", QDir::homePath()).toString(), fileDialogFilterString);
     if (!fileName.isNull()) {
         settings.setValue("lastOpened", fileName);
-        Image *newImage = new Image(fileName);
-        if (newImage->data().isNull()) {
+        Scene *newImage = new Scene(fileName);
+        if (!newImage->imageData()) {
             delete newImage;
             QMessageBox::critical(this, QString(), QString(tr("Error opening file <b>\"%1\"</b>")).arg(QFileInfo(fileName).fileName()));
         }

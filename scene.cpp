@@ -1,4 +1,4 @@
-#include "image.h"
+#include "scene.h"
 
 #include <QDebug>
 #include <QColor>
@@ -7,7 +7,7 @@
 #include <QOpenGLFramebufferObject>
 #include "application.h"
 
-StrokeCommand::StrokeCommand(const Image &image, const QPoint &point0, const QPoint &point1, QUndoCommand *parent)
+StrokeCommand::StrokeCommand(const Scene &image, const QPoint &point0, const QPoint &point1, QUndoCommand *parent)
     : QUndoCommand(parent), image(image), point0(point0), point1(point1)
 {
 //    QRect rect = QRect(a, QSize(1, 1)).united(QRect(b, QSize(1, 1)));
@@ -173,58 +173,54 @@ GLuint ImageData::vertexBuffer() const
     return m_vertexBuffer;
 }
 
+const QRect &ImageData::rect()
+{
+    return QRect(QPoint(0, 0), m_size);
+}
+
 //Image::Image(const Image &image, QObject *parent) :
 //    QObject(parent), m_fileName(), m_data(image.constData()), m_primaryColour(image.m_primaryColour), m_secondaryColour(image.m_secondaryColour), m_eraserColour(image.m_eraserColour), m_dirty(true), m_activeContextColour(Image::Primary)
 //{
 //    // m_imageData
 //}
 
-//Image::Image(const QSize &size, Image::Format format, QObject *parent) :
-//    QObject(parent), m_fileName(), m_data(size, static_cast<QImage::Format>(format)), m_dirty(true)
-//{
-//    // m_imageData
-//    if (format == Image::Indexed) {
-//        m_data.setColor(0, qRgb(0, 0, 0));
-//        m_data.setColor(1, qRgb(255, 255, 255));
-//        m_data.fill(0);
-//        m_primaryColour = 1;
-//        m_secondaryColour = m_eraserColour = 0;
-//    }
-//    else if (format == Image::RGBA) {
-//        m_data.fill(qRgba(0, 0, 0, 0));
-//        m_primaryColour = qRgba(255, 255, 255, 255);
-//        m_secondaryColour = m_eraserColour = qRgba(0, 0, 0, 0);
-//    }
-//}
-
-Image::Image(const QString &fileName, const char *fileFormat, QObject *parent) :
-//    QObject(parent), m_fileName(fileName), m_data(fileName, format), m_dirty(false)
-    QObject(parent), m_fileName(fileName), m_dirty(false)
+Scene::Scene(const QSize &size, ImageDataFormat format, QObject *parent) :
+    QObject(parent), m_fileName(), m_imageData(nullptr), m_paletteData(nullptr), m_dirty(true), m_activeContextColour(ContextColour::Primary)
 {
-//    // m_imageData
-//    if (!m_data.isNull()) {
-//        if (m_data.format() != QImage::Format_Indexed8 && m_data.format() != QImage::Format_ARGB32) {
-//            if (m_data.colorTable().size() != 0) {
-//                m_data = m_data.convertToFormat(QImage::Format_Indexed8);
-//            }
-//            else {
-//                m_data = m_data.convertToFormat(QImage::Format_ARGB32);
-//            }
-//        }
+    APP->contextMakeCurrent();
 
-//        if (m_data.format() == QImage::Format_Indexed8) {
-//            m_primaryColour = m_data.colorTable().size() - 1;
-//            m_secondaryColour = 0;
-//        }
-//        else if (m_data.format() == QImage::Format_ARGB32) {
-//            m_primaryColour = qRgba(255, 255, 255, 255);
-//            m_secondaryColour = qRgba(0, 0, 0, 0);
-//        }
-//    }
+    if (format == ImageDataFormat::Invalid) {
+        qDebug() << "Invalid image format";
+        return;
+    }
 
-    ((Application *)qApp)->contextMakeCurrent();
+    QRgb fillColour;
+    if (format == ImageDataFormat::Indexed) {
+        m_paletteData = new PaletteData(2);
+        m_paletteData->setColour(0, qRgba(0, 0, 0, 255));
+        m_paletteData->setColour(1, qRgba(255, 255, 255, 255));
+        fillColour = 0;
+        m_contextColours[ContextColour::Primary] = 1;
+        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = 0;
+    }
+    else if (format == ImageDataFormat::RGBA) {
+        fillColour = qRgba(0, 0, 0, 0);
+        m_contextColours[ContextColour::Primary] = qRgba(255, 255, 255, 255);
+        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = qRgba(0, 0, 0, 0);
+    }
+
+    m_imageData = new ImageData(size, format);
+    m_imageData->initializeOpenGLFunctions();
+    // clear here
+
+}
+
+Scene::Scene(const QString &fileName, const char *fileFormat, QObject *parent) :
+    QObject(parent), m_fileName(fileName), m_dirty(false), m_activeContextColour(ContextColour::Primary)
+{
+    APP->contextMakeCurrent();
+
     QImage image(fileName, fileFormat);
-
     if (!image.isNull()) {
         switch (image.format()) {
         case QImage::Format_Invalid:
@@ -240,8 +236,6 @@ Image::Image(const QString &fileName, const char *fileFormat, QObject *parent) :
             break;
         }
     }
-
-    m_data = image; //////////////////////
 
     ImageDataFormat format;
     switch (image.format()) {
@@ -265,56 +259,40 @@ Image::Image(const QString &fileName, const char *fileFormat, QObject *parent) :
     switch (format) {
     case ImageDataFormat::Indexed:
         if (m_paletteData && m_paletteData->length() > 0) {
-            m_primaryColour = m_paletteData->colour(m_paletteData->length() - 1);
+            m_contextColours[ContextColour::Primary] = m_paletteData->colour(m_paletteData->length() - 1);
         }
         else {
-            m_primaryColour = 255;
+            m_contextColours[ContextColour::Primary] = 255;
         }
-        m_secondaryColour = 0;
+        m_contextColours[ContextColour::Secondary] = 0;
         break;
     case ImageDataFormat::RGBA:
-        m_primaryColour = qRgba(255, 255, 255, 255);
-        m_secondaryColour = qRgba(0, 0, 0, 0);
+        m_contextColours[ContextColour::Primary] = qRgba(255, 255, 255, 255);
+        m_contextColours[ContextColour::Secondary] = qRgba(0, 0, 0, 0);
         break;
     }
 
     m_imageData = new ImageData(image.size(), format, image.constBits());
-
 }
 
-Image::~Image()
+Scene::~Scene()
 {
+    delete m_imageData;
+    delete m_paletteData;
     delete undoStack;
 }
 
-QImage &Image::data()
+ImageDataFormat Scene::format() const
 {
-    return m_data;
+    return m_imageData->format();
 }
 
-const QImage &Image::constData() const
-{
-    return m_data;
-}
-
-Image::Format Image::format() const
-{
-    switch (m_data.format()) {
-    case QImage::Format_Indexed8:
-        return Indexed;
-    case QImage::Format_ARGB32:
-        return RGBA;
-    default:
-        return Invalid;
-    }
-}
-
-const QString &Image::fileName() const
+const QString &Scene::fileName() const
 {
     return m_fileName;
 }
 
-bool Image::save(QString fileName)
+bool Scene::save(QString fileName)
 {
 
     bool saved = false;
@@ -322,7 +300,7 @@ bool Image::save(QString fileName)
         fileName = m_fileName;
     }
     if (!fileName.isNull()) {
-        ((Application *)qApp)->contextMakeCurrent();
+        APP->contextMakeCurrent();
         uchar *data = m_imageData->readData();
         QImage::Format format;
         switch (m_imageData->format()) {
@@ -340,7 +318,6 @@ bool Image::save(QString fileName)
         if (m_paletteData && (format == QImage::Format_Indexed8)) {
             uchar *palette = m_paletteData->readData();
             std::vector<QRgb> vector((QRgb *)palette, ((QRgb *)palette) + m_paletteData->length());
-            qDebug() << QVector<QRgb>::fromStdVector(vector);
             qImage.setColorTable(QVector<QRgb>::fromStdVector(vector));
             delete palette;
         }
@@ -354,27 +331,22 @@ bool Image::save(QString fileName)
     return saved;
 }
 
-bool Image::dirty() const
+bool Scene::dirty() const
 {
     return m_dirty;
 }
 
-ImageData *Image::imageData()
+ImageData *Scene::imageData()
 {
     return m_imageData;
 }
 
-PaletteData *Image::paletteData()
+PaletteData *Scene::paletteData()
 {
     return m_paletteData;
 }
 
-bool Image::isIndexed()
-{
-    return m_data.format() == QImage::Format_Indexed8;
-}
-
-Image::ContextColour Image::activeContextColour() const
+Scene::ContextColour Scene::activeContextColour() const
 {
     return m_activeContextColour;
 }
@@ -580,7 +552,7 @@ typedef bool (*ComparisonCallback)(ImageData &image, const QPoint &point, const 
 typedef void (*PointCallback)(ImageData &image, const QPoint &point, const uint colour, const void *const data);
 typedef void (*SegmentCallback)(ImageData &image, const QPoint &point0, const QPoint &point1, const uint colour, void (*pointCallback)(ImageData &image, const QPoint &point, const uint colour, const void *const data), const void *const data, const bool inclusive);
 
-void Image::point(const QPoint &point, const ContextColour contextColour)
+void Scene::point(const QPoint &point, const ContextColour contextColour)
 {
     m_dirty = true;
     PointCallback pointCallback = drawPixel;
@@ -588,7 +560,7 @@ void Image::point(const QPoint &point, const ContextColour contextColour)
     emit changed(QRegion(QRect(point, QSize(1, 1))));
 }
 
-void Image::stroke(const QPoint &point0, const QPoint &point1, const ContextColour contextColour)
+void Scene::stroke(const QPoint &point0, const QPoint &point1, const ContextColour contextColour)
 {
     m_dirty = true;
     PointCallback pointCallback = drawPixel;
@@ -596,60 +568,35 @@ void Image::stroke(const QPoint &point0, const QPoint &point1, const ContextColo
     segmentCallback(*m_imageData, point0, point1, this->contextColour(contextColour), pointCallback, nullptr, true);
 //    undoStack->push(new StrokeCommand(*m_image, a, b));
 //    emit changed(QRect(a, b));
-    emit changed(QRegion(data().rect()));
+    emit changed(QRegion(m_imageData->rect()));
 }
 
-void Image::pick(const QPoint &point, const ContextColour contextColour)
+void Scene::pick(const QPoint &point, const ContextColour contextColour)
 {
-    if (m_data.rect().contains(point)) {
-        if (format() == Indexed) {
+    if (m_imageData->rect().contains(point)) {
+        if (format() == ImageDataFormat::Indexed) {
             setContextColour(m_imageData->pixel(point), contextColour);
         }
-        else if (format() == RGBA) {
+        else if (format() == ImageDataFormat::RGBA) {
             setContextColour(m_imageData->pixel(point), contextColour);
         }
     }
 }
 
-uint Image::contextColour(const ContextColour contextColour) const
+uint Scene::contextColour(const ContextColour contextColour) const
 {
-    switch (contextColour) {
-    default:
-    case Primary:
-        return m_primaryColour;
-    case Secondary:
-        return m_secondaryColour;
-    case Eraser:
-        return m_eraserColour;
+    return m_contextColours[contextColour];
+}
+
+void Scene::setContextColour(uint colour, const ContextColour contextColour)
+{
+    if (m_contextColours[contextColour] != colour) {
+        m_contextColours[contextColour] = colour;
+        emit contextColourChanged(m_contextColours[contextColour], contextColour);
     }
 }
 
-void Image::setContextColour(uint colour, const ContextColour contextColour)
-{
-    switch (contextColour) {
-    default:
-    case Primary:
-        if (m_primaryColour != colour) {
-            m_primaryColour = colour;
-            emit contextColourChanged(m_primaryColour, Primary);
-        }
-        break;
-    case Secondary:
-        if (m_secondaryColour != colour) {
-            m_secondaryColour = colour;
-            emit contextColourChanged(m_secondaryColour, Secondary);
-        }
-        break;
-    case Eraser:
-        if (m_eraserColour != colour) {
-            m_eraserColour = colour;
-            emit contextColourChanged(m_eraserColour, Eraser);
-        }
-        break;
-    }
-}
-
-void Image::setFileName(const QString &fileName)
+void Scene::setFileName(const QString &fileName)
 {
     if (m_fileName != fileName) {
         m_fileName = fileName;
@@ -657,7 +604,7 @@ void Image::setFileName(const QString &fileName)
     }
 }
 
-void Image::setActiveContextColour(const ContextColour contextColour)
+void Scene::setActiveContextColour(const ContextColour contextColour)
 {
     if (m_activeContextColour != contextColour) {
         m_activeContextColour = contextColour;
