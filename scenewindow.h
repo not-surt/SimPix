@@ -69,7 +69,7 @@ protected:
 
 private:
     QOpenGLContext m_context;
-    Scene *m_image;
+    Scene *m_scene;
     Transform m_transform;
     bool m_tiled;
     QPoint lastMousePos;

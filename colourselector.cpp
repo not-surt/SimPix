@@ -20,10 +20,10 @@ ColourSelector::~ColourSelector()
     delete ui;
 }
 
-void ColourSelector::setColour(const uint colour)
+void ColourSelector::setColour(const QColor &colour)
 {
-    if (m_colour.rgba() != colour) {
-        m_colour.setRgba(colour);
+    if (m_colour != colour) {
+        m_colour = colour;
         ObjectSignalBlocker redBlocker(ui->redSpinBox);
         ObjectSignalBlocker greenBlocker(ui->greenSpinBox);
         ObjectSignalBlocker blueBlocker(ui->blueSpinBox);
@@ -38,11 +38,10 @@ void ColourSelector::setColour(const uint colour)
 
 void ColourSelector::updateColour()
 {
-    QColor colour(ui->redSpinBox->value(), ui->greenSpinBox->value(), ui->blueSpinBox->value(), ui->alphaSpinBox->value());
-    setColour(colour.rgba());
+    setColour(QColor(ui->redSpinBox->value(), ui->greenSpinBox->value(), ui->blueSpinBox->value(), ui->alphaSpinBox->value()));
 }
 
-uint ColourSelector::colour()
+const QColor &ColourSelector::colour()
 {
-    return m_colour.rgba();
+    return m_colour;
 }

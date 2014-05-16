@@ -1,7 +1,6 @@
 #include "application.h"
 #include "mainwindow.h"
 #include <QDebug>
-#include <QOpenGLShader>
 #include "scenewindow.h"
 #include "util.h"
 #include <exception>
@@ -26,10 +25,10 @@ Application::Application(int &argc, char **argv) :
         );
 
     m_format.setRenderableType(QSurfaceFormat::OpenGL);
-    m_format.setMajorVersion(2);
-    m_format.setMinorVersion(1);
-    m_format.setProfile(QSurfaceFormat::NoProfile);
-    m_format.setSamples(8);
+    m_format.setMajorVersion(3);
+    m_format.setMinorVersion(3);
+    m_format.setProfile(QSurfaceFormat::CoreProfile);
+//    m_format.setSamples(8);
 
     m_offscreen.setFormat(m_format);
     m_offscreen.create();
@@ -91,14 +90,14 @@ void Application::contextDoneCurrent()
     m_context.doneCurrent();
 }
 
-QSurfaceFormat &Application::format()
+QSurfaceFormat *Application::format()
 {
-    return m_format;
+    return &m_format;
 }
 
-QOpenGLContext &Application::context()
+QOpenGLContext *Application::context()
 {
-    return m_context;
+    return &m_context;
 }
 
 bool Application::addShader(const QString &name, const QOpenGLShader::ShaderType type, const QString &src)
@@ -167,4 +166,20 @@ bool Application::addProgram(const QString &name, const QStringList &shaders)
 GLuint Application::program(const QString &name)
 {
     return m_programs.value(name)->programId();
+}
+
+RenderingContext::RenderingContext(QSurfaceFormat *const format, RenderingContext *const shareContext) :
+    m_surface(), m_context()
+{
+
+}
+
+QOpenGLContext &RenderingContext::context()
+{
+    return m_context;
+}
+
+QOffscreenSurface &RenderingContext::surface()
+{
+    return m_surface;
 }

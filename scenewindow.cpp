@@ -10,13 +10,13 @@
 #include <QGLWidget>
 
 SceneWindow::SceneWindow(QOpenGLContext *const shareContext) :
-    OpenGLWindow(), m_context(), m_image(0), m_transform(), m_tiled(false), panKeyDown(false), m_showFrame(false), matricesDirty(true), m_vertexBuffer(0)
+    OpenGLWindow(), m_context(), m_scene(0), m_transform(), m_tiled(false), panKeyDown(false), m_showFrame(false), matricesDirty(true), m_vertexBuffer(0)
 {
 //    setFocusPolicy(Qt::WheelFocus);
 //    setMouseTracking(true);
-    m_context.setFormat(APP->format());
+    m_context.setFormat(*APP->format());
 //    m_context.setShareContext(&APP->context());
-    APP->context().setShareContext(&m_context);
+    APP->context()->setShareContext(&m_context);
     m_context.create();
     qDebug() << "Share: " << m_context.shareContext();
     setImage(0);
@@ -65,7 +65,7 @@ void SceneWindow::render()
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-    if (m_image) {
+    if (m_scene) {
         m_context.makeCurrent(this);
         initializeOpenGLFunctions();
 
@@ -78,11 +78,11 @@ void SceneWindow::render()
 
 
         glActiveTexture(GL_TEXTURE0 + 0);
-        glBindTexture(GL_TEXTURE_2D, m_image->imageData()->texture());
+        glBindTexture(GL_TEXTURE_2D, m_scene->imageData()->texture());
 
-        if (m_image->paletteData()) {
+        if (m_scene->paletteData()) {
             glActiveTexture(GL_TEXTURE0 + 1);
-            glBindTexture(GL_TEXTURE_2D, m_image->paletteData()->texture());
+            glBindTexture(GL_TEXTURE_2D, m_scene->paletteData()->texture());
         }
 
         GLuint program = APP->program("image");
@@ -102,8 +102,8 @@ void SceneWindow::render()
 
         glUniform1i(textureUnitUniform, 0);
 
-        glUniform1i(isIndexedUniform, (m_image->imageData()->format() == ImageDataFormat::Indexed));
-        glUniform1i(hasPaletteUniform, (m_image->paletteData() != nullptr));
+        glUniform1i(isIndexedUniform, (m_scene->imageData()->format() == ImageDataFormat::Indexed));
+        glUniform1i(hasPaletteUniform, (m_scene->paletteData() != nullptr));
         glUniform1i(paletteTextureUnitUniform, 1);
 
         if (m_tiled) {
@@ -123,7 +123,7 @@ void SceneWindow::render()
             glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (this->matrix() * m_transform.matrix()).constData());
             glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, QMatrix4x4().constData());
 
-            glBindBuffer(GL_ARRAY_BUFFER, m_image->imageData()->vertexBuffer());
+            glBindBuffer(GL_ARRAY_BUFFER, m_scene->imageData()->vertexBuffer());
             glEnableVertexAttribArray(positionAttrib);
             glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
@@ -146,7 +146,7 @@ void SceneWindow::render()
             glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, QMatrix4x4().constData());
 
             GLint positionAttrib = glGetAttribLocation(program, "position");
-            glBindBuffer(GL_ARRAY_BUFFER, m_image->imageData()->vertexBuffer());
+            glBindBuffer(GL_ARRAY_BUFFER, m_scene->imageData()->vertexBuffer());
             glEnableVertexAttribArray(positionAttrib);
             glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
@@ -210,15 +210,15 @@ void SceneWindow::mouseMoveEvent(QMouseEvent *event)
     const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
     if (rect().contains(event->pos())) {
 //        setFocus();
-        if (m_image && pixel != lastPixel && m_image->imageData()->rect().contains(pixel)) {
-            emit mousePixelChanged(pixel, m_image->imageData()->pixel(pixel), m_image->imageData()->format() == ImageDataFormat::Indexed ? m_image->imageData()->pixel(pixel) : -1);
+        if (m_scene && pixel != lastPixel && m_scene->imageData()->rect().contains(pixel)) {
+            emit mousePixelChanged(pixel, m_scene->imageData()->pixel(pixel), m_scene->imageData()->format() == ImageDataFormat::Indexed ? m_scene->imageData()->pixel(pixel) : -1);
         }
     }
     else {
         emit mousePixelChanged(QPoint(0, 0), qRgba(0, 0, 0, 0), false);
     }
     if (!panKeyDown && event->buttons() & Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
-        if (m_image) {
+        if (m_scene) {
             emit dragged(lastPixel, pixel);
             lastMousePos = event->pos();
             lastMouseImagePos = mouseImagePosition;
@@ -246,7 +246,7 @@ void SceneWindow::mouseReleaseEvent(QMouseEvent *event)
 {
     QPointF mouseImagePosition = m_transform.inverseMatrix().map(QPointF(event->pos()));
     if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
-        if (m_image) {
+        if (m_scene) {
             const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
             emit clicked(pixel);
         }
@@ -258,10 +258,10 @@ void SceneWindow::mouseReleaseEvent(QMouseEvent *event)
         event->accept();
     }
     else if (event->button() == Qt::RightButton) {
-        if (m_image) {
+        if (m_scene) {
             const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
             Scene::ContextColour context = (event->modifiers() & Qt::SHIFT) ? Scene::Secondary : Scene::Primary;
-            m_image->pick(pixel, context);
+            m_scene->pick(pixel, context);
         }
         QApplication::restoreOverrideCursor();
         event->accept();
@@ -337,7 +337,7 @@ void SceneWindow::keyReleaseEvent(QKeyEvent *event)
 
 void SceneWindow::enterEvent(QEvent *const event)
 {
-    if (m_image) {
+    if (m_scene) {
         emit mouseEntered();
     }
 }
@@ -349,7 +349,7 @@ void SceneWindow::leaveEvent(QEvent *const event)
 
 Scene *SceneWindow::image() const
 {
-    return m_image;
+    return m_scene;
 }
 
 Transform SceneWindow::transform() const
@@ -408,7 +408,7 @@ void SceneWindow::updateMatrices()
 
 void SceneWindow::setImage(Scene *const image)
 {
-    m_image = image;
+    m_scene = image;
     Transform transform;
     transform.setOrigin(QVector3D((qreal)floor(width() / 2.f), floor((qreal)height() / 2.f), 0.f));
     transform.setPan(QVector3D(0.f, 0.f, 0.f));
@@ -418,7 +418,7 @@ void SceneWindow::setImage(Scene *const image)
     if (image) {
 //        setAttribute(Qt::WA_OpaquePaintEvent, true);
 //        setAttribute(Qt::WA_NoSystemBackground, true);
-        transform.setPan(-QVector3D(floor((qreal)m_image->imageData()->size().width() / 2.f), floor((qreal)m_image->imageData()->size().height() / 2.f), 0.f));
+        transform.setPan(-QVector3D(floor((qreal)m_scene->imageData()->size().width() / 2.f), floor((qreal)m_scene->imageData()->size().height() / 2.f), 0.f));
     }
     else {
 //        setAttribute(Qt::WA_OpaquePaintEvent, false);
@@ -432,10 +432,10 @@ void SceneWindow::setTransform(const Transform &transform, const bool limit)
     if (m_transform != transform) {
         m_transform = transform;
         if (limit) {
-            if (m_image) {
+            if (m_scene) {
                 if (!m_tiled) {
-                    m_transform.setPan(QVector3D(clamp(m_transform.pan().x(), (qreal)-m_image->imageData()->size().width(), 0.f),
-                                               clamp(m_transform.pan().y(), (qreal)-m_image->imageData()->size().height(), 0.f),
+                    m_transform.setPan(QVector3D(clamp(m_transform.pan().x(), (qreal)-m_scene->imageData()->size().width(), 0.f),
+                                               clamp(m_transform.pan().y(), (qreal)-m_scene->imageData()->size().height(), 0.f),
                                                0.f));
 //                    QPointF imageCentreScreenPosition = m_transform.matrix().map(QPointF((float)m_image->data().width() / 2.f, (float)m_image->data().height() / 2.f));
 //                    QVector3D clampedImageCentreScreenPosition = QVector3D(clamp(imageCentreScreenPosition.x(), 0.f, (float)width()),
@@ -444,8 +444,8 @@ void SceneWindow::setTransform(const Transform &transform, const bool limit)
 //                    m_transform.setPan(m_transform.inverseMatrix().map(clampedImageCentreScreenPosition));
                 }
                 else {
-                    m_transform.setPan(QVector3D(wrap(m_transform.pan().x(), (qreal)-m_image->imageData()->size().width(), 0.f),
-                                               wrap(m_transform.pan().y(), (qreal)-m_image->imageData()->size().height(), 0.f),
+                    m_transform.setPan(QVector3D(wrap(m_transform.pan().x(), (qreal)-m_scene->imageData()->size().width(), 0.f),
+                                               wrap(m_transform.pan().y(), (qreal)-m_scene->imageData()->size().height(), 0.f),
                                                0.f));
                 }
             }

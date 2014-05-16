@@ -15,13 +15,13 @@ class ColourSelector : public QWidget
 public:
     explicit ColourSelector(QWidget *parent = nullptr);
     ~ColourSelector();
-    void setColour(const uint colour);
+    void setColour(const QColor &colour);
 
 signals:
-    void colourChanged(const uint colour);
+    void colourChanged(const QColor &colour);
 
 public slots:
-    uint colour();
+    const QColor &colour();
 
 private slots:
     void updateColour();

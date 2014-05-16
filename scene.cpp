@@ -35,8 +35,8 @@ const ImageDataFormatDefinition IMAGE_DATA_FORMATS[] = {
     {ImageDataFormat::Invalid, "", 0, 0, 0, 0}
 };
 
-TextureData::TextureData(const QSize &size, const ImageDataFormat _format, const GLubyte *const data) :
-    m_size(size), m_format(_format)
+TextureData::TextureData(QOpenGLContext *const context, const QSize &size, const ImageDataFormat _format, const GLubyte *const data) :
+    m_context(context), m_size(size), m_format(_format)
 {
     initializeOpenGLFunctions();
 
@@ -124,8 +124,8 @@ void TextureData::writeData(const GLubyte *const data)
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_size.width(), m_size.height(), IMAGE_DATA_FORMATS[(int)m_format].format, IMAGE_DATA_FORMATS[(int)m_format].glEnum, data);
 }
 
-PaletteData::PaletteData(const GLuint length, const GLubyte *const data) :
-    TextureData(QSize(length, 1), ImageDataFormat::RGBA, data)
+PaletteData::PaletteData(QOpenGLContext *const context, const GLuint length, const GLubyte *const data) :
+    TextureData(context, QSize(length, 1), ImageDataFormat::RGBA, data)
 {
 
 }
@@ -145,8 +145,8 @@ uint PaletteData::length() const
     return m_size.width();
 }
 
-ImageData::ImageData(const QSize &size, const ImageDataFormat format, const GLubyte *const data) :
-    TextureData(size, format, data)
+ImageData::ImageData(QOpenGLContext *const context, const QSize &size, const ImageDataFormat format, const GLubyte *const data) :
+    TextureData(context, size, format, data)
 {
     initializeOpenGLFunctions();
 
@@ -196,7 +196,7 @@ Scene::Scene(const QSize &size, ImageDataFormat format, QObject *parent) :
 
     QRgb fillColour;
     if (format == ImageDataFormat::Indexed) {
-        m_paletteData = new PaletteData(2);
+        m_paletteData = new PaletteData(APP->context(), 2);
         m_paletteData->setColour(0, qRgba(0, 0, 0, 255));
         m_paletteData->setColour(1, qRgba(255, 255, 255, 255));
         fillColour = 0;
@@ -209,7 +209,7 @@ Scene::Scene(const QSize &size, ImageDataFormat format, QObject *parent) :
         m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = qRgba(0, 0, 0, 0);
     }
 
-    m_imageData = new ImageData(size, format);
+    m_imageData = new ImageData(APP->context(), size, format);
     m_imageData->initializeOpenGLFunctions();
     // clear here
 
@@ -253,7 +253,7 @@ Scene::Scene(const QString &fileName, const char *fileFormat, QObject *parent) :
 
     m_paletteData = nullptr;
     if (!image.colorTable().isEmpty()) {
-        m_paletteData = new PaletteData(image.colorTable().size(), (GLubyte *)image.colorTable().constData());
+        m_paletteData = new PaletteData(APP->context(), image.colorTable().size(), (GLubyte *)image.colorTable().constData());
     }
 
     switch (format) {
@@ -272,7 +272,7 @@ Scene::Scene(const QString &fileName, const char *fileFormat, QObject *parent) :
         break;
     }
 
-    m_imageData = new ImageData(image.size(), format, image.constBits());
+    m_imageData = new ImageData(APP->context(), image.size(), format, image.constBits());
 }
 
 Scene::~Scene()

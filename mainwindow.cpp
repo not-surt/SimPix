@@ -16,16 +16,15 @@ const QString MainWindow::fileDialogFilterString = tr("PNG Image Files (*.png)")
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_image(0)
+    ui(new Ui::MainWindow), m_scene(0)
 {    
     canvasBackgroundPixmap = generateBackgroundPixmap(32);
     swatchBackgroundPixmap = generateBackgroundPixmap(16);
 
     ui->setupUi(this);
 
-    canvas = new SceneWindow(&APP->context());
-    setCentralWidget(QWidget::createWindowContainer(canvas));
-//    canvas = (Canvas *)centralWidget();
+    m_sceneWindow = new SceneWindow(APP->context());
+    setCentralWidget(QWidget::createWindowContainer(m_sceneWindow));
 
     // Copy actions to window. Is there a better way?
     QList<QMenu *> menus = ui->menuBar->findChildren<QMenu *>();
@@ -47,15 +46,16 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionAboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
     QObject::connect(ui->actionLicense, SIGNAL(triggered()), this, SLOT(license()));
 
-    QObject::connect(this, SIGNAL(imageChanged(Scene *const)), canvas, SLOT(setImage(Scene *const)));
+    QObject::connect(this, SIGNAL(imageChanged(Scene *const)), m_sceneWindow, SLOT(setImage(Scene *const)));
     QObject::connect(this, SIGNAL(imageChanged(Scene *const)), ui->paletteWidget, SLOT(setImage(Scene *const)));
+    QObject::connect(ui->paletteWidget, SIGNAL(colourChanged(const uint)), m_sceneWindow, SLOT(updateImage()));
 
-    QObject::connect(ui->transformWidget, SIGNAL(transformChanged(Transform)), canvas, SLOT(setTransform(Transform)));
-    QObject::connect(canvas, SIGNAL(transformChanged(Transform)), ui->transformWidget, SLOT(setTransform(Transform)));
+    QObject::connect(ui->transformWidget, SIGNAL(transformChanged(Transform)), m_sceneWindow, SLOT(setTransform(Transform)));
+    QObject::connect(m_sceneWindow, SIGNAL(transformChanged(Transform)), ui->transformWidget, SLOT(setTransform(Transform)));
 
-    QObject::connect(ui->actionTiled, SIGNAL(triggered(bool)), canvas, SLOT(setTiled(bool)));
-    QObject::connect(ui->actionShowFrame, SIGNAL(triggered(bool)), canvas, SLOT(setShowFrame(bool)));
-    QObject::connect(ui->actionAlpha, SIGNAL(triggered(bool)), canvas, SLOT(setShowAlpha(bool)));
+    QObject::connect(ui->actionTiled, SIGNAL(triggered(bool)), m_sceneWindow, SLOT(setTiled(bool)));
+    QObject::connect(ui->actionShowFrame, SIGNAL(triggered(bool)), m_sceneWindow, SLOT(setShowFrame(bool)));
+    QObject::connect(ui->actionAlpha, SIGNAL(triggered(bool)), m_sceneWindow, SLOT(setShowAlpha(bool)));
 
     QMenu *toolBarMenu = new QMenu(this);
     ui->actionToolbars->setMenu(toolBarMenu);
@@ -78,7 +78,7 @@ MainWindow::MainWindow(QWidget *parent) :
     statusBar()->addWidget(statusMouseWidget);
 //    QObject::connect(canvas, SIGNAL(mouseEntered()), statusMouseWidget, SLOT(show()));
 //    QObject::connect(canvas, SIGNAL(mouseLeft()), statusMouseWidget, SLOT(hide()));
-    QObject::connect(canvas, SIGNAL(mousePixelChanged(QPoint, uint, int)), statusMouseWidget, SLOT(setMouseInfo(QPoint, uint, int)));
+    QObject::connect(m_sceneWindow, SIGNAL(mousePixelChanged(QPoint, uint, int)), statusMouseWidget, SLOT(setMouseInfo(QPoint, uint, int)));
 
     QSettings settings;
     settings.beginGroup("window");
@@ -96,25 +96,24 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete m_image;
+    delete m_scene;
     delete canvasBackgroundPixmap;
     delete swatchBackgroundPixmap;
 }
 
 Scene *MainWindow::image() const
 {
-    return m_image;
+    return m_scene;
 }
 
 void MainWindow::setImage(Scene *image)
 {
-    if (m_image != image) {
+    if (m_scene != image) {
         if (image) {
-            QObject::connect(image, SIGNAL(changed(const QRegion &)), canvas, SLOT(updateImage(const QRegion &)));
-            QObject::connect(ui->paletteWidget, SIGNAL(colourChanged(const uint)), canvas, SLOT(updateImage()));
+            QObject::connect(image, SIGNAL(changed(const QRegion &)), m_sceneWindow, SLOT(updateImage(const QRegion &)));
             QObject::connect(image, SIGNAL(contextColourChanged(const uint, const int)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
-            QObject::connect(canvas, SIGNAL(clicked(const QPoint &)), image, SLOT(point(const QPoint &)));
-            QObject::connect(canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), image, SLOT(stroke(const QPoint &, const QPoint &)));
+            QObject::connect(m_sceneWindow, SIGNAL(clicked(const QPoint &)), image, SLOT(point(const QPoint &)));
+            QObject::connect(m_sceneWindow, SIGNAL(dragged(const QPoint &, const QPoint &)), image, SLOT(stroke(const QPoint &, const QPoint &)));
             QObject::connect(ui->actionUndo, SIGNAL(triggered()), image->undoStack, SLOT(undo()));
             QObject::connect(ui->actionRedo, SIGNAL(triggered()), image->undoStack, SLOT(redo()));
             setWindowFilePath(image->fileName());
@@ -123,17 +122,16 @@ void MainWindow::setImage(Scene *image)
             setWindowFilePath(QString());
         }
         emit imageChanged(image);
-        if (m_image) {
-            QObject::disconnect(m_image, SIGNAL(changed(const QRegion &)), canvas, SLOT(updateImage(const QRegion &)));
-            QObject::disconnect(ui->paletteWidget, SIGNAL(colourChanged(const uint)), canvas, SLOT(updateImage()));
-            QObject::disconnect(m_image, SIGNAL(contextColourChanged(const uint, const int)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
-            QObject::disconnect(canvas, SIGNAL(clicked(const QPoint &)), m_image, SLOT(point(const QPoint &)));
-            QObject::disconnect(canvas, SIGNAL(dragged(const QPoint &, const QPoint &)), m_image, SLOT(stroke(const QPoint &, const QPoint &)));
-            QObject::disconnect(ui->actionUndo, SIGNAL(triggered()), m_image->undoStack, SLOT(undo()));
-            QObject::disconnect(ui->actionRedo, SIGNAL(triggered()), m_image->undoStack, SLOT(redo()));
-            m_image->deleteLater();
+        if (m_scene) {
+            QObject::disconnect(m_scene, SIGNAL(changed(const QRegion &)), m_sceneWindow, SLOT(updateImage(const QRegion &)));
+            QObject::disconnect(m_scene, SIGNAL(contextColourChanged(const uint, const int)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
+            QObject::disconnect(m_sceneWindow, SIGNAL(clicked(const QPoint &)), m_scene, SLOT(point(const QPoint &)));
+            QObject::disconnect(m_sceneWindow, SIGNAL(dragged(const QPoint &, const QPoint &)), m_scene, SLOT(stroke(const QPoint &, const QPoint &)));
+            QObject::disconnect(ui->actionUndo, SIGNAL(triggered()), m_scene->undoStack, SLOT(undo()));
+            QObject::disconnect(ui->actionRedo, SIGNAL(triggered()), m_scene->undoStack, SLOT(redo()));
+            m_scene->deleteLater();
         }
-        m_image = image;
+        m_scene = image;
     }
 }
 
@@ -192,18 +190,18 @@ bool MainWindow::openImage()
 
 bool MainWindow::saveImage()
 {
-    if (m_image) {
+    if (m_scene) {
         QSettings settings;
         settings.beginGroup("file");
-        if (m_image->fileName().isNull()) {
+        if (m_scene->fileName().isNull()) {
             return saveAsImage();
         }
-        if (m_image->save()) {
-            settings.setValue("lastSaved", m_image->fileName());
+        if (m_scene->save()) {
+            settings.setValue("lastSaved", m_scene->fileName());
             return true;
         }
         else {
-            QMessageBox::critical(this, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(m_image->fileName()).fileName()));
+            QMessageBox::critical(this, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(m_scene->fileName()).fileName()));
         }
         settings.endGroup();
     }
@@ -212,12 +210,12 @@ bool MainWindow::saveImage()
 
 bool MainWindow::saveAsImage()
 {
-    if (m_image) {
+    if (m_scene) {
         QSettings settings;
         settings.beginGroup("file");
         QString fileName;
-        if (!m_image->fileName().isNull()) {
-            fileName = m_image->fileName();
+        if (!m_scene->fileName().isNull()) {
+            fileName = m_scene->fileName();
         }
         else {
             QFileInfo fileInfo(settings.value("lastSaved", QDir::homePath()).toString());
@@ -225,7 +223,7 @@ bool MainWindow::saveAsImage()
         }
         fileName = QFileDialog::getSaveFileName(this, tr("Save Image"), fileName, fileDialogFilterString);
         if (!fileName.isNull()) {
-            if (m_image->save(fileName)) {
+            if (m_scene->save(fileName)) {
                 settings.setValue("lastSaved", fileName);
             }
             else {
@@ -239,9 +237,9 @@ bool MainWindow::saveAsImage()
 
 bool MainWindow::closeImage(const bool doClose)
 {
-    if (m_image) {
-        if (m_image->dirty()) {
-            QString fileName = m_image->fileName().isNull() ? "<i>unnamed</>" : QFileInfo(m_image->fileName()).fileName();
+    if (m_scene) {
+        if (m_scene->dirty()) {
+            QString fileName = m_scene->fileName().isNull() ? "<i>unnamed</>" : QFileInfo(m_scene->fileName()).fileName();
             QMessageBox::StandardButton button = QMessageBox::question(this, QString(),
                                            QString(tr("The file \"<b>%1</b>\" has unsaved changes.<br/>"
                                                       "Do you want to save it before closing?")).arg(fileName),

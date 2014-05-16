@@ -12,8 +12,6 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    Q_PROPERTY(Scene *image READ image WRITE setImage NOTIFY imageChanged)
-
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -38,8 +36,8 @@ protected:
     virtual void closeEvent(QCloseEvent *event);
 private:
     Ui::MainWindow *ui;
-    Scene *m_image;
-    SceneWindow *canvas;
+    Scene *m_scene;
+    SceneWindow *m_sceneWindow;
 //    Canvas *canvas;
 
     static const QString fileDialogFilterString;

@@ -29,7 +29,8 @@ SOURCES += main.cpp\
     statusmousewidget.cpp \
     openglwindow.cpp \
     scene.cpp \
-    scenewindow.cpp
+    scenewindow.cpp \
+    editingcontext.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
@@ -48,7 +49,8 @@ HEADERS  += mainwindow.h \
     statusmousewidget.h \
     openglwindow.h \
     scene.h \
-    scenewindow.h
+    scenewindow.h \
+    editingcontext.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \

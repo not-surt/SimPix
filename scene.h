@@ -41,7 +41,7 @@ union Pixel {
 class TextureData : public QOpenGLFunctions
 {
 public:
-    explicit TextureData(const QSize &size, const ImageDataFormat format, const GLubyte *const data = nullptr);
+    explicit TextureData(QOpenGLContext *const context, const QSize &size, const ImageDataFormat format, const GLubyte *const data = nullptr);
     ~TextureData();
     uint pixel(const QPoint &position);
     void setPixel(const QPoint &position, const uint colour);
@@ -52,6 +52,7 @@ public:
     GLubyte *readData(GLubyte *const data = nullptr);
     void writeData(const GLubyte *const data);
 protected:
+    QOpenGLContext *m_context;
     QSize m_size;
     ImageDataFormat m_format;
     GLuint m_texture;
@@ -61,7 +62,7 @@ protected:
 class PaletteData : public TextureData
 {
 public:
-    explicit PaletteData(const GLuint length, const GLubyte *const data = nullptr);
+    explicit PaletteData(QOpenGLContext *const context, const GLuint length, const GLubyte *const data = nullptr);
     uint colour(const uint index);
     void setColour(const uint index, uint colour);
     GLuint length() const;
@@ -70,7 +71,7 @@ public:
 class ImageData : public TextureData
 {
 public:
-    explicit ImageData(const QSize &size, const ImageDataFormat format, const GLubyte *const data = nullptr);
+    explicit ImageData(QOpenGLContext *const context, const QSize &size, const ImageDataFormat format, const GLubyte *const data = nullptr);
     ~ImageData();
     GLuint vertexBuffer() const;
     const QRect &rect();
