@@ -1,12 +1,11 @@
 #include "application.h"
 #include "mainwindow.h"
 #include <QDebug>
-#include "scenewindow.h"
 #include "util.h"
 #include <exception>
 
 Application::Application(int &argc, char **argv) :
-    QApplication(argc, argv), m_format(), m_context(), m_offscreen(), m_samplers(), m_shaders(), m_programs(), m_window()
+    QApplication(argc, argv), m_shaders(), m_programs(), m_window()
 {
     setWindowIcon(QIcon(":/images/simpix-48x48.png"));
 
@@ -16,7 +15,7 @@ Application::Application(int &argc, char **argv) :
     setApplicationVersion("0.0.1");
 
     setStyleSheet(
-        "QStatusBar::item {border: none}"
+//        "QStatusBar::item {border: none}"
 //        "* {color: #fff; background-color: #000}"
 //        "* {font-size: 24pt}"
 //        "* {icon-size: 48px}"
@@ -24,80 +23,68 @@ Application::Application(int &argc, char **argv) :
         ""
         );
 
-    m_format.setRenderableType(QSurfaceFormat::OpenGL);
-    m_format.setMajorVersion(3);
-    m_format.setMinorVersion(3);
-    m_format.setProfile(QSurfaceFormat::CoreProfile);
-//    m_format.setSamples(8);
+    swatchBackgroundPixmap = generateBackgroundPixmap(16);
 
-    m_offscreen.setFormat(m_format);
-    m_offscreen.create();
-    if (m_offscreen.format() != m_offscreen.requestedFormat()) {
-        qDebug() << "Couldn't set requested OpenGL surface format!" << endl << "Requested: " << m_offscreen.requestedFormat() << endl << "Created: " << m_offscreen.format();
+    QSurfaceFormat format;
+    format.setRenderableType(QSurfaceFormat::OpenGL);
+    format.setVersion(3, 3);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+//    format.setSamples(16);
+    QSurfaceFormat::setDefaultFormat(format);
+
+    m_shareWidget = new QOpenGLWidget();
+    // Hack to initialize share widget
+    m_shareWidget->show();
+    m_shareWidget->hide();
+
+    {
+        ContextGrabber grab(m_shareWidget);
+        addShader("canvas.vert", QOpenGLShader::Vertex, fileToString(":/shaders/canvas.vert"));
+
+        addShader("image.frag", QOpenGLShader::Fragment, fileToString(":/shaders/image.frag"));
+        addProgram("image", QStringList() << "canvas.vert" << "image.frag");
+
+        addShader("frame.frag", QOpenGLShader::Fragment, fileToString(":/shaders/frame.frag"));
+        addProgram("frame", QStringList() << "canvas.vert" << "frame.frag");
+
+        addShader("checkerboard.frag", QOpenGLShader::Fragment, fileToString(":/shaders/checkerboard.frag"));
+        addProgram("checkerboard", QStringList() << "canvas.vert" << "checkerboard.frag");
+
+        addShader("brush.vert", QOpenGLShader::Vertex, fileToString(":/shaders/brush.vert"));
+
+        addShader("ellipsebrush.frag", QOpenGLShader::Fragment, fileToString(":/shaders/ellipsebrush.frag"));
+        addProgram("ellipsebrush", QStringList() << "brush.vert" << "ellipsebrush.frag");
+
+        addShader("rectanglebrush.frag", QOpenGLShader::Fragment, fileToString(":/shaders/rectanglebrush.frag"));
+        addProgram("rectanglebrush", QStringList() << "brush.vert" << "rectanglebrush.frag");
     }
-
-//    m_context.setFormat(m_format);
-    m_context.setFormat(m_offscreen.format());
-    m_context.create();
-
-    contextMakeCurrent();
-    initializeOpenGLFunctions();
-
-    addShader("canvas.vert", QOpenGLShader::Vertex, fileToString(":/shaders/canvas.vert"));
-
-    addShader("image.frag", QOpenGLShader::Fragment, fileToString(":/shaders/image.frag"));
-    addProgram("image", QStringList() << "canvas.vert" << "image.frag");
-
-    addShader("frame.frag", QOpenGLShader::Fragment, fileToString(":/shaders/frame.frag"));
-    addProgram("frame", QStringList() << "canvas.vert" << "frame.frag");
-
-    addShader("checkerboard.frag", QOpenGLShader::Fragment, fileToString(":/shaders/checkerboard.frag"));
-    addProgram("checkerboard", QStringList() << "canvas.vert" << "checkerboard.frag");
-
-    addShader("brush.vert", QOpenGLShader::Vertex, fileToString(":/shaders/brush.vert"));
-
-    addShader("ellipsebrush.frag", QOpenGLShader::Fragment, fileToString(":/shaders/ellipsebrush.frag"));
-    addProgram("ellipsebrush", QStringList() << "brush.vert" << "ellipsebrush.frag");
-
-    addShader("rectanglebrush.frag", QOpenGLShader::Fragment, fileToString(":/shaders/rectanglebrush.frag"));
-    addProgram("rectanglebrush", QStringList() << "brush.vert" << "rectanglebrush.frag");
-
-    contextDoneCurrent();
 
     m_window.show();
 }
 
 Application::~Application()
 {
-    QHashIterator<QString, QOpenGLShader *> shader(m_shaders);
-    while (shader.hasNext()) {
-        delete *shader.next();
+    {
+        ContextGrabber grab(m_shareWidget);
+        QHashIterator<QString, QOpenGLShader *> shader(m_shaders);
+        while (shader.hasNext()) {
+            delete *shader.next();
+        }
+
+        QHashIterator<QString, QOpenGLShaderProgram *> program(m_programs);
+        while (program.hasNext()) {
+            delete *program.next();
+        }
     }
 
-    QHashIterator<QString, QOpenGLShaderProgram *> program(m_programs);
-    while (program.hasNext()) {
-        delete *program.next();
-    }
+    delete m_shareWidget;
+
+    delete swatchBackgroundPixmap;
 }
 
-void Application::contextMakeCurrent()
+QOpenGLWidget *Application::shareWidget()
 {
-    m_context.makeCurrent(&m_offscreen);
-}
-
-void Application::contextDoneCurrent()
-{
-    m_context.doneCurrent();
-}
-
-QSurfaceFormat *Application::format()
-{
-    return &m_format;
-}
-
-QOpenGLContext *Application::context()
-{
-    return &m_context;
+    return m_shareWidget;
 }
 
 bool Application::addShader(const QString &name, const QOpenGLShader::ShaderType type, const QString &src)
@@ -133,7 +120,7 @@ bool Application::addProgram(const QString &name, const QStringList &shaders)
     bool error = false;
     QString errorText;
     QOpenGLShaderProgram *program;
-    error |= !(program = new QOpenGLShaderProgram(&m_context));
+    error |= !(program = new QOpenGLShaderProgram());
     if (error) {
         errorText += program->log();
     }
@@ -166,20 +153,4 @@ bool Application::addProgram(const QString &name, const QStringList &shaders)
 GLuint Application::program(const QString &name)
 {
     return m_programs.value(name)->programId();
-}
-
-RenderingContext::RenderingContext(QSurfaceFormat *const format, RenderingContext *const shareContext) :
-    m_surface(), m_context()
-{
-
-}
-
-QOpenGLContext &RenderingContext::context()
-{
-    return m_context;
-}
-
-QOffscreenSurface &RenderingContext::surface()
-{
-    return m_surface;
 }

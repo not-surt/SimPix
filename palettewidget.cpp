@@ -19,18 +19,18 @@ PaletteWidget::~PaletteWidget()
     delete ui;
 }
 
-Scene *PaletteWidget::image() const
+EditingContext *PaletteWidget::editingContext() const
 {
-    return ui->paletteView->image();
+    return ui->paletteView->editingContext();
 }
 
-void PaletteWidget::setImage(Scene *const image)
+void PaletteWidget::setEditingContext(EditingContext *const editingContext)
 {
-    if (ui->paletteView->image()) {
+    if (ui->paletteView->editingContext()) {
         QObject::disconnect(ui->paletteView, SIGNAL(clicked(QModelIndex)), this, SLOT(setColour(QModelIndex)));
         QObject::disconnect(ui->paletteView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(editColour(QModelIndex)));
     }
-    ui->paletteView->setImage(image);
+    ui->paletteView->setEditingContext(editingContext);
     QObject::connect(ui->paletteView, SIGNAL(clicked(QModelIndex)), this, SLOT(setColour(QModelIndex)));
     QObject::connect(ui->paletteView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(editColour(QModelIndex)));
 }
@@ -50,10 +50,10 @@ void PaletteWidget::editColour(QModelIndex index)
 
 void PaletteWidget::setColour(QModelIndex index)
 {
-    if (ui->paletteView->image()) {
+    if (ui->paletteView->editingContext()) {
 //        const QColor colour = index.data().value<QColor>();
 //        ui->paletteView->image()->setContextColour(colour.rgba(), ui->paletteView->image()->activeContextColour());
-        ui->paletteView->image()->setContextColour(index.row(), ui->paletteView->image()->activeContextColour());
+        ui->paletteView->editingContext()->setColourSlot(index.row(), ui->paletteView->editingContext()->activeColourSlot());
     }
 }
 

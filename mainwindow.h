@@ -2,8 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "scenewindow.h"
 #include "scene.h"
+#include "canvaswidget.h"
 
 namespace Ui {
 class MainWindow;
@@ -15,30 +15,29 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    Scene *image() const;
+    Scene *scene() const;
 
 signals:
-    void imageChanged(Scene *const);
+    void sceneChanged(Scene *const scene);
 
 public slots:
-    bool newImage();
-    bool openImage();
-    bool saveImage();
-    bool saveAsImage();
+    bool newScene();
+    bool openScene();
+    bool saveScene();
+    bool saveAsScene();
     void setFullscreen(bool);
     void about();
     void aboutQt();
-    bool closeImage(const bool doClose = true);
+    bool closeScene(const bool doClose = true);
     void license();
-    void setImage(Scene *image = nullptr);
+    void setScene(Scene *scene = nullptr);
 
 protected:
     virtual void closeEvent(QCloseEvent *event);
 private:
     Ui::MainWindow *ui;
     Scene *m_scene;
-    SceneWindow *m_sceneWindow;
-//    Canvas *canvas;
+    CanvasWidget *m_canvas;
 
     static const QString fileDialogFilterString;
 };

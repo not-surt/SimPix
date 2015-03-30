@@ -22,14 +22,14 @@ PaletteView::PaletteView(QWidget *parent) :
     setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
 }
 
-Scene *PaletteView::image() const
+EditingContext *PaletteView::editingContext() const
 {
-    return ((PaletteModel *)model())->image();
+    return ((PaletteModel *)model())->editingContext();
 }
 
-void PaletteView::setImage(Scene *image)
+void PaletteView::setEditingContext(EditingContext *editingContext)
 {
-    ((PaletteModel *)model())->setImage(image);
+    ((PaletteModel *)model())->setEditingContext(editingContext);
 }
 
 

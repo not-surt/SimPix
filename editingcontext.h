@@ -1,9 +1,10 @@
 #ifndef EDITINGCONTEXT_H
 #define EDITINGCONTEXT_H
 
-#include "scene.h"
-
 #include <QObject>
+
+class ImageData;
+class PaletteData;
 
 class EditingContext : public QObject
 {
@@ -16,16 +17,25 @@ public:
     };
     static const int COLOUR_SLOT_COUNT = 3;
     explicit EditingContext(QObject *parent = 0);
+    ImageData *image() const;
+    PaletteData *palette() const;
+    uint colourSlot(const ColourSlot colourSlot) const;
+    ColourSlot activeColourSlot() const;
 
 signals:
+    void changed(EditingContext *);
 
 public slots:
+    void setImage(ImageData *image);
+    void setPalette(PaletteData *palette);
+    void setColourSlot(const uint colour, const ColourSlot colourSlot = Primary);
+    void setActiveColourSlot(const ColourSlot colourSlot);
 
-private:
-    Scene *m_scene;
-    ImageData *m_layer;
-    uint m_contextColours[COLOUR_SLOT_COUNT];
-    ColourSlot m_activeContextColour;
+protected:
+    ImageData *m_image;
+    PaletteData *m_palette;
+    uint m_colourSlots[COLOUR_SLOT_COUNT];
+    ColourSlot m_activeColourSlot;
 };
 
 #endif // EDITINGCONTEXT_H

@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <QStyle>
 #include <QPainter>
+#include <QStyleOptionFocusRect>
 #include "util.h"
 
 ColourSwatch::ColourSwatch(QWidget *parent) :
@@ -33,20 +34,12 @@ const QColor &ColourSwatch::colour() const
 void ColourSwatch::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
-    painter.setPen(Qt::NoPen);
-    QRect r = rect().adjusted(0, 0, 1, 1);
-    QPolygon alpha;
-    alpha.append(r.topLeft());
-    alpha.append(r.topRight());
-    alpha.append(r.bottomLeft());
-    painter.setBrush(*swatchBackgroundPixmap);
-    painter.drawConvexPolygon(alpha);
-    painter.setBrush(m_colour);
-    painter.drawConvexPolygon(alpha);
-    QPolygon solid;
-    solid.append(r.topRight());
-    solid.append(r.bottomRight());
-    solid.append(r.bottomLeft());
-    painter.setBrush(QColor(m_colour.rgb()));
-    painter.drawConvexPolygon(solid);
+    drawColourSwatch(&painter, rect(), m_colour);
+
+    if (hasFocus()) {
+        QStyleOptionFocusRect option;
+        option.initFrom(this);
+        option.backgroundColor = palette().color(QPalette::Background);
+        style()->drawPrimitive(QStyle::PE_FrameFocusRect, &option, &painter, this);
+    }
 }

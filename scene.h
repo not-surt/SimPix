@@ -3,11 +3,10 @@
 
 #include <QSize>
 #include <QQueue>
-#include <QUndoStack>
-#define GL_GLEXT_PROTOTYPES
-#include <QOpenGLFunctions>
-
-class QOpenGLFramebufferObject;
+#include <QOpenGLWidget>
+#include <QOpenGLFunctions_3_3_Core>
+#include "transform.h"
+#include "editingcontext.h"
 
 enum class ImageDataFormat {
     Indexed,
@@ -38,10 +37,10 @@ union Pixel {
     } components;
 };
 
-class TextureData : public QOpenGLFunctions
+class TextureData : public QOpenGLFunctions_3_3_Core
 {
 public:
-    explicit TextureData(QOpenGLContext *const context, const QSize &size, const ImageDataFormat format, const GLubyte *const data = nullptr);
+    explicit TextureData(QOpenGLWidget *const widget, const QSize &size, const ImageDataFormat format, const GLubyte *const data = nullptr);
     ~TextureData();
     uint pixel(const QPoint &position);
     void setPixel(const QPoint &position, const uint colour);
@@ -52,7 +51,7 @@ public:
     GLubyte *readData(GLubyte *const data = nullptr);
     void writeData(const GLubyte *const data);
 protected:
-    QOpenGLContext *m_context;
+    QOpenGLWidget *m_widget;
     QSize m_size;
     ImageDataFormat m_format;
     GLuint m_texture;
@@ -62,7 +61,7 @@ protected:
 class PaletteData : public TextureData
 {
 public:
-    explicit PaletteData(QOpenGLContext *const context, const GLuint length, const GLubyte *const data = nullptr);
+    explicit PaletteData(QOpenGLWidget *const widget, const GLuint length, const GLubyte *const data = nullptr);
     uint colour(const uint index);
     void setColour(const uint index, uint colour);
     GLuint length() const;
@@ -71,7 +70,7 @@ public:
 class ImageData : public TextureData
 {
 public:
-    explicit ImageData(QOpenGLContext *const context, const QSize &size, const ImageDataFormat format, const GLubyte *const data = nullptr);
+    explicit ImageData(QOpenGLWidget *const widget, const QSize &size, const ImageDataFormat format, const GLubyte *const data = nullptr);
     ~ImageData();
     GLuint vertexBuffer() const;
     const QRect &rect();
@@ -79,54 +78,55 @@ protected:
     GLuint m_vertexBuffer;
 };
 
-class ImageLayerCel : public QObject
+class ImageLayerCel
 {
-    Q_OBJECT
+public:
+    ImageLayerCel()
+        : m_begin(0.f), m_end(0.f), m_imageData(nullptr), m_paletteData(nullptr)
+    {
+
+    }
+
 protected:
-    qreal m_begin, m_end;
+    float m_begin, m_end;
     ImageData *m_imageData;
     PaletteData *m_paletteData;
-    // transform
 };
 
-class ImageLayer : public QObject
+class ImageLayer
 {
-    Q_OBJECT
+public:
+    ImageLayer()
+        : m_cels(), transform(), m_paletteData(nullptr)
+    {
+
+    }
+
 protected:
     QList<ImageLayerCel> m_cels;
+    Transform transform;
+    PaletteData *m_paletteData;
 };
 
 class Scene : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged)
-    Q_PROPERTY(ImageDataFormat format READ format)
-    Q_PROPERTY(uint contextColour READ contextColour WRITE setContextColour NOTIFY contextColourChanged)
-    Q_PROPERTY(bool dirty READ dirty)
-    Q_ENUMS(data format primaryColour secondaryColour)
 public:
     enum ContextColour {
         Primary,
         Secondary,
         Eraser,
     };
-//    explicit Image(const Image &image, QObject *parent = nullptr);
     explicit Scene(const QSize &size, ImageDataFormat format, QObject *parent = nullptr);
     explicit Scene(const QString &fileName, const char *format = nullptr, QObject *parent = nullptr);
     ~Scene();
 
     ImageDataFormat format() const;
 
-    uint contextColour(const ContextColour contextColour = Primary) const;
-
-    QUndoStack *undoStack = new QUndoStack(this);
-
     const QString &fileName() const;
     bool save(QString fileName = QString());
 
     bool dirty() const;
-
-    ContextColour activeContextColour() const;
 
     ImageData *imageData();
     PaletteData *paletteData();
@@ -134,51 +134,19 @@ public:
 signals:
     void fileNameChanged(const QString &fileName);
     void changed(const QRegion &region);
-    void contextColourChanged(const uint colour, const int context = Primary);
-
-    void activeContextColourChanged(uint arg);
 
 public slots:
-    void point(const QPoint &position, const ContextColour contextColour = Primary);
-    void stroke(const QPoint &a, const QPoint &b, const ContextColour contextColour = Primary);
-    void pick(const QPoint &position, const ContextColour contextColour = Primary);
-    void setContextColour(const uint colour, const ContextColour contextColour = Primary);
-    void setActiveContextColour(const ContextColour contextColour);
+    void point(const QPoint &position, EditingContext *const editingContext);
+    void stroke(const QPoint &a, const QPoint &b, EditingContext *const editingContext);
+    void pick(const QPoint &position, EditingContext *const editingContext);
     void setFileName(const QString &fileName);
-
 
 protected:
     QString m_fileName;
     ImageData *m_imageData;
     PaletteData *m_paletteData;
-//    QQueue<QPoint> recentPoints;
-//    static const int recentPointsMax = 5;
-//    void addRecentPoint(const QPoint &point)
-//    {
-//        recentPoints.enqueue(point);
-//        while (recentPoints.length() > recentPointsMax) {
-//            recentPoints.dequeue();
-//        }
-//    }
-    uint m_contextColours[3];
+    QList<ImageData *> m_layers;
     bool m_dirty;
-    ContextColour m_activeContextColour;
-};
-
-
-class StrokeCommand : public QUndoCommand
-{
-public:
-    StrokeCommand(const Scene &image, const QPoint &point0, const QPoint &point1, QUndoCommand *parent = nullptr);
-    ~StrokeCommand();
-
-    void undo();
-    void redo();
-
-protected:
-    const QPoint &point0, &point1;
-    const Scene &image;
-//    Image dirty;
 };
 
 #endif // SCENE_H

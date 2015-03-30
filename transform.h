@@ -12,9 +12,9 @@ class Transform : public QObject
     Q_OBJECT
     Q_PROPERTY(QVector3D origin READ origin WRITE setOrigin)
     Q_PROPERTY(QVector3D pan READ pan WRITE setPan)
-    Q_PROPERTY(qreal zoom READ zoom WRITE setZoom)
+    Q_PROPERTY(float zoom READ zoom WRITE setZoom)
     Q_PROPERTY(QVector3D pixelAspect READ pixelAspect WRITE setPixelAspect)
-    Q_PROPERTY(qreal rotation READ rotation WRITE setRotation)
+    Q_PROPERTY(float rotation READ rotation WRITE setRotation)
     Q_PROPERTY(QMatrix4x4 matrix READ matrix)
     Q_PROPERTY(QMatrix4x4 inverseMatrix READ inverseMatrix)
     Q_ENUMS(origin pan zoom pixelAspect rotation)
@@ -23,9 +23,9 @@ public:
     Transform(const Transform &transform);
     const QVector3D &origin() const;
     const QVector3D &pan() const;
-    qreal zoom() const;
+    float zoom() const;
     const QVector3D &pixelAspect() const;
-    qreal rotation() const;
+    float rotation() const;
     const QMatrix4x4 &matrix();
     const QMatrix4x4 &inverseMatrix();
     const Transform &operator=(const Transform& other)
@@ -60,16 +60,16 @@ signals:
 public slots:
     void setOrigin(const QVector3D &origin);
     void setPan(const QVector3D &pan);
-    void setZoom(const qreal zoom);
+    void setZoom(const float zoom);
     void setPixelAspect(const QVector3D &pixelAspect);
-    void setRotation(const qreal rotation);
+    void setRotation(const float rotation);
 
 private:
     QVector3D m_origin;
     QVector3D m_pan;
-    qreal m_zoom;
+    float m_zoom;
     QVector3D m_pixelAspect;
-    qreal m_rotation;
+    float m_rotation;
     QMatrix4x4 m_matrix;
     QMatrix4x4 m_inverseMatrix;
     bool matricesDirty;

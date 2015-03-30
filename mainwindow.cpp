@@ -4,27 +4,26 @@
 #include "util.h"
 #include "colourswatch.h"
 #include "statusmousewidget.h"
-#include "scenewindow.h"
 #include "application.h"
+#include "canvaswidget.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QSettings>
+#include <QMdiArea>
+#include <QTextStream>
 
 const QString MainWindow::fileDialogFilterString = tr("PNG Image Files (*.png)");
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_scene(0)
+    ui(new Ui::MainWindow), m_scene(0), m_canvas(0)
 {    
-    canvasBackgroundPixmap = generateBackgroundPixmap(32);
-    swatchBackgroundPixmap = generateBackgroundPixmap(16);
-
     ui->setupUi(this);
 
-    m_sceneWindow = new SceneWindow(APP->context());
-    setCentralWidget(QWidget::createWindowContainer(m_sceneWindow));
+    m_canvas = new CanvasWidget();
+    setCentralWidget(m_canvas);
 
     // Copy actions to window. Is there a better way?
     QList<QMenu *> menus = ui->menuBar->findChildren<QMenu *>();
@@ -33,11 +32,11 @@ MainWindow::MainWindow(QWidget *parent) :
         addActions(menu.next()->findChildren<QAction *>());
     }
 
-    QObject::connect(ui->actionNew, SIGNAL(triggered()), this, SLOT(newImage()));
-    QObject::connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(openImage()));
-    QObject::connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveImage()));
-    QObject::connect(ui->actionSaveAs, SIGNAL(triggered()), this, SLOT(saveAsImage()));
-    QObject::connect(ui->actionClose, SIGNAL(triggered()), this, SLOT(closeImage()));
+    QObject::connect(ui->actionNew, SIGNAL(triggered()), this, SLOT(newScene()));
+    QObject::connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(openScene()));
+    QObject::connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveScene()));
+    QObject::connect(ui->actionSaveAs, SIGNAL(triggered()), this, SLOT(saveAsScene()));
+    QObject::connect(ui->actionClose, SIGNAL(triggered()), this, SLOT(closeScene()));
     QObject::connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
     QObject::connect(ui->actionMenu, SIGNAL(triggered(bool)), this->menuBar(), SLOT(setVisible(bool)));
     QObject::connect(ui->actionStatusBar, SIGNAL(triggered(bool)), this->statusBar(), SLOT(setVisible(bool)));
@@ -46,16 +45,14 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionAboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
     QObject::connect(ui->actionLicense, SIGNAL(triggered()), this, SLOT(license()));
 
-    QObject::connect(this, SIGNAL(imageChanged(Scene *const)), m_sceneWindow, SLOT(setImage(Scene *const)));
-    QObject::connect(this, SIGNAL(imageChanged(Scene *const)), ui->paletteWidget, SLOT(setImage(Scene *const)));
-    QObject::connect(ui->paletteWidget, SIGNAL(colourChanged(const uint)), m_sceneWindow, SLOT(updateImage()));
+    QObject::connect(ui->paletteWidget, SIGNAL(colourChanged(const uint)), m_canvas, SLOT(update()));
 
-    QObject::connect(ui->transformWidget, SIGNAL(transformChanged(Transform)), m_sceneWindow, SLOT(setTransform(Transform)));
-    QObject::connect(m_sceneWindow, SIGNAL(transformChanged(Transform)), ui->transformWidget, SLOT(setTransform(Transform)));
+    QObject::connect(ui->transformWidget, SIGNAL(transformChanged(Transform)), m_canvas, SLOT(setTransform(Transform)));
+    QObject::connect(m_canvas, SIGNAL(transformChanged(Transform)), ui->transformWidget, SLOT(setTransform(Transform)));
 
-    QObject::connect(ui->actionTiled, SIGNAL(triggered(bool)), m_sceneWindow, SLOT(setTiled(bool)));
-    QObject::connect(ui->actionShowFrame, SIGNAL(triggered(bool)), m_sceneWindow, SLOT(setShowFrame(bool)));
-    QObject::connect(ui->actionAlpha, SIGNAL(triggered(bool)), m_sceneWindow, SLOT(setShowAlpha(bool)));
+    QObject::connect(ui->actionTiled, SIGNAL(triggered(bool)), m_canvas, SLOT(setTiled(bool)));
+    QObject::connect(ui->actionShowFrame, SIGNAL(triggered(bool)), m_canvas, SLOT(setShowFrame(bool)));
+    QObject::connect(ui->actionAlpha, SIGNAL(triggered(bool)), m_canvas, SLOT(setShowAlpha(bool)));
 
     QMenu *toolBarMenu = new QMenu(this);
     ui->actionToolbars->setMenu(toolBarMenu);
@@ -72,13 +69,12 @@ MainWindow::MainWindow(QWidget *parent) :
     while (dock.hasNext()) {
         dockMenu->addAction(dock.next()->toggleViewAction());
     }
-
     StatusMouseWidget *statusMouseWidget = new StatusMouseWidget();
-//    statusMouseWidget->hide();
+    statusMouseWidget->hide();
     statusBar()->addWidget(statusMouseWidget);
-//    QObject::connect(canvas, SIGNAL(mouseEntered()), statusMouseWidget, SLOT(show()));
-//    QObject::connect(canvas, SIGNAL(mouseLeft()), statusMouseWidget, SLOT(hide()));
-    QObject::connect(m_sceneWindow, SIGNAL(mousePixelChanged(QPoint, uint, int)), statusMouseWidget, SLOT(setMouseInfo(QPoint, uint, int)));
+    QObject::connect(m_canvas, SIGNAL(mouseEntered()), statusMouseWidget, SLOT(show()));
+    QObject::connect(m_canvas, SIGNAL(mouseLeft()), statusMouseWidget, SLOT(hide()));
+    QObject::connect(m_canvas, SIGNAL(mousePixelChanged(QPoint, uint, int)), statusMouseWidget, SLOT(setMouseInfo(QPoint, uint, int)));
 
     QSettings settings;
     settings.beginGroup("window");
@@ -91,53 +87,51 @@ MainWindow::MainWindow(QWidget *parent) :
 //        toolbar.next()->restoreGeometry(settings.value(QString("window/%1geometry").arg(toolbar.objectName())).toByteArray());
 //    }
 
+    m_canvas->setFocus();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
     delete m_scene;
-    delete canvasBackgroundPixmap;
-    delete swatchBackgroundPixmap;
 }
 
-Scene *MainWindow::image() const
+Scene *MainWindow::scene() const
 {
     return m_scene;
 }
 
-void MainWindow::setImage(Scene *image)
+void MainWindow::setScene(Scene *scene)
 {
-    if (m_scene != image) {
-        if (image) {
-            QObject::connect(image, SIGNAL(changed(const QRegion &)), m_sceneWindow, SLOT(updateImage(const QRegion &)));
-            QObject::connect(image, SIGNAL(contextColourChanged(const uint, const int)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
-            QObject::connect(m_sceneWindow, SIGNAL(clicked(const QPoint &)), image, SLOT(point(const QPoint &)));
-            QObject::connect(m_sceneWindow, SIGNAL(dragged(const QPoint &, const QPoint &)), image, SLOT(stroke(const QPoint &, const QPoint &)));
-            QObject::connect(ui->actionUndo, SIGNAL(triggered()), image->undoStack, SLOT(undo()));
-            QObject::connect(ui->actionRedo, SIGNAL(triggered()), image->undoStack, SLOT(redo()));
-            setWindowFilePath(image->fileName());
+    if (m_scene != scene) {
+        if (scene) {
+            QObject::connect(scene, SIGNAL(changed(const QRegion &)), m_canvas, SLOT(update()));
+//            QObject::connect(m_canvas->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
+            QObject::connect(m_canvas, SIGNAL(clicked(const QPoint &, EditingContext *const)), scene, SLOT(point(const QPoint &, EditingContext *const)));
+            QObject::connect(m_canvas, SIGNAL(dragged(const QPoint &, const QPoint &, EditingContext *const)), scene, SLOT(stroke(const QPoint &, const QPoint &, EditingContext *const)));
+            setWindowFilePath(scene->fileName());
         }
         else {
             setWindowFilePath(QString());
         }
-        emit imageChanged(image);
+        emit sceneChanged(scene);
         if (m_scene) {
-            QObject::disconnect(m_scene, SIGNAL(changed(const QRegion &)), m_sceneWindow, SLOT(updateImage(const QRegion &)));
-            QObject::disconnect(m_scene, SIGNAL(contextColourChanged(const uint, const int)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
-            QObject::disconnect(m_sceneWindow, SIGNAL(clicked(const QPoint &)), m_scene, SLOT(point(const QPoint &)));
-            QObject::disconnect(m_sceneWindow, SIGNAL(dragged(const QPoint &, const QPoint &)), m_scene, SLOT(stroke(const QPoint &, const QPoint &)));
-            QObject::disconnect(ui->actionUndo, SIGNAL(triggered()), m_scene->undoStack, SLOT(undo()));
-            QObject::disconnect(ui->actionRedo, SIGNAL(triggered()), m_scene->undoStack, SLOT(redo()));
+            QObject::disconnect(m_scene, SIGNAL(changed(const QRegion &)), m_canvas, SLOT(update()));
+//            QObject::disconnect(m_scene, SIGNAL(contextColourChanged(const uint, const int)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
+            QObject::disconnect(m_canvas, SIGNAL(clicked(const QPoint &, EditingContext *const)), m_scene, SLOT(point(const QPoint &, EditingContext *const)));
+            QObject::disconnect(m_canvas, SIGNAL(dragged(const QPoint &, const QPoint &, EditingContext *const)), m_scene, SLOT(stroke(const QPoint &, const QPoint &, EditingContext *const)));
             m_scene->deleteLater();
         }
-        m_scene = image;
+        m_scene = scene;
+        ui->paletteWidget->setEditingContext(nullptr);
+        m_canvas->setScene(m_scene);
+        ui->paletteWidget->setEditingContext(&m_canvas->editingContext());
     }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if (!closeImage()) {
+    if (!closeScene()) {
         event->ignore();
     }
     else {
@@ -150,23 +144,23 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
 }
 
-bool MainWindow::newImage()
+bool MainWindow::newScene()
 {
-    if (!closeImage(false)) {
+    if (!closeScene(false)) {
         return false;
     }
     NewDialog *dialog = new NewDialog(this);
     if (dialog->exec()) {
         Scene *newImage = new Scene(dialog->imageSize(), dialog->mode());
-        setImage(newImage);
+        setScene(newImage);
         return true;
     }
     return false;
 }
 
-bool MainWindow::openImage()
+bool MainWindow::openScene()
 {
-    if (!closeImage(false)) {
+    if (!closeScene(false)) {
         return false;
     }
     QSettings settings;
@@ -180,7 +174,7 @@ bool MainWindow::openImage()
             QMessageBox::critical(this, QString(), QString(tr("Error opening file <b>\"%1\"</b>")).arg(QFileInfo(fileName).fileName()));
         }
         else {
-            setImage(newImage);
+            setScene(newImage);
             return true;
         }
     }
@@ -188,13 +182,13 @@ bool MainWindow::openImage()
     return false;
 }
 
-bool MainWindow::saveImage()
+bool MainWindow::saveScene()
 {
     if (m_scene) {
         QSettings settings;
         settings.beginGroup("file");
         if (m_scene->fileName().isNull()) {
-            return saveAsImage();
+            return saveAsScene();
         }
         if (m_scene->save()) {
             settings.setValue("lastSaved", m_scene->fileName());
@@ -208,7 +202,7 @@ bool MainWindow::saveImage()
     return false;
 }
 
-bool MainWindow::saveAsImage()
+bool MainWindow::saveAsScene()
 {
     if (m_scene) {
         QSettings settings;
@@ -235,7 +229,7 @@ bool MainWindow::saveAsImage()
     return false;
 }
 
-bool MainWindow::closeImage(const bool doClose)
+bool MainWindow::closeScene(const bool doClose)
 {
     if (m_scene) {
         if (m_scene->dirty()) {
@@ -250,16 +244,16 @@ bool MainWindow::closeImage(const bool doClose)
                 return false;
             }
             if (button == QMessageBox::Save) {
-                if (!saveImage()) {
+                if (!saveScene()) {
                     return false;
                 }
             }
             if (doClose) {
-                setImage();
+                setScene();
             }
         }
         else if (doClose) {
-            setImage();
+            setScene();
         }
     }
     return true;
@@ -275,22 +269,13 @@ void MainWindow::setFullscreen(bool fullscreen)
 
 void MainWindow::about()
 {
+   QFile data(":/text/ABOUT");
+   QString text;
+   if (data.open(QFile::ReadOnly)) {
+       text = QTextStream(&data).readAll();
+   }
    QMessageBox::about(this, tr(QString("About %1").arg(QCoreApplication::applicationName()).toLatin1()),
-        tr(QString(
-            "<p><b>%1</b> is a simple pixel editor to allow simple people to edit simple pixels in a simple manner.</p>"
-            "<p>More about %1:"
-            "<ul>"
-            "<li><a href=\"https://github.com/not-surt/SimPix\">GitHub page</a></li>"
-            "</ul></p>"
-            "<p>%1 is developed by:"
-            "<ul>"
-            "<li><b>surt</b> aka Carl Olsson - <a href=\"http://uninhabitant.com\">personal site</a></li>"
-            "</ul></p>"
-            "<p>%1 makes use of the following projects:"
-            "<ul>"
-            "<li><b>Qt</b> - <a href=\"http://qt-project.org\">project site</a></li>"
-            "</ul></p>"
-            ).arg(QCoreApplication::applicationName()).toLatin1()));
+        text.arg(QCoreApplication::applicationName()).toLatin1());
 }
 
 void MainWindow::aboutQt()
@@ -303,12 +288,7 @@ void MainWindow::license()
     QFile data(":/text/LICENSE");
     QString text;
     if (data.open(QFile::ReadOnly)) {
-        QTextStream stream(&data);
-        QString line;
-        do {
-            line = stream.readLine();
-            text += line + '\n';
-        } while (!line.isNull());
+        text = QTextStream(&data).readAll();
     }
     QMessageBox::information(this, QString(), text);
 }

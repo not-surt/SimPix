@@ -19,7 +19,6 @@ SOURCES += main.cpp\
     palettemodel.cpp \
     palettewidget.cpp \
     paletteview.cpp \
-    paletteplugin.cpp \
     transform.cpp \
     colourcontextwidget.cpp \
     colourswatch.cpp \
@@ -27,10 +26,9 @@ SOURCES += main.cpp\
     util.cpp \
     application.cpp \
     statusmousewidget.cpp \
-    openglwindow.cpp \
     scene.cpp \
-    scenewindow.cpp \
-    editingcontext.cpp
+    editingcontext.cpp \
+    canvaswidget.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
@@ -39,7 +37,6 @@ HEADERS  += mainwindow.h \
     palettemodel.h \
     palettewidget.h \
     paletteview.h \
-    paletteplugin.h \
     transform.h \
     colourcontextwidget.h \
     colourswatchdelegate.h \
@@ -47,10 +44,9 @@ HEADERS  += mainwindow.h \
     util.h \
     application.h \
     statusmousewidget.h \
-    openglwindow.h \
     scene.h \
-    scenewindow.h \
-    editingcontext.h
+    editingcontext.h \
+    canvaswidget.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \
@@ -63,19 +59,18 @@ FORMS    += mainwindow.ui \
 CONFIG += c++11
 
 OTHER_FILES += \
-    paletteplugin.json \
     simpix.rc \
     images/simpix-48x48.png \
     images/simpix.ico \
     text/LICENSE \
-    image.vert \
     shaders/image.frag \
     shaders/frame.frag \
     shaders/checkerboard.frag \
     shaders/canvas.vert \
     shaders/ellipsebrush.frag \
     shaders/rectanglebrush.frag \
-    shaders/brush.vert
+    shaders/brush.vert \
+    text/ABOUT
 
 RESOURCES += \
     simpix.qrc

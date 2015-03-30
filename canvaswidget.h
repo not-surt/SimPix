@@ -1,30 +1,27 @@
-#ifndef SCENEWINDOW_H
-#define SCENEWINDOW_H
+#ifndef CANVASWIDGET_H
+#define CANVASWIDGET_H
 
-#include "openglwindow.h"
-#include <QPixmap>
+#include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLWidget>
 #include <memory>
 #include "scene.h"
 #include "transform.h"
+#include "editingcontext.h"
 
-class QOpenGLContext;
-
-class SceneWindow : public OpenGLWindow
+class CanvasWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 {
     Q_OBJECT
-    Q_PROPERTY(Scene *image READ image WRITE setImage NOTIFY imageChanged)
     Q_PROPERTY(Transform transform READ transform WRITE setTransform NOTIFY transformChanged)
     Q_PROPERTY(bool tiled READ tiled WRITE setTiled NOTIFY tiledChanged)
     Q_PROPERTY(bool showFrame READ showFrame WRITE setShowFrame NOTIFY showFrameChanged)
     Q_PROPERTY(bool showAlpha READ showAlpha WRITE setShowAlpha NOTIFY showAlphaChanged)
-    Q_ENUMS(image transform)
+    Q_ENUMS(scene transform)
 
 public:
-    SceneWindow(QOpenGLContext *const shareContext = nullptr);
-    virtual void initialize();
-    virtual void render();
-    Scene *image() const;
-    Transform transform() const;
+    explicit CanvasWidget(QWidget *parent = 0);    
+    ~CanvasWidget();
+    Scene *scene() const;
+    const Transform &transform() const;
     bool tiled() const;
     bool showFrame() const;
     bool showAlpha() const;
@@ -32,29 +29,31 @@ public:
     const QMatrix4x4 &matrix();
     const QMatrix4x4 &inverseMatrix();
     GLuint vertexBuffer() const;
-
-public slots:
-    void setImage(Scene *const image);
-    void setTransform(const Transform &transform, const bool limit = true);
-    void setTiled(const bool tiled);
-    void setShowFrame(const bool showFrame);
-    void setShowAlpha(bool showAlpha);
-    void updateImage(const QRegion &region = QRegion());
+    EditingContext &editingContext();
 
 signals:
-    void imageChanged(Scene *image);
+    void sceneChanged(Scene *scene);
     void transformChanged(const Transform &transform);
     void tiledChanged(const bool tiled);
     void showFrameChanged(const bool showFrame);
     void showAlphaChanged(bool showAlpha);
-    void clicked(const QPoint &position);
-    void dragged(const QPoint &a, const QPoint &b);
+    void clicked(const QPoint &position, EditingContext *const editingContext);
+    void dragged(const QPoint &a, const QPoint &b, EditingContext *const editingContext);
     void mousePixelChanged(const QPoint &position, const uint colour, const int index);
     void mouseEntered();
     void mouseLeft();
 
+public slots:
+    void setScene(Scene *const scene);
+    void setTransform(const Transform &transform, const bool limit = true);
+    void setTiled(const bool tiled);
+    void setShowFrame(const bool showFrame);
+    void setShowAlpha(bool showAlpha);
+
 protected:
-    virtual void resizeEvent(QResizeEvent *);
+    void initializeGL();
+    void resizeGL(int w, int h);
+    void paintGL();
     virtual void mousePressEvent(QMouseEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
     virtual void mouseReleaseEvent(QMouseEvent *);
@@ -64,16 +63,14 @@ protected:
     virtual void keyReleaseEvent(QKeyEvent * event);
     virtual void enterEvent(QEvent *const event);
     virtual void leaveEvent(QEvent * const event);
-    void update();
     void updateMatrix();
 
 private:
-    QOpenGLContext m_context;
     Scene *m_scene;
     Transform m_transform;
     bool m_tiled;
     QPoint lastMousePos;
-    QVector3D lastMouseImagePos;
+    QVector3D lastMouseScenePos;
     bool panKeyDown;
     bool m_showFrame;
     bool m_showAlpha;
@@ -82,6 +79,8 @@ private:
     bool matricesDirty;
     void updateMatrices();
     GLuint m_vertexBuffer;
+    QList<ImageData *>::iterator m_currentLayer;
+    EditingContext m_editingContext;
 };
 
-#endif // SCENEWINDOW_H
+#endif // CANVASWIDGET_H

@@ -29,7 +29,7 @@ void Transform::setPan(const QVector3D &pan)
     }
 }
 
-void Transform::setZoom(const qreal zoom)
+void Transform::setZoom(const float zoom)
 {
     if (m_zoom != zoom) {
         matricesDirty = true;
@@ -47,7 +47,7 @@ void Transform::setPixelAspect(const QVector3D &pixelAspect)
     }
 }
 
-void Transform::setRotation(const qreal rotation)
+void Transform::setRotation(const float rotation)
 {
     if (m_rotation != rotation) {
         matricesDirty = true;
@@ -66,7 +66,7 @@ const QVector3D &Transform::pan() const
     return m_pan;
 }
 
-qreal Transform::zoom() const
+float Transform::zoom() const
 {
     return m_zoom;
 }
@@ -76,7 +76,7 @@ const QVector3D &Transform::pixelAspect() const
     return m_pixelAspect;
 }
 
-qreal Transform::rotation() const
+float Transform::rotation() const
 {
     return m_rotation;
 }

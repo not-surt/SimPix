@@ -11,8 +11,6 @@ class ColourContextWidget;
 class ColourContextWidget : public QWidget
 {
     Q_OBJECT
-//    Q_PROPERTY(uint contextColour WRITE setContextColour NOTIFY contextColourChanged) // invalid
-
 public:
     explicit ColourContextWidget(QWidget *parent = nullptr);
     ~ColourContextWidget();

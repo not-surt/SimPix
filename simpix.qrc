@@ -9,5 +9,6 @@
         <file>shaders/brush.vert</file>
         <file>shaders/ellipsebrush.frag</file>
         <file>shaders/rectanglebrush.frag</file>
+        <file>text/ABOUT</file>
     </qresource>
 </RCC>

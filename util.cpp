@@ -4,6 +4,8 @@
 #include <QPainter>
 #include <QTextStream>
 
+QPixmap *swatchBackgroundPixmap = nullptr;
+
 void qTransformFillGlslMat3(const QTransform &transform, GLfloat *const matrix)
 {
     matrix[0] = transform.m11();
@@ -17,20 +19,24 @@ void qTransformFillGlslMat3(const QTransform &transform, GLfloat *const matrix)
     matrix[8] = transform.m33();
 }
 
+QColor colourAdjustLightness(const QColor &colour, const int offset)
+{
+    int h, s, l, a;
+    colour.getHsl(&h, &s, &l, &a);
+    return QColor::fromHsl(h, s, clamp(l + offset, 0, 255), a);
+}
+
 QPixmap *generateBackgroundPixmap(const uint size)
 {
     QPixmap *pattern = new QPixmap(size, size);
     QPainter painter(pattern);
-    const QColor base = QColor(127, 127, 127), light = base.lighter(125), dark = base.darker(125);
+    const QColor base = QColor(127, 127, 127), light = colourAdjustLightness(base, 16), dark = colourAdjustLightness(base, -16);
     painter.fillRect(QRect(0, 0, pattern->width() / 2, pattern->height() / 2), light);
     painter.fillRect(QRect(pattern->width() / 2, 0, pattern->width() - (pattern->width() / 2), pattern->height() / 2), dark);
     painter.fillRect(QRect(0, pattern->height() / 2, pattern->width() / 2, pattern->height() - (pattern->height() / 2)), dark);
     painter.fillRect(QRect(pattern->width() / 2, pattern->height() / 2, pattern->width() - (pattern->width() / 2), pattern->height() - (pattern->height() / 2)), light);
     return pattern;
 }
-
-QPixmap *canvasBackgroundPixmap;
-QPixmap *swatchBackgroundPixmap;
 
 QString fileToString(QString fileName)
 {
@@ -39,4 +45,34 @@ QString fileToString(QString fileName)
         return QTextStream(&data).readAll();
     }
     return QString();
+}
+
+void drawColourSwatch(QPainter *const painter, const QRect &rect, const QColor &colour)
+{
+    static const int lightnessOffset = 16;
+
+    painter->save();
+
+    painter->fillRect(rect.adjusted(2, 2, -2, -2), colour.rgb());
+    painter->setPen(colourAdjustLightness(colour.rgb(), lightnessOffset));
+    painter->drawRect(rect.adjusted(1, 1, -2, -2));
+    painter->setPen(colourAdjustLightness(colour.rgb(), -lightnessOffset));
+    painter->drawRect(rect.adjusted(0, 0, -1, -1));
+
+    if (colour.alpha() < 255) {
+        QRect r = rect.adjusted(0, 0, 1, 1);
+        QPolygon alpha;
+        alpha.append(r.topLeft());
+        alpha.append(r.topRight());
+        alpha.append(r.bottomLeft());
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(*swatchBackgroundPixmap);
+        painter->setOpacity((float)(255 - colour.alpha()) / 255.);
+        painter->drawConvexPolygon(alpha);
+        painter->setBrush(colour);
+        painter->drawConvexPolygon(alpha);
+    }
+
+    painter->restore();
+
 }

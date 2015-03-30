@@ -2,32 +2,8 @@
 
 #include <QDebug>
 #include <QColor>
-#include <QUndoStack>
-#include <QOpenGLFramebufferObjectFormat>
-#include <QOpenGLFramebufferObject>
 #include "application.h"
-
-StrokeCommand::StrokeCommand(const Scene &image, const QPoint &point0, const QPoint &point1, QUndoCommand *parent)
-    : QUndoCommand(parent), image(image), point0(point0), point1(point1)
-{
-//    QRect rect = QRect(a, QSize(1, 1)).united(QRect(b, QSize(1, 1)));
-//    dirty = Image(image.copy(rect));
-}
-
-StrokeCommand::~StrokeCommand()
-{
-}
-
-void StrokeCommand::undo()
-{
-
-}
-
-void StrokeCommand::redo()
-{
-
-}
-
+#include "util.h"
 
 const ImageDataFormatDefinition IMAGE_DATA_FORMATS[] = {
     {ImageDataFormat::Indexed, "Indexed", GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte)},
@@ -35,12 +11,13 @@ const ImageDataFormatDefinition IMAGE_DATA_FORMATS[] = {
     {ImageDataFormat::Invalid, "", 0, 0, 0, 0}
 };
 
-TextureData::TextureData(QOpenGLContext *const context, const QSize &size, const ImageDataFormat _format, const GLubyte *const data) :
-    m_context(context), m_size(size), m_format(_format)
+TextureData::TextureData(QOpenGLWidget *const widget, const QSize &size, const ImageDataFormat _format, const GLubyte *const data) :
+    m_widget(widget), m_size(size), m_format(_format)
 {
-    initializeOpenGLFunctions();
-
     const ImageDataFormatDefinition *const format = &IMAGE_DATA_FORMATS[(int)_format];
+
+    ContextGrabber grab(m_widget);
+    initializeOpenGLFunctions();
 
     glGenTextures((GLsizei)1, &m_texture);
     glBindTexture(GL_TEXTURE_2D, m_texture);
@@ -62,6 +39,7 @@ TextureData::TextureData(QOpenGLContext *const context, const QSize &size, const
 
 TextureData::~TextureData()
 {
+    ContextGrabber grab(m_widget);
     initializeOpenGLFunctions();
 
     glDeleteTextures(1, &m_texture);
@@ -124,8 +102,8 @@ void TextureData::writeData(const GLubyte *const data)
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_size.width(), m_size.height(), IMAGE_DATA_FORMATS[(int)m_format].format, IMAGE_DATA_FORMATS[(int)m_format].glEnum, data);
 }
 
-PaletteData::PaletteData(QOpenGLContext *const context, const GLuint length, const GLubyte *const data) :
-    TextureData(context, QSize(length, 1), ImageDataFormat::RGBA, data)
+PaletteData::PaletteData(QOpenGLWidget *const widget, const GLuint length, const GLubyte *const data) :
+    TextureData(widget, QSize(length, 1), ImageDataFormat::RGBA, data)
 {
 
 }
@@ -145,9 +123,10 @@ uint PaletteData::length() const
     return m_size.width();
 }
 
-ImageData::ImageData(QOpenGLContext *const context, const QSize &size, const ImageDataFormat format, const GLubyte *const data) :
-    TextureData(context, size, format, data)
+ImageData::ImageData(QOpenGLWidget *const widget, const QSize &size, const ImageDataFormat format, const GLubyte *const data) :
+    TextureData(widget, size, format, data)
 {
+    ContextGrabber grab(m_widget);
     initializeOpenGLFunctions();
 
     glGenBuffers((GLsizei)1, &m_vertexBuffer);
@@ -163,6 +142,7 @@ ImageData::ImageData(QOpenGLContext *const context, const QSize &size, const Ima
 
 ImageData::~ImageData()
 {
+    ContextGrabber grab(m_widget);
     initializeOpenGLFunctions();
 
     glDeleteBuffers(1, &m_vertexBuffer);
@@ -178,16 +158,10 @@ const QRect &ImageData::rect()
     return QRect(QPoint(0, 0), m_size);
 }
 
-//Image::Image(const Image &image, QObject *parent) :
-//    QObject(parent), m_fileName(), m_data(image.constData()), m_primaryColour(image.m_primaryColour), m_secondaryColour(image.m_secondaryColour), m_eraserColour(image.m_eraserColour), m_dirty(true), m_activeContextColour(Image::Primary)
-//{
-//    // m_imageData
-//}
-
 Scene::Scene(const QSize &size, ImageDataFormat format, QObject *parent) :
-    QObject(parent), m_fileName(), m_imageData(nullptr), m_paletteData(nullptr), m_dirty(true), m_activeContextColour(ContextColour::Primary)
+    QObject(parent), m_fileName(), m_imageData(nullptr), m_paletteData(nullptr), m_dirty(true)
 {
-    APP->contextMakeCurrent();
+    ContextGrabber grab(APP->shareWidget());
 
     if (format == ImageDataFormat::Invalid) {
         qDebug() << "Invalid image format";
@@ -196,29 +170,29 @@ Scene::Scene(const QSize &size, ImageDataFormat format, QObject *parent) :
 
     QRgb fillColour;
     if (format == ImageDataFormat::Indexed) {
-        m_paletteData = new PaletteData(APP->context(), 2);
+        m_paletteData = new PaletteData(APP->shareWidget(), 2);
         m_paletteData->setColour(0, qRgba(0, 0, 0, 255));
         m_paletteData->setColour(1, qRgba(255, 255, 255, 255));
         fillColour = 0;
-        m_contextColours[ContextColour::Primary] = 1;
-        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = 0;
+//        m_contextColours[ContextColour::Primary] = 1;
+//        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = 0;
     }
     else if (format == ImageDataFormat::RGBA) {
         fillColour = qRgba(0, 0, 0, 0);
-        m_contextColours[ContextColour::Primary] = qRgba(255, 255, 255, 255);
-        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = qRgba(0, 0, 0, 0);
+//        m_contextColours[ContextColour::Primary] = qRgba(255, 255, 255, 255);
+//        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = qRgba(0, 0, 0, 0);
     }
 
-    m_imageData = new ImageData(APP->context(), size, format);
+    m_imageData = new ImageData(APP->shareWidget(), size, format);
     m_imageData->initializeOpenGLFunctions();
     // clear here
 
 }
 
 Scene::Scene(const QString &fileName, const char *fileFormat, QObject *parent) :
-    QObject(parent), m_fileName(fileName), m_dirty(false), m_activeContextColour(ContextColour::Primary)
+    QObject(parent), m_fileName(fileName), m_dirty(false)
 {
-    APP->contextMakeCurrent();
+    ContextGrabber grab(APP->shareWidget());
 
     QImage image(fileName, fileFormat);
     if (!image.isNull()) {
@@ -253,33 +227,33 @@ Scene::Scene(const QString &fileName, const char *fileFormat, QObject *parent) :
 
     m_paletteData = nullptr;
     if (!image.colorTable().isEmpty()) {
-        m_paletteData = new PaletteData(APP->context(), image.colorTable().size(), (GLubyte *)image.colorTable().constData());
+        m_paletteData = new PaletteData(APP->shareWidget(), image.colorTable().size(), (GLubyte *)image.colorTable().constData());
     }
 
     switch (format) {
     case ImageDataFormat::Indexed:
         if (m_paletteData && m_paletteData->length() > 0) {
-            m_contextColours[ContextColour::Primary] = m_paletteData->colour(m_paletteData->length() - 1);
+//            m_contextColours[ContextColour::Primary] = m_paletteData->colour(m_paletteData->length() - 1);
         }
         else {
-            m_contextColours[ContextColour::Primary] = 255;
+//            m_contextColours[ContextColour::Primary] = 255;
         }
-        m_contextColours[ContextColour::Secondary] = 0;
+//        m_contextColours[ContextColour::Secondary] = 0;
         break;
     case ImageDataFormat::RGBA:
-        m_contextColours[ContextColour::Primary] = qRgba(255, 255, 255, 255);
-        m_contextColours[ContextColour::Secondary] = qRgba(0, 0, 0, 0);
+//        m_contextColours[ContextColour::Primary] = qRgba(255, 255, 255, 255);
+//        m_contextColours[ContextColour::Secondary] = qRgba(0, 0, 0, 0);
         break;
     }
 
-    m_imageData = new ImageData(APP->context(), image.size(), format, image.constBits());
+    m_imageData = new ImageData(APP->shareWidget(), image.size(), format, image.constBits());
 }
 
 Scene::~Scene()
 {
+    ContextGrabber grab(APP->shareWidget());
     delete m_imageData;
     delete m_paletteData;
-    delete undoStack;
 }
 
 ImageDataFormat Scene::format() const
@@ -300,7 +274,7 @@ bool Scene::save(QString fileName)
         fileName = m_fileName;
     }
     if (!fileName.isNull()) {
-        APP->contextMakeCurrent();
+        APP->shareWidget()->makeCurrent();
         uchar *data = m_imageData->readData();
         QImage::Format format;
         switch (m_imageData->format()) {
@@ -346,16 +320,11 @@ PaletteData *Scene::paletteData()
     return m_paletteData;
 }
 
-Scene::ContextColour Scene::activeContextColour() const
-{
-    return m_activeContextColour;
-}
-
-void drawPixel(ImageData &image, const QPoint &point, const uint colour, const void *const data = nullptr)
+void drawPixel(TextureData &texture, const QPoint &point, const uint colour, const void *const data = nullptr)
 {
 
-    if (QRect(QPoint(0, 0), image.size()).contains(point)) {
-        image.setPixel(point, colour);
+    if (QRect(QPoint(0, 0), texture.size()).contains(point)) {
+        texture.setPixel(point, colour);
     }
 }
 
@@ -364,12 +333,12 @@ void drawRectangularBrush(QImage &image, const QPoint &point, const uint colour,
     const uint *const size = (const uint *)data;
 }
 
-void drawEllipticalBrush(ImageData &image, const QPoint &point, const uint colour, const void *const data)
+void drawEllipticalBrush(TextureData &texture, const QPoint &point, const uint colour, const void *const data)
 {
     const uint *const size = (const uint *)data;
 }
 
-void drawAngularBrush(ImageData &image, const QPoint &point, const uint colour, const void *const data)
+void drawAngularBrush(TextureData &texture, const QPoint &point, const uint colour, const void *const data)
 {
     const int *const size = (const int *)data;
 }
@@ -379,20 +348,20 @@ inline int sign(const int val)
     return (val > 0) ? 1 : ((val < 0) ? -1 : 0);
 }
 
-void doSpan(ImageData &image, const QPoint &point, const uint x1, const uint colour, void (*callback)(ImageData &image, const QPoint &point, const uint colour, const void *const data), const void *const data = nullptr, const bool inclusive = true)
+void doSpan(TextureData &texture, const QPoint &point, const uint x1, const uint colour, void (*callback)(TextureData &texture, const QPoint &point, const uint colour, const void *const data), const void *const data = nullptr, const bool inclusive = true)
 {
     const int end = x1 + (inclusive ? 1 : 0);
     for (int x = point.x(); x < end; x++) {
-        callback(image, QPoint(x, point.y()), colour, data);
+        callback(texture, QPoint(x, point.y()), colour, data);
     }
 }
 
-void drawSpan(ImageData &image, const QPoint &point, const uint x1, const uint colour, const bool inclusive = true)
+void drawSpan(TextureData &texture, const QPoint &point, const uint x1, const uint colour, const bool inclusive = true)
 {
-    doSpan(image, point, x1, colour, drawPixel, nullptr, inclusive);
+    doSpan(texture, point, x1, colour, drawPixel, nullptr, inclusive);
 }
 
-void doLine(ImageData &image, const QPoint &point0, const QPoint &point1, const uint colour, void (*callback)(ImageData &image, const QPoint &point, const uint colour, const void *const data), const void *const data = nullptr, const bool inclusive = true)
+void doLine(TextureData &texture, const QPoint &point0, const QPoint &point1, const uint colour, void (*callback)(TextureData &texture, const QPoint &point, const uint colour, const void *const data), const void *const data = nullptr, const bool inclusive = true)
 {
     QPoint delta = point1 - point0;
     const int stepX = sign(delta.x()), stepY = sign(delta.y());
@@ -408,7 +377,7 @@ void doLine(ImageData &image, const QPoint &point0, const QPoint &point1, const 
         const int limit = sumStepX * sumStepY;
         int sumX = sumStepX, sumY = sumStepY;
         do {
-            callback(image, QPoint(x, y), colour, data);
+            callback(texture, QPoint(x, y), colour, data);
             if (sumX >= sumY) {
                 y += stepY;
                 sumY += sumStepY;
@@ -420,16 +389,16 @@ void doLine(ImageData &image, const QPoint &point0, const QPoint &point1, const 
         } while (sumX <= limit && sumY <= limit);
     }
     if (inclusive) {
-        callback(image, QPoint(x, y), colour, data);
+        callback(texture, QPoint(x, y), colour, data);
     }
 }
 
-void drawLine(ImageData &image, const QPoint &point0, const QPoint &point1, const uint colour)
+void drawLine(TextureData &texture, const QPoint &point0, const QPoint &point1, const uint colour)
 {
-    doLine(image, point0, point1, colour, drawPixel, nullptr);
+    doLine(texture, point0, point1, colour, drawPixel, nullptr);
 }
 
-void doRectangle(ImageData &image, const QPoint &point0, const QPoint &point1, const uint colour, void (*callback)(ImageData &image, const QPoint &point, const uint colour, const void *const data), const void *const data = nullptr, const bool inclusive = true)
+void doRectangle(TextureData &texture, const QPoint &point0, const QPoint &point1, const uint colour, void (*callback)(TextureData &texture, const QPoint &point, const uint colour, const void *const data), const void *const data = nullptr, const bool inclusive = true)
 {
     int x0, x1;
     if (point0.x() < point1.x()) {
@@ -455,25 +424,25 @@ void doRectangle(ImageData &image, const QPoint &point0, const QPoint &point1, c
     }
     int deltaX = x1 - x0;
     int deltaY = y1 - y0;
-    doSpan(image, QPoint(x0, y0), x1, colour, callback, data, true);
+    doSpan(texture, QPoint(x0, y0), x1, colour, callback, data, true);
     if (deltaY > 0) {
         if (deltaY > 1) {
             for (int y = y0; y <= y1; y++) {
-                callback(image, QPoint(x0, y), colour, data);
+                callback(texture, QPoint(x0, y), colour, data);
                 if (deltaX > 0) {
-                    callback(image, QPoint(x1, y), colour, data);
+                    callback(texture, QPoint(x1, y), colour, data);
                 }
             }
         }
-        doSpan(image, QPoint(x0, y1), x1, colour, callback, data, true);
+        doSpan(texture, QPoint(x0, y1), x1, colour, callback, data, true);
     }
 }
 
-void drawRectangle(ImageData &image, const QPoint &point0, const QPoint &point1, const uint colour) {
-    doRectangle(image, point0, point1, colour, drawPixel);
+void drawRectangle(TextureData &texture, const QPoint &point0, const QPoint &point1, const uint colour) {
+    doRectangle(texture, point0, point1, colour, drawPixel);
 }
 
-void doRectangleFilled(ImageData &image, const QPoint &point0, const QPoint &point1, const uint colour, void (*callback)(ImageData &image, const QPoint &point, const uint colour, const void *const data), const void *const data = nullptr, const bool inclusive = true)
+void doRectangleFilled(TextureData &texture, const QPoint &point0, const QPoint &point1, const uint colour, void (*callback)(TextureData &texture, const QPoint &point, const uint colour, const void *const data), const void *const data = nullptr, const bool inclusive = true)
 {
     int x0, x1;
     if (point0.x() < point1.x()) {
@@ -498,26 +467,26 @@ void doRectangleFilled(ImageData &image, const QPoint &point0, const QPoint &poi
         y1--;
     }
     for (int y = y0; y <= y1; y++) {
-        doSpan(image, QPoint(x0, y), x1, colour, callback, data, true);
+        doSpan(texture, QPoint(x0, y), x1, colour, callback, data, true);
     }
 }
 
-void drawRectangleFilled(ImageData &image, const QPoint &point0, const QPoint &point1, const uint colour)
+void drawRectangleFilled(TextureData &texture, const QPoint &point0, const QPoint &point1, const uint colour)
 {
-    doRectangleFilled(image, point0, point1, colour, drawPixel);
+    doRectangleFilled(texture, point0, point1, colour, drawPixel);
 }
 
-void drawEllipse(ImageData &image, const QPoint &point0, const QPoint &point1, const uint colour)
+void drawEllipse(TextureData &texture, const QPoint &point0, const QPoint &point1, const uint colour)
 {
 }
 
-bool indexThresholdCallback(ImageData &image, const QPoint &point, const uint colour0, const uint colour1, const void *const data)
+bool indexThresholdCallback(TextureData &texture, const QPoint &point, const uint colour0, const uint colour1, const void *const data)
 {
     const uint threshold = *(uint *)data;
     return (uint)abs(colour0 - colour1) < threshold;
 }
 
-bool rgbThresholdCallback(ImageData &image, const QPoint &point, const uint colour0, const uint colour1, const void *const data)
+bool rgbThresholdCallback(TextureData &texture, const QPoint &point, const uint colour0, const uint colour1, const void *const data)
 {
     const uint *const thresholds = (uint *)data;
     return ((uint)abs(qRed(colour0) - qRed(colour1)) < thresholds[0]) &&
@@ -526,7 +495,7 @@ bool rgbThresholdCallback(ImageData &image, const QPoint &point, const uint colo
             ((uint)abs(qAlpha(colour0) - qAlpha(colour1)) < thresholds[3]);
 }
 
-bool hslThresholdCallback(ImageData &image, const QPoint &point, const uint colour0, const uint colour1, const void *const data)
+bool hslThresholdCallback(TextureData &texture, const QPoint &point, const uint colour0, const uint colour1, const void *const data)
 {
     const uint *const thresholds = (uint *)data;
     int h0, s0, l0, a0, h1, s1, l1, a1;
@@ -538,61 +507,48 @@ bool hslThresholdCallback(ImageData &image, const QPoint &point, const uint colo
             ((uint)abs(qAlpha(a0) - qAlpha(a1)) < thresholds[3]);
 }
 
-void doFloodfill(ImageData &image, const QPoint &point, const uint colour, void (*callback)(ImageData &image, const QPoint &point, const uint colour, const void *const data), bool (*comparisonCallback)(ImageData &image, const QPoint &point, const uint colour0, const uint colour1, const void *const data) = 0, const void *const data = 0)
+void doFloodfill(TextureData &texture, const QPoint &point, const uint colour, void (*callback)(TextureData &texture, const QPoint &point, const uint colour, const void *const data), bool (*comparisonCallback)(TextureData &texture, const QPoint &point, const uint colour0, const uint colour1, const void *const data) = 0, const void *const data = 0)
 {
 
 }
 
-void drawFloodfill(ImageData &image, const QPoint &point, const uint colour)
+void drawFloodfill(TextureData &texture, const QPoint &point, const uint colour)
 {
-    doFloodfill(image, point, colour, drawPixel);
+    doFloodfill(texture, point, colour, drawPixel);
 }
 
-typedef bool (*ComparisonCallback)(ImageData &image, const QPoint &point, const uint colour0, const uint colour1);
-typedef void (*PointCallback)(ImageData &image, const QPoint &point, const uint colour, const void *const data);
-typedef void (*SegmentCallback)(ImageData &image, const QPoint &point0, const QPoint &point1, const uint colour, void (*pointCallback)(ImageData &image, const QPoint &point, const uint colour, const void *const data), const void *const data, const bool inclusive);
+typedef bool (*ComparisonCallback)(TextureData &texture, const QPoint &point, const uint colour0, const uint colour1);
+typedef void (*PointCallback)(TextureData &texture, const QPoint &point, const uint colour, const void *const data);
+typedef void (*SegmentCallback)(TextureData &texture, const QPoint &point0, const QPoint &point1, const uint colour, void (*pointCallback)(TextureData &texture, const QPoint &point, const uint colour, const void *const data), const void *const data, const bool inclusive);
 
-void Scene::point(const QPoint &point, const ContextColour contextColour)
+void Scene::point(const QPoint &point, EditingContext *const editingContext)
 {
     m_dirty = true;
     PointCallback pointCallback = drawPixel;
-    pointCallback(*m_imageData, point, this->contextColour(contextColour), nullptr);
+    pointCallback(*m_imageData, point, editingContext->colourSlot(editingContext->activeColourSlot()), nullptr);
     emit changed(QRegion(QRect(point, QSize(1, 1))));
 }
 
-void Scene::stroke(const QPoint &point0, const QPoint &point1, const ContextColour contextColour)
+void Scene::stroke(const QPoint &point0, const QPoint &point1, EditingContext *const editingContext)
 {
     m_dirty = true;
     PointCallback pointCallback = drawPixel;
     SegmentCallback segmentCallback = doLine;
-    segmentCallback(*m_imageData, point0, point1, this->contextColour(contextColour), pointCallback, nullptr, true);
+    segmentCallback(*m_imageData, point0, point1, editingContext->colourSlot(editingContext->activeColourSlot()), pointCallback, nullptr, true);
 //    undoStack->push(new StrokeCommand(*m_image, a, b));
 //    emit changed(QRect(a, b));
     emit changed(QRegion(m_imageData->rect()));
 }
 
-void Scene::pick(const QPoint &point, const ContextColour contextColour)
+void Scene::pick(const QPoint &point, EditingContext *const editingContext)
 {
     if (m_imageData->rect().contains(point)) {
         if (format() == ImageDataFormat::Indexed) {
-            setContextColour(m_imageData->pixel(point), contextColour);
+            editingContext->setColourSlot(m_imageData->pixel(point), editingContext->activeColourSlot());
         }
         else if (format() == ImageDataFormat::RGBA) {
-            setContextColour(m_imageData->pixel(point), contextColour);
+            editingContext->setColourSlot(m_imageData->pixel(point), editingContext->activeColourSlot());
         }
-    }
-}
-
-uint Scene::contextColour(const ContextColour contextColour) const
-{
-    return m_contextColours[contextColour];
-}
-
-void Scene::setContextColour(uint colour, const ContextColour contextColour)
-{
-    if (m_contextColours[contextColour] != colour) {
-        m_contextColours[contextColour] = colour;
-        emit contextColourChanged(m_contextColours[contextColour], contextColour);
     }
 }
 
@@ -601,13 +557,5 @@ void Scene::setFileName(const QString &fileName)
     if (m_fileName != fileName) {
         m_fileName = fileName;
         emit fileNameChanged(fileName);
-    }
-}
-
-void Scene::setActiveContextColour(const ContextColour contextColour)
-{
-    if (m_activeContextColour != contextColour) {
-        m_activeContextColour = contextColour;
-        emit activeContextColourChanged(contextColour);
     }
 }

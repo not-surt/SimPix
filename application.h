@@ -11,41 +11,26 @@
 #include "mainwindow.h"
 #include <QOpenGLShader>
 #include <QOpenGLShaderProgram>
-
-class RenderingContext {
-public:
-    explicit RenderingContext(QSurfaceFormat *const format, RenderingContext *const shareContext = nullptr);
-    QOffscreenSurface &surface();
-    QOpenGLContext &context();
-
-private:
-    QOffscreenSurface m_surface;
-    QOpenGLContext m_context;
-};
+#include <QOpenGLWidget>
 
 class Application : public QApplication, public QOpenGLFunctions_3_3_Core
 {
 public:
     explicit Application(int &argc, char **argv);
     ~Application();
-    void contextMakeCurrent();
-    void contextDoneCurrent();
-    QSurfaceFormat *format();
-    QOpenGLContext *context();
-//    bool addSampler();
     bool addShader(const QString &name, const QOpenGLShader::ShaderType type, const QString &src);
     GLuint shader(const QString &name);
     bool addProgram(const QString &name, const QStringList &shaders);
     GLuint program(const QString &name);
+    QOpenGLWidget *shareWidget();
+//    void makeCurrent() { m_shareWidget->makeCurrent(); }
+//    void doneCurrent() { m_shareWidget->doneCurrent(); }
+//    QOpenGLContext *context() { return m_shareWidget->context(); }
 
 private:
     GLuint processShader(const GLenum type, const QString &src);
     GLuint processProgram(const QStringList &shaders);
-    QSurfaceFormat m_format;
-    QOpenGLContext m_context;
-    QOffscreenSurface m_offscreen;
-//    RenderingContext m_renderingContext;
-    QHash<QString, GLuint> m_samplers;
+    QOpenGLWidget *m_shareWidget;
     QHash<QString, QOpenGLShader *> m_shaders;
     QHash<QString, QOpenGLShaderProgram *> m_programs;
     MainWindow m_window;

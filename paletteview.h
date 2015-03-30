@@ -3,21 +3,19 @@
 
 #include <QListView>
 #include <QStyledItemDelegate>
-#include "scene.h"
+#include "editingcontext.h"
 
 class PaletteView : public QListView
 {
     Q_OBJECT
-    Q_PROPERTY(Scene *image READ image WRITE setImage)
-    Q_ENUMS(image)
 public:
     explicit PaletteView(QWidget *parent = nullptr);
-    Scene *image() const;
+    EditingContext *editingContext() const;
 
 signals:
 
 public slots:
-    void setImage(Scene *image);
+    void setEditingContext(EditingContext *editingContext);
 
 
     // QWidget interface

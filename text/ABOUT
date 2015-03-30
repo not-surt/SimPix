@@ -1,0 +1,13 @@
+<p><b>%1</b> is a simple pixel editor to allow simple people to edit simple pixels in a simple manner.</p>
+<p>More about %1:
+<ul>
+<li><a href=\"https://github.com/not-surt/SimPix\">GitHub page</a></li>
+</ul></p>
+<p>%1 is developed by:
+<ul>
+<li><b>surt</b> aka Carl Olsson - <a href=\"http://uninhabitant.com\">personal site</a></li>
+</ul></p>
+<p>%1 makes use of the following projects:
+<ul>
+<li><b>Qt</b> - <a href=\"http://qt-project.org\">project site</a></li>
+</ul></p>
