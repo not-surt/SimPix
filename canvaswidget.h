@@ -39,7 +39,7 @@ signals:
     void showAlphaChanged(bool showAlpha);
     void clicked(const QPoint &position, EditingContext *const editingContext);
     void dragged(const QPoint &a, const QPoint &b, EditingContext *const editingContext);
-    void mousePixelChanged(const QPoint &position, const uint colour, const int index);
+    void mousePixelChanged(const QPoint &position, const QColor colour, const int index);
     void mouseEntered();
     void mouseLeft();
 

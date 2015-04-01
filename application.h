@@ -23,9 +23,6 @@ public:
     bool addProgram(const QString &name, const QStringList &shaders);
     GLuint program(const QString &name);
     QOpenGLWidget *shareWidget();
-//    void makeCurrent() { m_shareWidget->makeCurrent(); }
-//    void doneCurrent() { m_shareWidget->doneCurrent(); }
-//    QOpenGLContext *context() { return m_shareWidget->context(); }
 
 private:
     GLuint processShader(const GLenum type, const QString &src);

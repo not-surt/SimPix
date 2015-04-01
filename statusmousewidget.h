@@ -16,7 +16,7 @@ public:
     ~StatusMouseWidget();
 
 public slots:
-    void setMouseInfo(const QPoint &position, const uint colour, const int index = -1);
+    void setMouseInfo(const QPoint &position, const QColor colour, const int index = -1);
 
 private:
     Ui::StatusMouseWidget *ui;

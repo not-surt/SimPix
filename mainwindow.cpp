@@ -61,6 +61,12 @@ MainWindow::MainWindow(QWidget *parent) :
     while (toolbar.hasNext()) {
         toolBarMenu->addAction(toolbar.next()->toggleViewAction());
     }
+//    {
+//        QListIterator<QToolBar *> toolbar(toolbars);
+//        while (toolbar.hasNext()) {
+//            toolbar.next()->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+//        }
+//    }
 
     QMenu *dockMenu = new QMenu(this);
     ui->actionDocks->setMenu(dockMenu);
@@ -74,7 +80,7 @@ MainWindow::MainWindow(QWidget *parent) :
     statusBar()->addWidget(statusMouseWidget);
     QObject::connect(m_canvas, SIGNAL(mouseEntered()), statusMouseWidget, SLOT(show()));
     QObject::connect(m_canvas, SIGNAL(mouseLeft()), statusMouseWidget, SLOT(hide()));
-    QObject::connect(m_canvas, SIGNAL(mousePixelChanged(QPoint, uint, int)), statusMouseWidget, SLOT(setMouseInfo(QPoint, uint, int)));
+    QObject::connect(m_canvas, SIGNAL(mousePixelChanged(QPoint, QColor, int)), statusMouseWidget, SLOT(setMouseInfo(QPoint, QColor, int)));
 
     QSettings settings;
     settings.beginGroup("window");

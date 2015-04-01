@@ -12,6 +12,7 @@ CanvasWidget::CanvasWidget(QWidget *parent) :
     QOpenGLWidget(parent), m_scene(0), m_transform(), m_tiled(false), panKeyDown(false), m_showFrame(false), matricesDirty(true), m_vertexBuffer(0), m_editingContext()
 {
     setScene(0);
+    setMouseTracking(true);
 }
 
 CanvasWidget::~CanvasWidget()
@@ -195,16 +196,24 @@ void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
     const QVector3D mouseImagePosition = m_transform.inverseMatrix().map(QVector3D(event->pos()));
     const QPoint lastPixel = QPoint(floor(lastMouseScenePos.x()), floor(lastMouseScenePos.y()));
     const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
+    QPoint coord = QPoint(0, 0);
+    QColor colour = QColor();
+    int index = -1;
     if (rect().contains(event->pos())) {
 //        setFocus();
+        coord = pixel;
         if (m_scene && pixel != lastPixel && m_scene->imageData()->rect().contains(pixel)) {
             ContextGrabber grab(APP->shareWidget());
 //            ContextGrabber grab();
-            emit mousePixelChanged(pixel, m_scene->imageData()->pixel(pixel), m_scene->imageData()->format() == ImageDataFormat::Indexed ? m_scene->imageData()->pixel(pixel) : -1);
+            if (m_scene->imageData()->format() == ImageDataFormat::Indexed) {
+                index = m_scene->imageData()->pixel(pixel);
+                colour = QColor(m_scene->paletteData()->colour(index));
+            }
+            else {
+                colour = QColor(m_scene->imageData()->pixel(pixel));
+            }
         }
-    }
-    else {
-        emit mousePixelChanged(QPoint(0, 0), qRgba(0, 0, 0, 0), false);
+        emit mousePixelChanged(coord, colour, index);
     }
     if (!panKeyDown && event->buttons() & Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
         if (m_scene) {
