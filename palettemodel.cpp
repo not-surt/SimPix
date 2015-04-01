@@ -31,7 +31,7 @@ QVariant PaletteModel::data(const QModelIndex &index, int role) const
     }
 
     if (role == Qt::DisplayRole) {
-        qDebug() << "2:" << m_editingContext << m_editingContext->palette();
+//        qDebug() << "2:" << m_editingContext << m_editingContext->palette();
         QRgb colour;
         ContextGrabber grab(APP->shareWidget());
         colour = m_editingContext->palette()->colour(index.row());

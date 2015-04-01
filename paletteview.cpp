@@ -8,7 +8,7 @@
 PaletteView::PaletteView(QWidget *parent) :
     QListView(parent)
 {
-    setModel(new PaletteModel(0));
+    setModel(new PaletteModel(nullptr));
     setItemDelegate(new ColourSwatchDelegate());
     setSelectionMode(QAbstractItemView::ExtendedSelection);
     setDragEnabled(true);

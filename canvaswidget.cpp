@@ -9,9 +9,9 @@
 #include <QOpenGLShaderProgram>
 
 CanvasWidget::CanvasWidget(QWidget *parent) :
-    QOpenGLWidget(parent), m_scene(0), m_transform(), m_tiled(false), panKeyDown(false), m_showFrame(false), matricesDirty(true), m_vertexBuffer(0), m_editingContext()
+    QOpenGLWidget(parent), m_scene(nullptr), m_transform(), m_tiled(false), panKeyDown(false), m_showFrame(false), matricesDirty(true), m_vertexBuffer(0), m_editingContext()
 {
-    setScene(0);
+    setScene(nullptr);
     setMouseTracking(true);
 }
 

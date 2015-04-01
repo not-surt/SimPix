@@ -18,7 +18,7 @@ const QString MainWindow::fileDialogFilterString = tr("PNG Image Files (*.png)")
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_scene(0), m_canvas(0)
+    ui(new Ui::MainWindow), m_scene(nullptr), m_canvas(nullptr)
 {    
     ui->setupUi(this);
 

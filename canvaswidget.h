@@ -18,7 +18,7 @@ class CanvasWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     Q_ENUMS(scene transform)
 
 public:
-    explicit CanvasWidget(QWidget *parent = 0);    
+    explicit CanvasWidget(QWidget *parent = nullptr);
     ~CanvasWidget();
     Scene *scene() const;
     const Transform &transform() const;

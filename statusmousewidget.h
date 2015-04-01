@@ -12,7 +12,7 @@ class StatusMouseWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit StatusMouseWidget(QWidget *parent = 0);
+    explicit StatusMouseWidget(QWidget *parent = nullptr);
     ~StatusMouseWidget();
 
 public slots:

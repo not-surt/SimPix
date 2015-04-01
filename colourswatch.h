@@ -10,7 +10,7 @@ class ColourSwatch : public QAbstractButton
     Q_PROPERTY(QColor colour READ colour WRITE setColour NOTIFY colourChanged)
 
 public:
-    explicit ColourSwatch(QWidget *parent = 0);
+    explicit ColourSwatch(QWidget *parent = nullptr);
     virtual QSize sizeHint() const;
     const QColor &colour() const;
 

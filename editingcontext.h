@@ -16,7 +16,7 @@ public:
         Eraser,
     };
     static const int COLOUR_SLOT_COUNT = 3;
-    explicit EditingContext(QObject *parent = 0);
+    explicit EditingContext(QObject *parent = nullptr);
     ImageData *image() const;
     PaletteData *palette() const;
     uint colourSlot(const ColourSlot colourSlot) const;
