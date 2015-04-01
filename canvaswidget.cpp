@@ -39,7 +39,7 @@ void CanvasWidget::resizeGL(int w, int h)
         {0.f, (GLfloat)h, 0.f},
     };
     glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-    m_transform.setOrigin(QVector3D(w / 2.f, h / 2.f, 0.f));
+    m_transform.setOrigin(QVector3D(floor(w / 2.f), floor(h / 2.f), 0.f));
     matricesDirty = true;
 }
 
