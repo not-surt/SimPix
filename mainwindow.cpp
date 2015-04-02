@@ -60,9 +60,10 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionShowFrame, SIGNAL(triggered(bool)), m_canvas, SLOT(setShowFrame(bool)));
     QObject::connect(ui->actionAlpha, SIGNAL(triggered(bool)), m_canvas, SLOT(setShowAlpha(bool)));
 
-    QObject::connect(ui->actionToolbars, SIGNAL(triggered(bool)), this, SLOT(toggleToolbars(bool)));
-    QObject::connect(ui->actionDocks, SIGNAL(triggered(bool)), this, SLOT(toggleDocks(bool)));
-    QObject::connect(ui->actionDockTitles, SIGNAL(triggered(bool)), this, SLOT(toggleDockTitles(bool)));
+    QObject::connect(ui->actionToolbars, SIGNAL(triggered(bool)), this, SLOT(showToolbars(bool)));
+    QObject::connect(ui->actionDocks, SIGNAL(triggered(bool)), this, SLOT(showDocks(bool)));
+    QObject::connect(ui->actionDockTitles, SIGNAL(triggered(bool)), this, SLOT(showDockTitles(bool)));
+    QObject::connect(ui->actionLockSubwindows, SIGNAL(triggered(bool)), this, SLOT(lockSubwindows(bool)));
 
     QMenu *menuMenu = new QMenu(this);
     ui->actionMenuMenu->setMenu(menuMenu);
@@ -150,7 +151,7 @@ void MainWindow::setScene(Scene *scene)
     }
 }
 
-void MainWindow::toggleToolbars(bool checked)
+void MainWindow::showToolbars(bool checked)
 {
     QListIterator<QAction *> iterator(ui->actionToolbars->menu()->actions());
     while (iterator.hasNext()) {
@@ -161,9 +162,8 @@ void MainWindow::toggleToolbars(bool checked)
     }
 }
 
-void MainWindow::toggleDocks(bool checked)
+void MainWindow::showDocks(bool checked)
 {
-    qDebug() << "Hello!";
     QListIterator<QAction *> iterator(ui->actionDocks->menu()->actions());
     while (iterator.hasNext()) {
         QAction *action = iterator.next();
@@ -173,7 +173,7 @@ void MainWindow::toggleDocks(bool checked)
     }
 }
 
-void MainWindow::toggleDockTitles(bool checked)
+void MainWindow::showDockTitles(bool checked)
 {
     QListIterator<QDockWidget *> iterator(findChildren<QDockWidget *>());
     while (iterator.hasNext()) {
@@ -182,6 +182,23 @@ void MainWindow::toggleDockTitles(bool checked)
             titleBar = new QWidget();
         }
         iterator.next()->setTitleBarWidget(titleBar);
+    }
+}
+
+void MainWindow::lockSubwindows(bool checked)
+{
+    QListIterator<QDockWidget *> dockIterator(findChildren<QDockWidget *>());
+    while (dockIterator.hasNext()) {
+        QDockWidget *dock = dockIterator.next();
+        dock->setAllowedAreas(dock->isFloating() && checked ? Qt::NoDockWidgetArea : Qt::AllDockWidgetAreas);
+        dock->setFeatures(dock->isFloating() || !checked ? (QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable) : QDockWidget::NoDockWidgetFeatures);
+    }
+    QListIterator<QToolBar *> toolBarIterator(findChildren<QToolBar *>());
+    while (toolBarIterator.hasNext()) {
+        QToolBar *toolBar = toolBarIterator.next();
+        toolBar->setAllowedAreas(toolBar->isFloating() && checked ? Qt::NoToolBarArea : Qt::AllToolBarAreas);
+        toolBar->setFloatable(toolBar->isFloating() || !checked);
+        toolBar->setMovable(!checked);
     }
 }
 

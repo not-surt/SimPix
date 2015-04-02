@@ -32,9 +32,10 @@ public slots:
     bool closeScene(const bool doClose = true);
     void license();
     void setScene(Scene *scene = nullptr);
-    void toggleToolbars(bool checked);
-    void toggleDocks(bool checked);
-    void toggleDockTitles(bool checked);
+    void showToolbars(bool checked);
+    void showDocks(bool checked);
+    void showDockTitles(bool checked);
+    void lockSubwindows(bool checked);
 
 protected:
     virtual void closeEvent(QCloseEvent *event);

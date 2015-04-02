@@ -149,6 +149,7 @@
    <addaction name="actionToolbars"/>
    <addaction name="actionDocks"/>
    <addaction name="actionDockTitles"/>
+   <addaction name="actionLockSubwindows"/>
    <addaction name="separator"/>
    <addaction name="actionMenu"/>
    <addaction name="actionStatusBar"/>
@@ -629,6 +630,14 @@
    </property>
    <property name="toolTip">
     <string>Dock Titles</string>
+   </property>
+  </action>
+  <action name="actionLockSubwindows">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Lock Subwindows</string>
    </property>
   </action>
  </widget>
