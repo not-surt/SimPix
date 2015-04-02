@@ -11,8 +11,8 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QSettings>
-#include <QMdiArea>
 #include <QTextStream>
+#include <QMdiSubWindow>
 
 const QString MainWindow::fileDialogFilterString = tr("PNG Image Files (*.png)");
 
@@ -22,12 +22,18 @@ MainWindow::MainWindow(QWidget *parent) :
 {    
     ui->setupUi(this);
 
-    m_canvas = new CanvasWidget();
-    setCentralWidget(m_canvas);
+    m_canvas = new CanvasWidget;
+//    setCentralWidget(m_canvas);
+
+    m_mdi = new QMdiArea;
+    setCentralWidget(m_mdi);
+    QMdiSubWindow *subWindow = new QMdiSubWindow;
+    subWindow->setWidget(m_canvas);
+    subWindow->setAttribute(Qt::WA_DeleteOnClose);
+    m_mdi->addSubWindow(subWindow);
 
     // Copy actions to window. Is there a better way?
-    QList<QMenu *> menus = ui->menuBar->findChildren<QMenu *>();
-    QListIterator<QMenu *> menu(menus);
+    QListIterator<QMenu *> menu(ui->menuBar->findChildren<QMenu *>());
     while (menu.hasNext()) {
         addActions(menu.next()->findChildren<QAction *>());
     }
@@ -54,33 +60,42 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionShowFrame, SIGNAL(triggered(bool)), m_canvas, SLOT(setShowFrame(bool)));
     QObject::connect(ui->actionAlpha, SIGNAL(triggered(bool)), m_canvas, SLOT(setShowAlpha(bool)));
 
+    QObject::connect(ui->actionToolbars, SIGNAL(triggered(bool)), this, SLOT(toggleToolbars(bool)));
+    QObject::connect(ui->actionDocks, SIGNAL(triggered(bool)), this, SLOT(toggleDocks(bool)));
+    QObject::connect(ui->actionDockTitles, SIGNAL(triggered(bool)), this, SLOT(toggleDockTitles(bool)));
+
+    QMenu *menuMenu = new QMenu(this);
+    ui->actionMenuMenu->setMenu(menuMenu);
+    static_cast<QToolButton *>(ui->windowToolBar->widgetForAction(ui->actionMenuMenu))->setPopupMode(QToolButton::InstantPopup);
+    menuMenu->setTitle("&MenuMenu");
+    QListIterator<QMenu *> menu2(ui->menuBar->findChildren<QMenu *>());
+    while (menu2.hasNext()) {
+        menuMenu->addMenu(menu2.next());
+    }
+
     QMenu *toolBarMenu = new QMenu(this);
     ui->actionToolbars->setMenu(toolBarMenu);
-    QList<QToolBar *> toolbars = findChildren<QToolBar *>();
-    QListIterator<QToolBar *> toolbar(toolbars);
+    static_cast<QToolButton *>(ui->windowToolBar->widgetForAction(ui->actionToolbars))->setPopupMode(QToolButton::MenuButtonPopup);
+    QListIterator<QToolBar *> toolbar(findChildren<QToolBar *>());
     while (toolbar.hasNext()) {
         toolBarMenu->addAction(toolbar.next()->toggleViewAction());
     }
-//    {
-//        QListIterator<QToolBar *> toolbar(toolbars);
-//        while (toolbar.hasNext()) {
-//            toolbar.next()->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-//        }
-//    }
 
     QMenu *dockMenu = new QMenu(this);
     ui->actionDocks->setMenu(dockMenu);
-    QList<QDockWidget *> docks = findChildren<QDockWidget *>();
-    QListIterator<QDockWidget *> dock(docks);
+    static_cast<QToolButton *>(ui->windowToolBar->widgetForAction(ui->actionDocks))->setPopupMode(QToolButton::MenuButtonPopup);
+    QListIterator<QDockWidget *> dock(findChildren<QDockWidget *>());
     while (dock.hasNext()) {
         dockMenu->addAction(dock.next()->toggleViewAction());
     }
+
     StatusMouseWidget *statusMouseWidget = new StatusMouseWidget();
     statusMouseWidget->hide();
     statusBar()->addWidget(statusMouseWidget);
     QObject::connect(m_canvas, SIGNAL(mouseEntered()), statusMouseWidget, SLOT(show()));
     QObject::connect(m_canvas, SIGNAL(mouseLeft()), statusMouseWidget, SLOT(hide()));
     QObject::connect(m_canvas, SIGNAL(mousePixelChanged(QPoint, QColor, int)), statusMouseWidget, SLOT(setMouseInfo(QPoint, QColor, int)));
+    statusBar()->setSizeGripEnabled(true);
 
     QSettings settings;
     settings.beginGroup("window");
@@ -132,6 +147,41 @@ void MainWindow::setScene(Scene *scene)
         ui->paletteWidget->setEditingContext(nullptr);
         m_canvas->setScene(m_scene);
         ui->paletteWidget->setEditingContext(&m_canvas->editingContext());
+    }
+}
+
+void MainWindow::toggleToolbars(bool checked)
+{
+    QListIterator<QAction *> iterator(ui->actionToolbars->menu()->actions());
+    while (iterator.hasNext()) {
+        QAction *action = iterator.next();
+        if (action->isChecked() != checked) {
+            action->trigger();
+        }
+    }
+}
+
+void MainWindow::toggleDocks(bool checked)
+{
+    qDebug() << "Hello!";
+    QListIterator<QAction *> iterator(ui->actionDocks->menu()->actions());
+    while (iterator.hasNext()) {
+        QAction *action = iterator.next();
+        if (action->isChecked() != checked) {
+            action->trigger();
+        }
+    }
+}
+
+void MainWindow::toggleDockTitles(bool checked)
+{
+    QListIterator<QDockWidget *> iterator(findChildren<QDockWidget *>());
+    while (iterator.hasNext()) {
+        QWidget *titleBar = nullptr;
+        if (!checked) {
+            titleBar = new QWidget();
+        }
+        iterator.next()->setTitleBarWidget(titleBar);
     }
 }
 

@@ -36,13 +36,15 @@ void TransformWidget::setTransform(const Transform &transform)
 {
     if (m_transform != transform) {
         m_transform = transform;
-        ObjectSignalBlocker blocker(this);
-        ui->panXSpinBox->setValue(m_transform.pan().x());
-        ui->panYSpinBox->setValue(m_transform.pan().y());
-        ui->zoomSpinBox->setValue(m_transform.zoom());
-        ui->pixelAspectXSpinBox->setValue(m_transform.pixelAspect().x());
-        ui->pixelAspectYSpinBox->setValue(m_transform.pixelAspect().y());
-        ui->rotationSpinBox->setValue(m_transform.rotation());
+        {
+            ObjectSignalBlocker blocker(this);
+            ui->panXSpinBox->setValue(m_transform.pan().x());
+            ui->panYSpinBox->setValue(m_transform.pan().y());
+            ui->zoomSpinBox->setValue(m_transform.zoom());
+            ui->pixelAspectXSpinBox->setValue(m_transform.pixelAspect().x());
+            ui->pixelAspectYSpinBox->setValue(m_transform.pixelAspect().y());
+            ui->rotationSpinBox->setValue(m_transform.rotation());
+        }
         emit transformChanged(m_transform);
     }
 }

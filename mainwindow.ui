@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>1010</width>
-     <height>29</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -119,7 +119,7 @@
   </widget>
   <widget class="QDockWidget" name="paletteDockWidget">
    <property name="windowTitle">
-    <string>Palette</string>
+    <string>&amp;Palette</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -128,7 +128,7 @@
   </widget>
   <widget class="QDockWidget" name="colourSelectorDockWidget">
    <property name="windowTitle">
-    <string>Colour</string>
+    <string>&amp;Colour</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -145,8 +145,10 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionMenuMenu"/>
    <addaction name="actionToolbars"/>
    <addaction name="actionDocks"/>
+   <addaction name="actionDockTitles"/>
    <addaction name="separator"/>
    <addaction name="actionMenu"/>
    <addaction name="actionStatusBar"/>
@@ -155,7 +157,7 @@
   </widget>
   <widget class="QDockWidget" name="colourContextDockWidget">
    <property name="windowTitle">
-    <string>Colour Context</string>
+    <string>Co&amp;lour Context</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -167,7 +169,7 @@
     <bool>false</bool>
    </property>
    <property name="windowTitle">
-    <string>Transform</string>
+    <string>Tra&amp;nsform</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -188,9 +190,9 @@
    <addaction name="actionShowFrame"/>
    <addaction name="actionAlpha"/>
   </widget>
-  <widget class="QToolBar" name="toolBar">
+  <widget class="QToolBar" name="modeToolBar">
    <property name="windowTitle">
-    <string>toolBar</string>
+    <string>Mode</string>
    </property>
    <attribute name="toolBarArea">
     <enum>LeftToolBarArea</enum>
@@ -340,10 +342,10 @@
   </action>
   <action name="actionToolbars">
    <property name="checkable">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="enabled">
     <bool>true</bool>
@@ -354,10 +356,10 @@
   </action>
   <action name="actionDocks">
    <property name="checkable">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>&amp;Docks</string>
@@ -471,7 +473,7 @@
   </action>
   <action name="actionLicense">
    <property name="text">
-    <string>License</string>
+    <string>&amp;License</string>
    </property>
   </action>
   <action name="actionTiled">
@@ -608,6 +610,25 @@
    </property>
    <property name="text">
     <string>Match Colour</string>
+   </property>
+  </action>
+  <action name="actionMenuMenu">
+   <property name="text">
+    <string>Menu</string>
+   </property>
+  </action>
+  <action name="actionDockTitles">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Dock Titles</string>
+   </property>
+   <property name="toolTip">
+    <string>Dock Titles</string>
    </property>
   </action>
  </widget>

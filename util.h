@@ -39,7 +39,7 @@ inline T wrap(T value, const T min, const T max)
 class ObjectSignalBlocker
 {
 public:
-    ObjectSignalBlocker(QObject *const object) :
+    explicit ObjectSignalBlocker(QObject *const object) :
         m_object(object), m_oldBlockSignalsState(object->blockSignals(true)) {}
     ~ObjectSignalBlocker() { m_object->blockSignals(m_oldBlockSignalsState); }
 
@@ -51,12 +51,12 @@ private:
 class ContextGrabber
 {
 public:
-    ContextGrabber(QOpenGLContext *const context, QSurface *const surface) :
+    explicit ContextGrabber(QOpenGLContext *const context, QSurface *const surface) :
         ContextGrabber(context)
     {
         context->makeCurrent(surface);
     }
-    ContextGrabber(QOpenGLWidget *const widget = APP->shareWidget()) :
+    explicit ContextGrabber(QOpenGLWidget *const widget = APP->shareWidget()) :
         ContextGrabber(widget->context())
     {
         widget->makeCurrent();
@@ -70,7 +70,7 @@ public:
     }
 
 private:
-    ContextGrabber(QOpenGLContext *const context) :
+    explicit ContextGrabber(QOpenGLContext *const context) :
         m_context(context), m_oldContext(QOpenGLContext::currentContext()), m_oldSurface(m_oldContext ? m_oldContext->surface() : 0) {}
     QOpenGLContext *const m_context;
     QOpenGLContext *const m_oldContext;

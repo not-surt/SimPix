@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QMdiArea>
 #include "scene.h"
 #include "canvaswidget.h"
 
@@ -31,6 +32,9 @@ public slots:
     bool closeScene(const bool doClose = true);
     void license();
     void setScene(Scene *scene = nullptr);
+    void toggleToolbars(bool checked);
+    void toggleDocks(bool checked);
+    void toggleDockTitles(bool checked);
 
 protected:
     virtual void closeEvent(QCloseEvent *event);
@@ -38,6 +42,7 @@ private:
     Ui::MainWindow *ui;
     Scene *m_scene;
     CanvasWidget *m_canvas;
+    QMdiArea *m_mdi;
 
     static const QString fileDialogFilterString;
 };

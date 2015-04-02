@@ -6,6 +6,7 @@ StatusMouseWidget::StatusMouseWidget(QWidget *parent) :
     ui(new Ui::StatusMouseWidget)
 {
     ui->setupUi(this);
+    setFixedHeight(ui->colourSwatch->height());
 }
 
 StatusMouseWidget::~StatusMouseWidget()

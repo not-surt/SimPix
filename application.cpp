@@ -19,7 +19,8 @@ Application::Application(int &argc, char **argv) :
 //        "* {color: #fff; background-color: #000}"
 //        "* {font-size: 24pt}"
 //        "* {icon-size: 48px}"
-//        "* {margin: 0px; border: 0px; padding: 0px}"
+//                "* {margin: 0px; border: 0px; padding: 0px}"
+//                "* {margin: 1px; border: 1px; padding: 1px}"
         ""
         );
 
@@ -29,7 +30,6 @@ Application::Application(int &argc, char **argv) :
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setVersion(3, 3);
     format.setProfile(QSurfaceFormat::CoreProfile);
-//    format.setSamples(16);
     QSurfaceFormat::setDefaultFormat(format);
 
     m_shareWidget = new QOpenGLWidget();
