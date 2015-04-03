@@ -13,7 +13,10 @@
   <property name="dockNestingEnabled">
    <bool>true</bool>
   </property>
-  <widget class="QWidget" name="canvas"/>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>true</bool>
+  </property>
+  <widget class="QWidget" name="widget"/>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
@@ -52,22 +55,23 @@
     <property name="title">
      <string>&amp;Window</string>
     </property>
+    <addaction name="actionFullscreen"/>
+    <addaction name="separator"/>
+    <addaction name="actionMenu"/>
     <addaction name="actionAllToolbars"/>
     <addaction name="actionToolbars"/>
     <addaction name="actionAllDocks"/>
     <addaction name="actionDocks"/>
-    <addaction name="actionDockTitles"/>
-    <addaction name="actionLockSubwindows"/>
-    <addaction name="separator"/>
-    <addaction name="actionMenu"/>
     <addaction name="actionStatusBar"/>
     <addaction name="separator"/>
-    <addaction name="actionFullscreen"/>
+    <addaction name="actionDockTitles"/>
+    <addaction name="actionLockSubwindows"/>
     <addaction name="separator"/>
     <addaction name="actionTileSubwindows"/>
     <addaction name="actionCascadeSubwindows"/>
     <addaction name="actionNextSubwindow"/>
     <addaction name="actionPreviousSubwindow"/>
+    <addaction name="actionUseTabs"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -101,6 +105,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionMenuMenu"/>
    <addaction name="actionNew"/>
    <addaction name="actionOpen"/>
    <addaction name="actionSave"/>
@@ -154,16 +159,15 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionMenuMenu"/>
-   <addaction name="actionToolbarsMenu"/>
-   <addaction name="actionDocksMenu"/>
-   <addaction name="actionDockTitles"/>
-   <addaction name="actionLockSubwindows"/>
+   <addaction name="actionFullscreen"/>
    <addaction name="separator"/>
    <addaction name="actionMenu"/>
+   <addaction name="actionToolbarsMenu"/>
+   <addaction name="actionDocksMenu"/>
    <addaction name="actionStatusBar"/>
    <addaction name="separator"/>
-   <addaction name="actionFullscreen"/>
+   <addaction name="actionDockTitles"/>
+   <addaction name="actionLockSubwindows"/>
   </widget>
   <widget class="QDockWidget" name="colourContextDockWidget">
    <property name="windowTitle">
@@ -713,22 +717,30 @@
   </action>
   <action name="actionTileSubwindows">
    <property name="text">
-    <string>Tile Subwindows</string>
+    <string>T&amp;ile Subwindows</string>
    </property>
   </action>
   <action name="actionCascadeSubwindows">
    <property name="text">
-    <string>Cascade Subwindows</string>
+    <string>Cascade S&amp;ubwindows</string>
    </property>
   </action>
   <action name="actionNextSubwindow">
    <property name="text">
-    <string>Next Subwindow</string>
+    <string>&amp;Next Subwindow</string>
    </property>
   </action>
   <action name="actionPreviousSubwindow">
    <property name="text">
-    <string>Previous Subwindow</string>
+    <string>&amp;Previous Subwindow</string>
+   </property>
+  </action>
+  <action name="actionUseTabs">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Us&amp;e Tabs</string>
    </property>
   </action>
  </widget>

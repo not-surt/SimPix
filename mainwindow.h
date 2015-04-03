@@ -16,10 +16,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    Image *image() const;
-
-signals:
-    void sceneChanged(Image *const image);
 
 public slots:
     bool newImage();
@@ -31,22 +27,21 @@ public slots:
     void aboutQt();
     bool closeImage(const bool doClose = true);
     void license();
-    void setImageEditor(Image *image = nullptr, ImageEditor *editor = nullptr);
     void showToolbars(bool checked);
     void showDocks(bool checked);
     void showDockTitles(bool checked);
     void lockSubwindows(bool checked);
-    ImageEditor *newEditor(Image *const image = nullptr);
+    ImageEditor *newEditor(Image *const image);
+    void activateSubWindow(QMdiSubWindow *const subWindow);
 
 protected:
     virtual void closeEvent(QCloseEvent *event);
+
 private:
     Ui::MainWindow *ui;
-    Image *m_image;
-    ImageEditor *m_imageEditor;
     QMdiArea *m_mdi;
+    QMdiSubWindow *m_oldSubWindow;
     QList<Image *> m_images;
-
     static const QString fileDialogFilterString;
 };
 

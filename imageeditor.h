@@ -34,7 +34,6 @@ public:
     bool limitTransform() const;
 
 signals:
-    void sceneChanged(Image *image);
     void transformChanged(const Transform &transform);
     void tiledChanged(const bool tiled);
     void showFrameChanged(const bool showFrame);

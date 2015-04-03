@@ -18,24 +18,19 @@ const QString MainWindow::fileDialogFilterString = tr("PNG Image Files (*.png)")
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_image(nullptr), m_imageEditor(nullptr), m_mdi(nullptr), m_images()
+    ui(new Ui::MainWindow), m_mdi(nullptr), m_oldSubWindow(nullptr), m_images()
 {    
     ui->setupUi(this);
-
-    m_imageEditor = new ImageEditor;
     m_mdi = new QMdiArea;
     setCentralWidget(m_mdi);
-    QMdiSubWindow *subWindow = new QMdiSubWindow;
-    subWindow->setWidget(m_imageEditor);
-    subWindow->setAttribute(Qt::WA_DeleteOnClose);
-    m_mdi->addSubWindow(subWindow);
-    setImageEditor(nullptr, m_imageEditor);
 
     // Copy actions to window. Is there a better way?
     QListIterator<QMenu *> menu(ui->menuBar->findChildren<QMenu *>());
     while (menu.hasNext()) {
         addActions(menu.next()->findChildren<QAction *>());
     }
+
+    QObject::connect(m_mdi, &QMdiArea::subWindowActivated, this, &MainWindow::activateSubWindow);
 
     QObject::connect(ui->actionNew, &QAction::triggered, this, &MainWindow::newImage);
     QObject::connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::openImage);
@@ -54,17 +49,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionAboutQt, &QAction::triggered, this, &MainWindow::aboutQt);
     QObject::connect(ui->actionLicense, &QAction::triggered, this, &MainWindow::license);
 
-//    QObject::connect(ui->paletteWidget, static_cast<void (PaletteWidget::*)()>(&PaletteWidget::colourChanged),
-//                     m_imageEditor, static_cast<void (ImageEditor::*)()>(&ImageEditor::update));
-    QObject::connect(ui->paletteWidget, SS_CAST(PaletteWidget, colourChanged,),
-                     m_imageEditor, SS_CAST(ImageEditor, update,));
-    QObject::connect(ui->transformWidget, &TransformWidget::transformChanged, m_imageEditor, &ImageEditor::setTransform);
-    QObject::connect(m_imageEditor, &ImageEditor::transformChanged, ui->transformWidget, &TransformWidget::setTransform);
-
-    QObject::connect(ui->actionTiled, &QAction::triggered, m_imageEditor, &ImageEditor::setTiled);
-    QObject::connect(ui->actionShowFrame, &QAction::triggered, m_imageEditor, &ImageEditor::setShowFrame);
-    QObject::connect(ui->actionAlpha, &QAction::triggered, m_imageEditor, &ImageEditor::setShowAlpha);
-
     QObject::connect(ui->actionToolbarsMenu, &QAction::triggered, this, &MainWindow::showToolbars);
     QObject::connect(ui->actionAllToolbars, &QAction::triggered, this, &MainWindow::showToolbars);
     QObject::connect(ui->actionDocksMenu, &QAction::triggered, this, &MainWindow::showDocks);
@@ -74,8 +58,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QMenu *menuMenu = new QMenu;
     ui->actionMenuMenu->setMenu(menuMenu);
-    static_cast<QToolButton *>(ui->windowToolBar->widgetForAction(ui->actionMenuMenu))->setPopupMode(QToolButton::InstantPopup);
-    menuMenu->setTitle("&MenuMenu");
+    static_cast<QToolButton *>(ui->mainToolBar->widgetForAction(ui->actionMenuMenu))->setPopupMode(QToolButton::InstantPopup);
     QListIterator<QMenu *> menu2(ui->menuBar->findChildren<QMenu *>());
     while (menu2.hasNext()) {
         menuMenu->addMenu(menu2.next());
@@ -102,9 +85,9 @@ MainWindow::MainWindow(QWidget *parent) :
     StatusMouseWidget *statusMouseWidget = new StatusMouseWidget;
     statusMouseWidget->hide();
     statusBar()->addWidget(statusMouseWidget);
-    QObject::connect(m_imageEditor, &ImageEditor::mouseEntered, statusMouseWidget, &StatusMouseWidget::show);
-    QObject::connect(m_imageEditor, &ImageEditor::mouseLeft, statusMouseWidget, &StatusMouseWidget::hide);
-    QObject::connect(m_imageEditor, &ImageEditor::mousePixelChanged, statusMouseWidget, &StatusMouseWidget::setMouseInfo);
+//    QObject::connect(m_imageEditor, &ImageEditor::mouseEntered, statusMouseWidget, &StatusMouseWidget::show);
+//    QObject::connect(m_imageEditor, &ImageEditor::mouseLeft, statusMouseWidget, &StatusMouseWidget::hide);
+//    QObject::connect(m_imageEditor, &ImageEditor::mousePixelChanged, statusMouseWidget, &StatusMouseWidget::setMouseInfo);
     statusBar()->setSizeGripEnabled(true);
 
     QSettings settings;
@@ -117,47 +100,61 @@ MainWindow::MainWindow(QWidget *parent) :
 //    while (toolbar.hasNext()) {
 //        toolbar.next()->restoreGeometry(settings.value(QString("window/geometry").arg(toolbar.objectName())).toByteArray());
 //    }
-
-    m_imageEditor->setFocus();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete m_image;
 }
 
-Image *MainWindow::image() const
-{
-    return m_image;
-}
+void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
+    if (m_oldSubWindow) {
+        ImageEditor *editor = static_cast<ImageEditor *>(m_oldSubWindow->widget());
+        Image *image = editor->image();
 
-void MainWindow::setImageEditor(Image *image, ImageEditor *editor)
-{
-    if (m_image != image) {
-        if (image) {
-            QObject::connect(image, &Image::changed, m_imageEditor, SS_CAST(ImageEditor, update,));
-//            QObject::connect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
-            QObject::connect(m_imageEditor, &ImageEditor::clicked, image, &Image::point);
-            QObject::connect(m_imageEditor, &ImageEditor::dragged, image, &Image::stroke);
-            setWindowFilePath(image->fileName());
-        }
-        else {
-            setWindowFilePath(QString());
-        }
-        emit sceneChanged(image);
-        if (m_image) {
-            QObject::disconnect(m_image, &Image::changed, m_imageEditor, SS_CAST(ImageEditor, update,));
+        QObject::disconnect(image, &Image::changed, editor, SS_CAST(ImageEditor, update,));
 //            QObject::disconnect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
-            QObject::disconnect(m_imageEditor, &ImageEditor::clicked, m_image, &Image::point);
-            QObject::disconnect(m_imageEditor, &ImageEditor::dragged, m_image, &Image::stroke);
-            m_image->deleteLater();
-        }
-        m_image = image;
+        QObject::disconnect(editor, &ImageEditor::clicked, image, &Image::point);
+        QObject::disconnect(editor, &ImageEditor::dragged, image, &Image::stroke);
+
+        QObject::disconnect(ui->paletteWidget, SS_CAST(PaletteWidget, colourChanged,),
+                         editor, SS_CAST(ImageEditor, update,));
+        QObject::disconnect(ui->transformWidget, &TransformWidget::transformChanged, editor, &ImageEditor::setTransform);
+        QObject::disconnect(editor, &ImageEditor::transformChanged, ui->transformWidget, &TransformWidget::setTransform);
+
+        QObject::disconnect(ui->actionTiled, &QAction::triggered, editor, &ImageEditor::setTiled);
+        QObject::disconnect(ui->actionShowFrame, &QAction::triggered, editor, &ImageEditor::setShowFrame);
+        QObject::disconnect(ui->actionAlpha, &QAction::triggered, editor, &ImageEditor::setShowAlpha);
+
         ui->paletteWidget->setEditingContext(nullptr);
-        m_imageEditor->setImage(m_image);
-        ui->paletteWidget->setEditingContext(&m_imageEditor->editingContext());
+//        image->deleteLater();
     }
+    if (subWindow) {
+        ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
+        Image *image = editor->image();
+
+        QObject::connect(image, &Image::changed, editor, SS_CAST(ImageEditor, update,));
+//            QObject::connect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
+        QObject::connect(editor, &ImageEditor::clicked, image, &Image::point);
+        QObject::connect(editor, &ImageEditor::dragged, image, &Image::stroke);
+
+        QObject::connect(ui->paletteWidget, SS_CAST(PaletteWidget, colourChanged,),
+                         editor, SS_CAST(ImageEditor, update,));
+        QObject::connect(ui->transformWidget, &TransformWidget::transformChanged, editor, &ImageEditor::setTransform);
+        QObject::connect(editor, &ImageEditor::transformChanged, ui->transformWidget, &TransformWidget::setTransform);
+
+        QObject::connect(ui->actionTiled, &QAction::triggered, editor, &ImageEditor::setTiled);
+        QObject::connect(ui->actionShowFrame, &QAction::triggered, editor, &ImageEditor::setShowFrame);
+        QObject::connect(ui->actionAlpha, &QAction::triggered, editor, &ImageEditor::setShowAlpha);
+
+        ui->paletteWidget->setEditingContext(&editor->editingContext());
+        setWindowFilePath(image->fileName());
+    }
+    else {
+        ui->paletteWidget->setEditingContext(nullptr);
+        setWindowFilePath(QString());
+    }
+    m_oldSubWindow = subWindow;
 }
 
 void MainWindow::showToolbars(bool checked)
@@ -224,13 +221,17 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 ImageEditor *MainWindow::newEditor(Image *const image) {
     ImageEditor *editor = new ImageEditor;
-//    editor->setImage(image);
     QMdiSubWindow *subWindow = new QMdiSubWindow;
+    editor->show();/////////////////
+    editor->hide();/////////////
     subWindow->setWidget(editor);
+    editor->setImage(image);
     subWindow->setAttribute(Qt::WA_DeleteOnClose);
     m_mdi->addSubWindow(subWindow);
     subWindow->show();
     subWindow->setFocus();
+    subWindow->resize(200, 200);/////////////////////
+    editor->update();///////////////////////
     return editor;
 }
 
@@ -245,7 +246,6 @@ bool MainWindow::newImage()
         Image *newImage = new Image(dialog->imageSize(), dialog->mode());
         m_images.append(newImage);
         ImageEditor *editor = newEditor(newImage);
-        setImageEditor(newImage, editor);
         return true;
     }
     return false;
@@ -261,14 +261,14 @@ bool MainWindow::openImage()
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), settings.value("lastOpened", QDir::homePath()).toString(), fileDialogFilterString);
     if (!fileName.isNull()) {
         settings.setValue("lastOpened", fileName);
-        Image *newImage = new Image(fileName);
-        if (!newImage->imageData()) {
-            delete newImage;
+        Image *image = new Image(fileName);
+        if (!image->imageData()) {
+            delete image;
             QMessageBox::critical(this, QString(), QString(tr("Error opening file <b>\"%1\"</b>")).arg(QFileInfo(fileName).fileName()));
         }
         else {
-            ImageEditor *editor = newEditor(newImage);
-            setImageEditor(newImage, editor);
+            m_images.append(image);
+            ImageEditor *editor = newEditor(image);
             return true;
         }
     }
@@ -278,18 +278,21 @@ bool MainWindow::openImage()
 
 bool MainWindow::saveImage()
 {
-    if (m_image) {
+    QMdiSubWindow *subWindow = m_mdi->activeSubWindow();
+    if (subWindow) {
+        ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
+        Image *image = editor->image();
         QSettings settings;
         settings.beginGroup("file");
-        if (m_image->fileName().isNull()) {
+        if (image->fileName().isNull()) {
             return saveAsImage();
         }
-        if (m_image->save()) {
-            settings.setValue("lastSaved", m_image->fileName());
+        if (image->save()) {
+            settings.setValue("lastSaved", image->fileName());
             return true;
         }
         else {
-            QMessageBox::critical(this, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(m_image->fileName()).fileName()));
+            QMessageBox::critical(this, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(image->fileName()).fileName()));
         }
         settings.endGroup();
     }
@@ -298,12 +301,15 @@ bool MainWindow::saveImage()
 
 bool MainWindow::saveAsImage()
 {
-    if (m_image) {
+    QMdiSubWindow *subWindow = m_mdi->activeSubWindow();
+    if (subWindow) {
+        ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
+        Image *image = editor->image();
         QSettings settings;
         settings.beginGroup("file");
         QString fileName;
-        if (!m_image->fileName().isNull()) {
-            fileName = m_image->fileName();
+        if (!image->fileName().isNull()) {
+            fileName = image->fileName();
         }
         else {
             QFileInfo fileInfo(settings.value("lastSaved", QDir::homePath()).toString());
@@ -311,7 +317,7 @@ bool MainWindow::saveAsImage()
         }
         fileName = QFileDialog::getSaveFileName(this, tr("Save Image"), fileName, fileDialogFilterString);
         if (!fileName.isNull()) {
-            if (m_image->save(fileName)) {
+            if (image->save(fileName)) {
                 settings.setValue("lastSaved", fileName);
             }
             else {
@@ -325,9 +331,12 @@ bool MainWindow::saveAsImage()
 
 bool MainWindow::closeImage(const bool doClose)
 {
-    if (m_image) {
-        if (m_image->dirty()) {
-            QString fileName = m_image->fileName().isNull() ? "<i>unnamed</>" : QFileInfo(m_image->fileName()).fileName();
+    QMdiSubWindow *subWindow = m_mdi->activeSubWindow();
+    if (subWindow) {
+        ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
+        Image *image = editor->image();
+        if (image->dirty()) {
+            QString fileName = image->fileName().isNull() ? "<i>unnamed</>" : QFileInfo(image->fileName()).fileName();
             QMessageBox::StandardButton button = QMessageBox::question(this, QString(),
                 QString(tr("The file \"<b>%1</b>\" has unsaved changes.<br/>"
                            "Do you want to save it before closing?")).arg(fileName),
@@ -342,11 +351,11 @@ bool MainWindow::closeImage(const bool doClose)
                 }
             }
             if (doClose) {
-                setImageEditor();
+                m_mdi->closeActiveSubWindow();
             }
         }
         else if (doClose) {
-            setImageEditor();
+            m_mdi->closeActiveSubWindow();
         }
     }
     return true;
@@ -368,7 +377,7 @@ void MainWindow::about()
        text = QTextStream(&data).readAll();
    }
    QMessageBox::about(this, tr(QString("About %1").arg(QCoreApplication::applicationName()).toLatin1()),
-        text.arg(QCoreApplication::applicationName()).toLatin1());
+        text.arg(QCoreApplication::applicationName()));
 }
 
 void MainWindow::aboutQt()
