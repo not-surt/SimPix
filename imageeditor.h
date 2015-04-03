@@ -1,5 +1,5 @@
-#ifndef CANVASWIDGET_H
-#define CANVASWIDGET_H
+#ifndef IMAGEEDITOR_H
+#define IMAGEEDITOR_H
 
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLWidget>
@@ -8,7 +8,7 @@
 #include "transform.h"
 #include "editingcontext.h"
 
-class CanvasWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
+class ImageEditor : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 {
     Q_OBJECT
     Q_PROPERTY(Transform transform READ transform WRITE setTransform NOTIFY transformChanged)
@@ -16,12 +16,12 @@ class CanvasWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     Q_PROPERTY(bool showFrame READ showFrame WRITE setShowFrame NOTIFY showFrameChanged)
     Q_PROPERTY(bool showAlpha READ showAlpha WRITE setShowAlpha NOTIFY showAlphaChanged)
     Q_PROPERTY(bool limitTransform READ limitTransform WRITE setLimitTransform NOTIFY limitTransformChanged)
-    Q_ENUMS(scene transform)
+    Q_ENUMS(image transform)
 
 public:
-    explicit CanvasWidget(QWidget *parent = nullptr);
-    ~CanvasWidget();
-    Image *scene() const;
+    explicit ImageEditor(QWidget *parent = nullptr);
+    ~ImageEditor();
+    Image *image() const;
     const Transform &transform() const;
     bool tiled() const;
     bool showFrame() const;
@@ -34,7 +34,7 @@ public:
     bool limitTransform() const;
 
 signals:
-    void sceneChanged(Image *scene);
+    void sceneChanged(Image *image);
     void transformChanged(const Transform &transform);
     void tiledChanged(const bool tiled);
     void showFrameChanged(const bool showFrame);
@@ -47,7 +47,7 @@ signals:
     void limitTransformChanged(bool arg);
 
 public slots:
-    void setScene(Image *const scene);
+    void setImage(Image *const image);
     void setTransform(const Transform &transform);
     void setTiled(const bool tiled);
     void setShowFrame(const bool showFrame);
@@ -70,11 +70,11 @@ protected:
     void updateMatrix();
 
 private:
-    Image *m_scene;
+    Image *m_image;
     Transform m_transform;
     bool m_tiled;
     QPoint lastMousePos;
-    QVector3D lastMouseScenePos;
+    QVector3D lastMouseImagePos;
     bool panKeyDown;
     bool m_showFrame;
     bool m_showAlpha;
@@ -88,4 +88,4 @@ private:
     bool m_limitTransform;
 };
 
-#endif // CANVASWIDGET_H
+#endif // IMAGEEDITOR_H

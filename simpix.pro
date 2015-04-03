@@ -27,8 +27,8 @@ SOURCES += main.cpp\
     application.cpp \
     statusmousewidget.cpp \
     editingcontext.cpp \
-    canvaswidget.cpp \
-    image.cpp
+    image.cpp \
+    imageeditor.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
@@ -45,8 +45,8 @@ HEADERS  += mainwindow.h \
     application.h \
     statusmousewidget.h \
     editingcontext.h \
-    canvaswidget.h \
-    image.h
+    image.h \
+    imageeditor.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \

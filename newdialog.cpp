@@ -57,7 +57,7 @@ NewDialog::NewDialog(QWidget *parent) :
 //        ui->modeComboBox->addItem(IMAGE_DATA_FORMATS[i].NAME, (int)IMAGE_DATA_FORMATS[i].id);
 //    }
 
-    QMenu *presetMenu = new QMenu();
+    QMenu *presetMenu = new QMenu;
     for (int i = 0; sizePresets[i].isValid() || sizePresets[i+1].isValid(); ++i) {
         if (!sizePresets[i].isValid()) {
             presetMenu->addSeparator();

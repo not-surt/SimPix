@@ -9,6 +9,24 @@
 
 #include "application.h"
 
+#define SS_CAST(cls, method, ...) (static_cast<void (cls::*)(__VA_ARGS__)>(&cls::method))
+
+template<typename T>
+using SignalSlotPointer = void (T::*)();
+
+template<typename T>
+SignalSlotPointer<T> ss_cast(SignalSlotPointer<T> method) {
+    return static_cast<void (T::*)()>(method);
+}
+
+template<typename T, typename ...Args>
+using SignalSlotPointerArgs = void (T::*)(Args...);
+
+template<typename T, typename ...Args>
+SignalSlotPointerArgs<T, Args...> ss_cast(SignalSlotPointerArgs<T, Args...> method) {
+    return static_cast<void (T::*)(Args...)>(method);
+}
+
 template<typename T>
 inline T sign(const T value)
 {

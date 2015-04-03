@@ -32,7 +32,7 @@ Application::Application(int &argc, char **argv) :
     format.setProfile(QSurfaceFormat::CoreProfile);
     QSurfaceFormat::setDefaultFormat(format);
 
-    m_shareWidget = new QOpenGLWidget();
+    m_shareWidget = new QOpenGLWidget;
     // Hack to initialize share widget
     m_shareWidget->show();
     m_shareWidget->hide();
@@ -87,7 +87,7 @@ QOpenGLWidget *Application::shareWidget()
     return m_shareWidget;
 }
 
-//void Application::oImage(const QString &path)
+//void Application::openImage(const QString &path)
 //{
 //    m_images[path] = new Image(path);
 //}
@@ -135,7 +135,7 @@ bool Application::addProgram(const QString &name, const QStringList &shaders)
     bool error = false;
     QString errorText;
     QOpenGLShaderProgram *program;
-    error |= !(program = new QOpenGLShaderProgram());
+    error |= !(program = new QOpenGLShaderProgram);
     if (error) {
         errorText += program->log();
     }

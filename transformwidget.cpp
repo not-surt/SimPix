@@ -9,7 +9,8 @@ TransformWidget::TransformWidget(QWidget *parent) :
 {
     ui->setupUi(this);
     auto func = [this](double d) { updateTransform(); };
-    auto signal = static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged);
+//    auto signal = static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged);
+    auto signal = SS_CAST(QDoubleSpinBox, valueChanged, double);
     QObject::connect(ui->panXSpinBox, signal, func);
     QObject::connect(ui->panYSpinBox, signal, func);
     QObject::connect(ui->zoomSpinBox, signal, func);

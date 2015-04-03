@@ -21,6 +21,7 @@ public:
 
 signals:
     void colourChanged(const uint colour);
+    void colourChanged();
 
 public slots:
     void setEditingContext(EditingContext *const editingContext);

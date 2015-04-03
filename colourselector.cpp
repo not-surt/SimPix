@@ -10,7 +10,8 @@ ColourSelector::ColourSelector(QWidget *parent) :
     ui->setupUi(this);
 
     auto func = [this](int i) { updateColour(); };
-    auto signal = static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged);
+//    auto signal = static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged);
+    auto signal = SS_CAST(QSpinBox, valueChanged, int);
     QObject::connect(ui->redSpinBox, signal, func);
     QObject::connect(ui->greenSpinBox, signal, func);
     QObject::connect(ui->blueSpinBox, signal, func);

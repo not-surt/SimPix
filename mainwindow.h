@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <QMdiArea>
 #include "image.h"
-#include "canvaswidget.h"
+#include "imageeditor.h"
 
 namespace Ui {
 class MainWindow;
@@ -29,20 +29,21 @@ public slots:
     void setFullscreen(bool);
     void about();
     void aboutQt();
-    bool closeScene(const bool doClose = true);
+    bool closeImage(const bool doClose = true);
     void license();
-    void setImage(Image *image = nullptr);
+    void setImageEditor(Image *image = nullptr, ImageEditor *editor = nullptr);
     void showToolbars(bool checked);
     void showDocks(bool checked);
     void showDockTitles(bool checked);
     void lockSubwindows(bool checked);
+    ImageEditor *newEditor(Image *const image = nullptr);
 
 protected:
     virtual void closeEvent(QCloseEvent *event);
 private:
     Ui::MainWindow *ui;
     Image *m_image;
-    CanvasWidget *m_canvas;
+    ImageEditor *m_imageEditor;
     QMdiArea *m_mdi;
     QList<Image *> m_images;
 

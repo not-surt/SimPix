@@ -1,4 +1,4 @@
-#include "canvaswidget.h"
+#include "imageeditor.h"
 
 #include <QPainter>
 #include <QWheelEvent>
@@ -8,24 +8,24 @@
 #include "transform.h"
 #include <QOpenGLShaderProgram>
 
-CanvasWidget::CanvasWidget(QWidget *parent) :
-    QOpenGLWidget(parent), m_scene(nullptr), m_transform(), m_tiled(false), panKeyDown(false), m_showFrame(false), matricesDirty(true), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true)
+ImageEditor::ImageEditor(QWidget *parent) :
+    QOpenGLWidget(parent), m_image(nullptr), m_transform(), m_tiled(false), panKeyDown(false), m_showFrame(false), matricesDirty(true), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true)
 {
-    setScene(nullptr);
+    setImage(nullptr);
     setMouseTracking(true);
 }
 
-CanvasWidget::~CanvasWidget()
+ImageEditor::~ImageEditor()
 {
 
 }
 
-void CanvasWidget::initializeGL()
+void ImageEditor::initializeGL()
 {
 
 }
 
-void CanvasWidget::resizeGL(int w, int h)
+void ImageEditor::resizeGL(int w, int h)
 {
     initializeOpenGLFunctions();
     glViewport(0, 0, (GLint)w, (GLint)h);
@@ -43,17 +43,14 @@ void CanvasWidget::resizeGL(int w, int h)
     matricesDirty = true;
 }
 
-void CanvasWidget::paintGL()
+void ImageEditor::paintGL()
 {
     initializeOpenGLFunctions();
-//    glEnable(GL_MULTISAMPLE);
     glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
     glDisable(GL_BLEND);
     glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
-    glClearColor(0.25, 0.25, 0.5, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
 
-    if (!m_tiled || m_showAlpha) {
+    if (true || !m_tiled || m_showAlpha) {
         glActiveTexture(GL_TEXTURE0 + 0);
         GLuint program = APP->program("checkerboard");
         glUseProgram(program);
@@ -80,7 +77,7 @@ void CanvasWidget::paintGL()
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-    if (m_scene) {
+    if (m_image) {
         if (m_showAlpha) {
             glEnable(GL_BLEND);
         }
@@ -88,13 +85,12 @@ void CanvasWidget::paintGL()
             glDisable(GL_BLEND);
         }
 
-
         glActiveTexture(GL_TEXTURE0 + 0);
-        glBindTexture(GL_TEXTURE_2D, m_scene->imageData()->texture());
+        glBindTexture(GL_TEXTURE_2D, m_image->imageData()->texture());
 
-        if (m_scene->paletteData()) {
+        if (m_image->paletteData()) {
             glActiveTexture(GL_TEXTURE0 + 1);
-            glBindTexture(GL_TEXTURE_2D, m_scene->paletteData()->texture());
+            glBindTexture(GL_TEXTURE_2D, m_image->paletteData()->texture());
         }
 
         GLuint program = APP->program("image");
@@ -114,8 +110,8 @@ void CanvasWidget::paintGL()
 
         glUniform1i(textureUnitUniform, 0);
 
-        glUniform1i(isIndexedUniform, (m_scene->imageData()->format() == ImageDataFormat::Indexed));
-        glUniform1i(hasPaletteUniform, (m_scene->paletteData() != nullptr));
+        glUniform1i(isIndexedUniform, (m_image->imageData()->format() == ImageDataFormat::Indexed));
+        glUniform1i(hasPaletteUniform, (m_image->paletteData() != nullptr));
         glUniform1i(paletteTextureUnitUniform, 1);
 
         if (m_tiled) {
@@ -135,7 +131,7 @@ void CanvasWidget::paintGL()
             glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (this->matrix() * m_transform.matrix()).constData());
             glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, QMatrix4x4().constData());
 
-            glBindBuffer(GL_ARRAY_BUFFER, m_scene->imageData()->vertexBuffer());
+            glBindBuffer(GL_ARRAY_BUFFER, m_image->imageData()->vertexBuffer());
             glEnableVertexAttribArray(positionAttrib);
             glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
@@ -148,6 +144,7 @@ void CanvasWidget::paintGL()
         glUseProgram(0);
 
         if (m_showFrame) {
+            glDisable(GL_BLEND);
             GLuint program = APP->program("frame");
             glUseProgram(program);
             GLint matrixUniform = glGetUniformLocation(program, "matrix");
@@ -158,7 +155,7 @@ void CanvasWidget::paintGL()
             glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, QMatrix4x4().constData());
 
             GLint positionAttrib = glGetAttribLocation(program, "position");
-            glBindBuffer(GL_ARRAY_BUFFER, m_scene->imageData()->vertexBuffer());
+            glBindBuffer(GL_ARRAY_BUFFER, m_image->imageData()->vertexBuffer());
             glEnableVertexAttribArray(positionAttrib);
             glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
@@ -170,10 +167,10 @@ void CanvasWidget::paintGL()
     }
 }
 
-void CanvasWidget::mousePressEvent(QMouseEvent *event)
+void ImageEditor::mousePressEvent(QMouseEvent *event)
 {
     lastMousePos = event->pos();
-    lastMouseScenePos = m_transform.inverseMatrix().map(QVector3D(event->pos()));
+    lastMouseImagePos = m_transform.inverseMatrix().map(QVector3D(event->pos()));
     if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
         QApplication::setOverrideCursor(Qt::CrossCursor);
         event->accept();
@@ -192,10 +189,10 @@ void CanvasWidget::mousePressEvent(QMouseEvent *event)
     update();
 }
 
-void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
+void ImageEditor::mouseMoveEvent(QMouseEvent *event)
 {
     const QVector3D mouseImagePosition = m_transform.inverseMatrix().map(QVector3D(event->pos()));
-    const QPoint lastPixel = QPoint(floor(lastMouseScenePos.x()), floor(lastMouseScenePos.y()));
+    const QPoint lastPixel = QPoint(floor(lastMouseImagePos.x()), floor(lastMouseImagePos.y()));
     const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
     QPoint coord = QPoint(0, 0);
     QColor colour = QColor();
@@ -203,24 +200,24 @@ void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
     if (rect().contains(event->pos())) {
 //        setFocus();
         coord = pixel;
-        if (m_scene && pixel != lastPixel && m_scene->imageData()->rect().contains(pixel)) {
+        if (m_image && pixel != lastPixel && m_image->imageData()->rect().contains(pixel)) {
             ContextGrabber grab(APP->shareWidget());
 //            ContextGrabber grab();
-            if (m_scene->imageData()->format() == ImageDataFormat::Indexed) {
-                index = m_scene->imageData()->pixel(pixel);
-                colour = QColor(m_scene->paletteData()->colour(index));
+            if (m_image->imageData()->format() == ImageDataFormat::Indexed) {
+                index = m_image->imageData()->pixel(pixel);
+                colour = QColor(m_image->paletteData()->colour(index));
             }
             else {
-                colour = QColor(m_scene->imageData()->pixel(pixel));
+                colour = QColor(m_image->imageData()->pixel(pixel));
             }
         }
         emit mousePixelChanged(coord, colour, index);
     }
     if (!panKeyDown && event->buttons() & Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
-        if (m_scene) {
+        if (m_image) {
             emit dragged(lastPixel, pixel, &m_editingContext);
             lastMousePos = event->pos();
-            lastMouseScenePos = mouseImagePosition;
+            lastMouseImagePos = mouseImagePosition;
             event->accept();
         }
     }
@@ -233,7 +230,7 @@ void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
         transform.setPan(transform.pan() + delta);
         setTransform(transform);
         lastMousePos = event->pos();
-        lastMouseScenePos = mouseImagePosition;
+        lastMouseImagePos = mouseImagePosition;
         event->accept();
     }
     else {
@@ -242,11 +239,11 @@ void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
     update();
 }
 
-void CanvasWidget::mouseReleaseEvent(QMouseEvent *event)
+void ImageEditor::mouseReleaseEvent(QMouseEvent *event)
 {
     QPointF mouseImagePosition = m_transform.inverseMatrix().map(QPointF(event->pos()));
     if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
-        if (m_scene) {
+        if (m_image) {
             const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
             emit clicked(pixel, &m_editingContext);
         }
@@ -258,11 +255,11 @@ void CanvasWidget::mouseReleaseEvent(QMouseEvent *event)
         event->accept();
     }
     else if (event->button() == Qt::RightButton) {
-        if (m_scene) {
+        if (m_image) {
             const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
 //            Scene::ContextColour context = (event->modifiers() & Qt::SHIFT) ? Scene::Secondary : Scene::Primary;
             ContextGrabber grab(APP->shareWidget());
-            m_scene->pick(pixel, &editingContext());
+            m_image->pick(pixel, &editingContext());
         }
         QApplication::restoreOverrideCursor();
         event->accept();
@@ -273,7 +270,7 @@ void CanvasWidget::mouseReleaseEvent(QMouseEvent *event)
     update();
 }
 
-void CanvasWidget::wheelEvent(QWheelEvent *event)
+void ImageEditor::wheelEvent(QWheelEvent *event)
 {
     const bool transformAroundCursor = true;
     if (event->modifiers() & Qt::SHIFT) {
@@ -300,7 +297,7 @@ void CanvasWidget::wheelEvent(QWheelEvent *event)
     }
 }
 
-void CanvasWidget::tabletEvent(QTabletEvent *event)
+void ImageEditor::tabletEvent(QTabletEvent *event)
 {
     if (false) {
         event->accept();
@@ -310,7 +307,7 @@ void CanvasWidget::tabletEvent(QTabletEvent *event)
     }
 }
 
-void CanvasWidget::keyPressEvent(QKeyEvent *event)
+void ImageEditor::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Space && !event->isAutoRepeat()) {
         panKeyDown = true;
@@ -324,7 +321,7 @@ void CanvasWidget::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void CanvasWidget::keyReleaseEvent(QKeyEvent *event)
+void ImageEditor::keyReleaseEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Space && !event->isAutoRepeat()) {
         panKeyDown = false;
@@ -337,54 +334,54 @@ void CanvasWidget::keyReleaseEvent(QKeyEvent *event)
     }
 }
 
-void CanvasWidget::enterEvent(QEvent *const event)
+void ImageEditor::enterEvent(QEvent *const event)
 {
-    if (m_scene) {
+    if (m_image) {
         emit mouseEntered();
     }
 }
 
-void CanvasWidget::leaveEvent(QEvent *const event)
+void ImageEditor::leaveEvent(QEvent *const event)
 {
     emit mouseLeft();
 }
 
-Image *CanvasWidget::scene() const
+Image *ImageEditor::image() const
 {
-    return m_scene;
+    return m_image;
 }
 
-const Transform &CanvasWidget::transform() const
+const Transform &ImageEditor::transform() const
 {
     return m_transform;
 }
 
-bool CanvasWidget::tiled() const
+bool ImageEditor::tiled() const
 {
     return m_tiled;
 }
 
-bool CanvasWidget::showFrame() const
+bool ImageEditor::showFrame() const
 {
     return m_showFrame;
 }
 
-bool CanvasWidget::showAlpha() const
+bool ImageEditor::showAlpha() const
 {
     return m_showAlpha;
 }
 
-QRect CanvasWidget::rect() const
+QRect ImageEditor::rect() const
 {
     return QRect(0, 0, width(), height());
 }
 
-GLuint CanvasWidget::vertexBuffer() const
+GLuint ImageEditor::vertexBuffer() const
 {
     return m_vertexBuffer;
 }
 
-const QMatrix4x4 &CanvasWidget::matrix()
+const QMatrix4x4 &ImageEditor::matrix()
 {
     if (matricesDirty) {
         updateMatrices();
@@ -392,7 +389,7 @@ const QMatrix4x4 &CanvasWidget::matrix()
     return m_matrix;
 }
 
-const QMatrix4x4 &CanvasWidget::inverseMatrix()
+const QMatrix4x4 &ImageEditor::inverseMatrix()
 {
     if (matricesDirty) {
         updateMatrices();
@@ -400,7 +397,7 @@ const QMatrix4x4 &CanvasWidget::inverseMatrix()
     return m_inverseMatrix;
 }
 
-void CanvasWidget::updateMatrices()
+void ImageEditor::updateMatrices()
 {
     m_matrix = QMatrix4x4();
     m_matrix.ortho(0., (float)width(), (float)height(), 0.f, -1.f, 1.f);
@@ -408,19 +405,19 @@ void CanvasWidget::updateMatrices()
     matricesDirty = false;
 }
 
-EditingContext &CanvasWidget::editingContext()
+EditingContext &ImageEditor::editingContext()
 {
     return m_editingContext;
 }
 
-bool CanvasWidget::limitTransform() const
+bool ImageEditor::limitTransform() const
 {
     return m_limitTransform;
 }
 
-void CanvasWidget::setScene(Image *const image)
+void ImageEditor::setImage(Image *const image)
 {
-    m_scene = image;
+    m_image = image;
     Transform transform;
     transform.setOrigin(QVector3D((float)floor(width() / 2.f), floor((float)height() / 2.f), 0.f));
     transform.setPan(QVector3D(0.f, 0.f, 0.f));
@@ -428,9 +425,9 @@ void CanvasWidget::setScene(Image *const image)
     transform.setPixelAspect(QVector3D(1.f, 1.f, 0.f));
     transform.setRotation(0.f);
     if (image) {
-        transform.setPan(-QVector3D(floor((float)m_scene->imageData()->size().width() / 2.f), floor((float)m_scene->imageData()->size().height() / 2.f), 0.f));
-        m_editingContext.setImage(m_scene->imageData());
-        m_editingContext.setPalette(m_scene->paletteData());
+        transform.setPan(-QVector3D(floor((float)m_image->imageData()->size().width() / 2.f), floor((float)m_image->imageData()->size().height() / 2.f), 0.f));
+        m_editingContext.setImage(m_image->imageData());
+        m_editingContext.setPalette(m_image->paletteData());
     }
     else {
         m_editingContext.setImage(nullptr);
@@ -439,20 +436,20 @@ void CanvasWidget::setScene(Image *const image)
     setTransform(transform);
 }
 
-void CanvasWidget::setTransform(const Transform &transform)
+void ImageEditor::setTransform(const Transform &transform)
 {
     if (m_transform != transform) {
         m_transform = transform;
         if (m_limitTransform) {
-            if (m_scene) {
+            if (m_image) {
                 if (!m_tiled) {
-                    m_transform.setPan(QVector3D(clamp(m_transform.pan().x(), (float)-m_scene->imageData()->size().width(), 0.f),
-                                               clamp(m_transform.pan().y(), (float)-m_scene->imageData()->size().height(), 0.f),
+                    m_transform.setPan(QVector3D(clamp(m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f),
+                                               clamp(m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f),
                                                0.f));
                 }
                 else {
-                    m_transform.setPan(QVector3D(wrap(m_transform.pan().x(), (float)-m_scene->imageData()->size().width(), 0.f),
-                                               wrap(m_transform.pan().y(), (float)-m_scene->imageData()->size().height(), 0.f),
+                    m_transform.setPan(QVector3D(wrap(m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f),
+                                               wrap(m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f),
                                                0.f));
                 }
             }
@@ -465,7 +462,7 @@ void CanvasWidget::setTransform(const Transform &transform)
     }
 }
 
-void CanvasWidget::setTiled(const bool tiled)
+void ImageEditor::setTiled(const bool tiled)
 {
     if (m_tiled != tiled) {
         m_tiled = tiled;
@@ -474,7 +471,7 @@ void CanvasWidget::setTiled(const bool tiled)
     }
 }
 
-void CanvasWidget::setShowFrame(const bool showFrame)
+void ImageEditor::setShowFrame(const bool showFrame)
 {
     if (m_showFrame != showFrame) {
         m_showFrame = showFrame;
@@ -483,7 +480,7 @@ void CanvasWidget::setShowFrame(const bool showFrame)
     }
 }
 
-void CanvasWidget::setShowAlpha(bool showAlpha)
+void ImageEditor::setShowAlpha(bool showAlpha)
 {
     if (m_showAlpha != showAlpha) {
         m_showAlpha = showAlpha;
@@ -492,7 +489,7 @@ void CanvasWidget::setShowAlpha(bool showAlpha)
     }
 }
 
-void CanvasWidget::setLimitTransform(bool arg)
+void ImageEditor::setLimitTransform(bool arg)
 {
     if (m_limitTransform != arg) {
         m_limitTransform = arg;

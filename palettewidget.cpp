@@ -45,6 +45,7 @@ void PaletteWidget::editColour(QModelIndex index)
         if (result.isValid() && result != colour) {
             ui->paletteView->model()->setData(index, result);
             emit colourChanged(index.row());
+            emit colourChanged();
         }
     }
 }
