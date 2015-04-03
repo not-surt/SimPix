@@ -4,7 +4,7 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLWidget>
 #include <memory>
-#include "scene.h"
+#include "image.h"
 #include "transform.h"
 #include "editingcontext.h"
 
@@ -15,12 +15,13 @@ class CanvasWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     Q_PROPERTY(bool tiled READ tiled WRITE setTiled NOTIFY tiledChanged)
     Q_PROPERTY(bool showFrame READ showFrame WRITE setShowFrame NOTIFY showFrameChanged)
     Q_PROPERTY(bool showAlpha READ showAlpha WRITE setShowAlpha NOTIFY showAlphaChanged)
+    Q_PROPERTY(bool limitTransform READ limitTransform WRITE setLimitTransform NOTIFY limitTransformChanged)
     Q_ENUMS(scene transform)
 
 public:
     explicit CanvasWidget(QWidget *parent = nullptr);
     ~CanvasWidget();
-    Scene *scene() const;
+    Image *scene() const;
     const Transform &transform() const;
     bool tiled() const;
     bool showFrame() const;
@@ -30,9 +31,10 @@ public:
     const QMatrix4x4 &inverseMatrix();
     GLuint vertexBuffer() const;
     EditingContext &editingContext();
+    bool limitTransform() const;
 
 signals:
-    void sceneChanged(Scene *scene);
+    void sceneChanged(Image *scene);
     void transformChanged(const Transform &transform);
     void tiledChanged(const bool tiled);
     void showFrameChanged(const bool showFrame);
@@ -42,13 +44,15 @@ signals:
     void mousePixelChanged(const QPoint &position, const QColor colour, const int index);
     void mouseEntered();
     void mouseLeft();
+    void limitTransformChanged(bool arg);
 
 public slots:
-    void setScene(Scene *const scene);
-    void setTransform(const Transform &transform, const bool limit = true);
+    void setScene(Image *const scene);
+    void setTransform(const Transform &transform);
     void setTiled(const bool tiled);
     void setShowFrame(const bool showFrame);
     void setShowAlpha(bool showAlpha);
+    void setLimitTransform(bool arg);
 
 protected:
     void initializeGL();
@@ -66,7 +70,7 @@ protected:
     void updateMatrix();
 
 private:
-    Scene *m_scene;
+    Image *m_scene;
     Transform m_transform;
     bool m_tiled;
     QPoint lastMousePos;
@@ -81,6 +85,7 @@ private:
     GLuint m_vertexBuffer;
     QList<ImageData *>::iterator m_currentLayer;
     EditingContext m_editingContext;
+    bool m_limitTransform;
 };
 
 #endif // CANVASWIDGET_H

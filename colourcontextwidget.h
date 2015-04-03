@@ -2,7 +2,7 @@
 #define COLOURCONTEXTWIDGET_H
 
 #include <QWidget>
-#include "scene.h"
+#include "image.h"
 
 namespace Ui {
 class ColourContextWidget;
@@ -16,10 +16,10 @@ public:
     ~ColourContextWidget();
 
 public slots:
-    void setContextColour(const uint colour, const int context = Scene::Primary);
+    void setContextColour(const uint colour, const int context = Image::Primary);
 
 signals:
-    void contextColourChanged(const uint colour, const int context = Scene::Primary);
+    void contextColourChanged(const uint colour, const int context = Image::Primary);
 
 private:
     Ui::ColourContextWidget *ui;

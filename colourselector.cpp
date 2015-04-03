@@ -9,10 +9,12 @@ ColourSelector::ColourSelector(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QObject::connect(ui->redSpinBox, SIGNAL(valueChanged(const int)), this, SLOT(updateColour()));
-    QObject::connect(ui->greenSpinBox, SIGNAL(valueChanged(const int)), this, SLOT(updateColour()));
-    QObject::connect(ui->blueSpinBox, SIGNAL(valueChanged(const int)), this, SLOT(updateColour()));
-    QObject::connect(ui->alphaSpinBox, SIGNAL(valueChanged(const int)), this, SLOT(updateColour()));
+    auto func = [this](int i) { updateColour(); };
+    auto signal = static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged);
+    QObject::connect(ui->redSpinBox, signal, func);
+    QObject::connect(ui->greenSpinBox, signal, func);
+    QObject::connect(ui->blueSpinBox, signal, func);
+    QObject::connect(ui->alphaSpinBox, signal, func);
 }
 
 ColourSelector::~ColourSelector()

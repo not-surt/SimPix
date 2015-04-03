@@ -87,6 +87,21 @@ QOpenGLWidget *Application::shareWidget()
     return m_shareWidget;
 }
 
+//void Application::oImage(const QString &path)
+//{
+//    m_images[path] = new Image(path);
+//}
+
+//bool Application::removeImage(const QString &path)
+//{
+//    return (m_images.remove(path) > 0);
+//}
+
+//Image *Application::image(const QString &path)
+//{
+//    return m_images[path];
+//}
+
 bool Application::addShader(const QString &name, const QOpenGLShader::ShaderType type, const QString &src)
 {
     bool error = false;
@@ -112,7 +127,7 @@ bool Application::addShader(const QString &name, const QOpenGLShader::ShaderType
 
 GLuint Application::shader(const QString &name)
 {
-    return m_shaders.value(name)->shaderId();
+    return m_shaders[name]->shaderId();
 }
 
 bool Application::addProgram(const QString &name, const QStringList &shaders)
@@ -152,5 +167,5 @@ bool Application::addProgram(const QString &name, const QStringList &shaders)
 
 GLuint Application::program(const QString &name)
 {
-    return m_programs.value(name)->programId();
+    return m_programs[name]->programId();
 }

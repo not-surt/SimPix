@@ -8,17 +8,19 @@ TransformWidget::TransformWidget(QWidget *parent) :
     ui(new Ui::TransformWidget)
 {
     ui->setupUi(this);
-    QObject::connect(ui->panXSpinBox, SIGNAL(valueChanged(double)), this, SLOT(updateTransform()));
-    QObject::connect(ui->panYSpinBox, SIGNAL(valueChanged(double)), this, SLOT(updateTransform()));
-    QObject::connect(ui->zoomSpinBox, SIGNAL(valueChanged(double)), this, SLOT(updateTransform()));
-    QObject::connect(ui->pixelAspectXSpinBox, SIGNAL(valueChanged(double)), this, SLOT(updateTransform()));
-    QObject::connect(ui->pixelAspectYSpinBox, SIGNAL(valueChanged(double)), this, SLOT(updateTransform()));
-    QObject::connect(ui->rotationSpinBox, SIGNAL(valueChanged(double)), this, SLOT(updateTransform()));
+    auto func = [this](double d) { updateTransform(); };
+    auto signal = static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged);
+    QObject::connect(ui->panXSpinBox, signal, func);
+    QObject::connect(ui->panYSpinBox, signal, func);
+    QObject::connect(ui->zoomSpinBox, signal, func);
+    QObject::connect(ui->pixelAspectXSpinBox, signal, func);
+    QObject::connect(ui->pixelAspectYSpinBox, signal, func);
+    QObject::connect(ui->rotationSpinBox, signal, func);
 
-    QObject::connect(ui->panClearButton, SIGNAL(clicked()), this, SLOT(clearPan()));
-    QObject::connect(ui->zoomClearButton, SIGNAL(clicked()), this, SLOT(clearZoom()));
-    QObject::connect(ui->pixelAspectClearButton, SIGNAL(clicked()), this, SLOT(clearPixelAspect()));
-    QObject::connect(ui->rotationClearButton, SIGNAL(clicked()), this, SLOT(clearRotation()));
+    QObject::connect(ui->panClearButton, &QToolButton::clicked, this, &TransformWidget::clearPan);
+    QObject::connect(ui->zoomClearButton, &QToolButton::clicked, this, &TransformWidget::clearZoom);
+    QObject::connect(ui->pixelAspectClearButton, &QToolButton::clicked, this, &TransformWidget::clearPixelAspect);
+    QObject::connect(ui->rotationClearButton, &QToolButton::clicked, this, &TransformWidget::clearRotation);
 }
 
 TransformWidget::~TransformWidget()

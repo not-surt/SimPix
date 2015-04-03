@@ -52,13 +52,22 @@
     <property name="title">
      <string>&amp;Window</string>
     </property>
+    <addaction name="actionAllToolbars"/>
     <addaction name="actionToolbars"/>
+    <addaction name="actionAllDocks"/>
     <addaction name="actionDocks"/>
+    <addaction name="actionDockTitles"/>
+    <addaction name="actionLockSubwindows"/>
     <addaction name="separator"/>
     <addaction name="actionMenu"/>
     <addaction name="actionStatusBar"/>
     <addaction name="separator"/>
     <addaction name="actionFullscreen"/>
+    <addaction name="separator"/>
+    <addaction name="actionTileSubwindows"/>
+    <addaction name="actionCascadeSubwindows"/>
+    <addaction name="actionNextSubwindow"/>
+    <addaction name="actionPreviousSubwindow"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -146,8 +155,8 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionMenuMenu"/>
-   <addaction name="actionToolbars"/>
-   <addaction name="actionDocks"/>
+   <addaction name="actionToolbarsMenu"/>
+   <addaction name="actionDocksMenu"/>
    <addaction name="actionDockTitles"/>
    <addaction name="actionLockSubwindows"/>
    <addaction name="separator"/>
@@ -343,10 +352,10 @@
   </action>
   <action name="actionToolbars">
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="enabled">
     <bool>true</bool>
@@ -357,10 +366,10 @@
   </action>
   <action name="actionDocks">
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>&amp;Docks</string>
@@ -626,7 +635,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Dock Titles</string>
+    <string>D&amp;ock Titles</string>
    </property>
    <property name="toolTip">
     <string>Dock Titles</string>
@@ -637,7 +646,89 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Lock Subwindows</string>
+    <string>&amp;Lock Subwindows</string>
+   </property>
+  </action>
+  <action name="actionDocksMenu">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Docks</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WindowShortcut</enum>
+   </property>
+  </action>
+  <action name="actionToolbarsMenu">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Toolbars</string>
+   </property>
+  </action>
+  <action name="actionAllDocks">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>All Do&amp;cks</string>
+   </property>
+   <property name="toolTip">
+    <string>All Docks</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WindowShortcut</enum>
+   </property>
+  </action>
+  <action name="actionAllToolbars">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;All Toolbars</string>
+   </property>
+   <property name="toolTip">
+    <string>All Toolbars</string>
+   </property>
+  </action>
+  <action name="actionTileSubwindows">
+   <property name="text">
+    <string>Tile Subwindows</string>
+   </property>
+  </action>
+  <action name="actionCascadeSubwindows">
+   <property name="text">
+    <string>Cascade Subwindows</string>
+   </property>
+  </action>
+  <action name="actionNextSubwindow">
+   <property name="text">
+    <string>Next Subwindow</string>
+   </property>
+  </action>
+  <action name="actionPreviousSubwindow">
+   <property name="text">
+    <string>Previous Subwindow</string>
    </property>
   </action>
  </widget>

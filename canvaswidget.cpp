@@ -9,7 +9,7 @@
 #include <QOpenGLShaderProgram>
 
 CanvasWidget::CanvasWidget(QWidget *parent) :
-    QOpenGLWidget(parent), m_scene(nullptr), m_transform(), m_tiled(false), panKeyDown(false), m_showFrame(false), matricesDirty(true), m_vertexBuffer(0), m_editingContext()
+    QOpenGLWidget(parent), m_scene(nullptr), m_transform(), m_tiled(false), panKeyDown(false), m_showFrame(false), matricesDirty(true), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true)
 {
     setScene(nullptr);
     setMouseTracking(true);
@@ -189,6 +189,7 @@ void CanvasWidget::mousePressEvent(QMouseEvent *event)
     else {
         event->ignore();
     }
+    update();
 }
 
 void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
@@ -238,6 +239,7 @@ void CanvasWidget::mouseMoveEvent(QMouseEvent *event)
     else {
         event->ignore();
     }
+    update();
 }
 
 void CanvasWidget::mouseReleaseEvent(QMouseEvent *event)
@@ -268,6 +270,7 @@ void CanvasWidget::mouseReleaseEvent(QMouseEvent *event)
     else {
         event->ignore();
     }
+    update();
 }
 
 void CanvasWidget::wheelEvent(QWheelEvent *event)
@@ -346,7 +349,7 @@ void CanvasWidget::leaveEvent(QEvent *const event)
     emit mouseLeft();
 }
 
-Scene *CanvasWidget::scene() const
+Image *CanvasWidget::scene() const
 {
     return m_scene;
 }
@@ -410,7 +413,12 @@ EditingContext &CanvasWidget::editingContext()
     return m_editingContext;
 }
 
-void CanvasWidget::setScene(Scene *const image)
+bool CanvasWidget::limitTransform() const
+{
+    return m_limitTransform;
+}
+
+void CanvasWidget::setScene(Image *const image)
 {
     m_scene = image;
     Transform transform;
@@ -431,11 +439,11 @@ void CanvasWidget::setScene(Scene *const image)
     setTransform(transform);
 }
 
-void CanvasWidget::setTransform(const Transform &transform, const bool limit)
+void CanvasWidget::setTransform(const Transform &transform)
 {
     if (m_transform != transform) {
         m_transform = transform;
-        if (limit) {
+        if (m_limitTransform) {
             if (m_scene) {
                 if (!m_tiled) {
                     m_transform.setPan(QVector3D(clamp(m_transform.pan().x(), (float)-m_scene->imageData()->size().width(), 0.f),
@@ -481,5 +489,13 @@ void CanvasWidget::setShowAlpha(bool showAlpha)
         m_showAlpha = showAlpha;
         update();
         emit showAlphaChanged(showAlpha);
+    }
+}
+
+void CanvasWidget::setLimitTransform(bool arg)
+{
+    if (m_limitTransform != arg) {
+        m_limitTransform = arg;
+        emit limitTransformChanged(arg);
     }
 }

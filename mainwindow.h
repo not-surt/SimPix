@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include <QMdiArea>
-#include "scene.h"
+#include "image.h"
 #include "canvaswidget.h"
 
 namespace Ui {
@@ -16,22 +16,22 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    Scene *scene() const;
+    Image *image() const;
 
 signals:
-    void sceneChanged(Scene *const scene);
+    void sceneChanged(Image *const image);
 
 public slots:
-    bool newScene();
-    bool openScene();
-    bool saveScene();
-    bool saveAsScene();
+    bool newImage();
+    bool openImage();
+    bool saveImage();
+    bool saveAsImage();
     void setFullscreen(bool);
     void about();
     void aboutQt();
     bool closeScene(const bool doClose = true);
     void license();
-    void setScene(Scene *scene = nullptr);
+    void setImage(Image *image = nullptr);
     void showToolbars(bool checked);
     void showDocks(bool checked);
     void showDockTitles(bool checked);
@@ -41,9 +41,10 @@ protected:
     virtual void closeEvent(QCloseEvent *event);
 private:
     Ui::MainWindow *ui;
-    Scene *m_scene;
+    Image *m_image;
     CanvasWidget *m_canvas;
     QMdiArea *m_mdi;
+    QList<Image *> m_images;
 
     static const QString fileDialogFilterString;
 };

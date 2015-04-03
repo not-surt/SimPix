@@ -1,5 +1,5 @@
-#ifndef SCENE_H
-#define SCENE_H
+#ifndef IMAGE_H
+#define IMAGE_H
 
 #include <QSize>
 #include <QQueue>
@@ -108,7 +108,7 @@ protected:
     PaletteData *m_paletteData;
 };
 
-class Scene : public QObject
+class Image : public QObject
 {
     Q_OBJECT
 public:
@@ -117,9 +117,9 @@ public:
         Secondary,
         Eraser,
     };
-    explicit Scene(const QSize &size, ImageDataFormat format, QObject *parent = nullptr);
-    explicit Scene(const QString &fileName, const char *format = nullptr, QObject *parent = nullptr);
-    ~Scene();
+    explicit Image(const QSize &size, ImageDataFormat format, QObject *parent = nullptr);
+    explicit Image(const QString &fileName, const char *format = nullptr, QObject *parent = nullptr);
+    ~Image();
 
     ImageDataFormat format() const;
 
@@ -133,7 +133,7 @@ public:
 
 signals:
     void fileNameChanged(const QString &fileName);
-    void changed(const QRegion &region);
+    void changed();
 
 public slots:
     void point(const QPoint &position, EditingContext *const editingContext);
@@ -149,4 +149,4 @@ protected:
     bool m_dirty;
 };
 
-#endif // SCENE_H
+#endif // IMAGE_H

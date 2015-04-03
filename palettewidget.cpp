@@ -27,13 +27,13 @@ EditingContext *PaletteWidget::editingContext() const
 void PaletteWidget::setEditingContext(EditingContext *const editingContext)
 {
     if (ui->paletteView->editingContext()) {
-        QObject::disconnect(ui->paletteView, SIGNAL(clicked(QModelIndex)), this, SLOT(setColour(QModelIndex)));
-        QObject::disconnect(ui->paletteView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(editColour(QModelIndex)));
+        QObject::disconnect(ui->paletteView, &PaletteView::clicked, this, &PaletteWidget::setColour);
+        QObject::disconnect(ui->paletteView, &PaletteView::doubleClicked, this, &PaletteWidget::editColour);
     }
     ui->paletteView->setEditingContext(editingContext);
     if (editingContext) {
-        QObject::connect(ui->paletteView, SIGNAL(clicked(QModelIndex)), this, SLOT(setColour(QModelIndex)));
-        QObject::connect(ui->paletteView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(editColour(QModelIndex)));
+        QObject::connect(ui->paletteView, &PaletteView::clicked, this, &PaletteWidget::setColour);
+        QObject::connect(ui->paletteView, &PaletteView::doubleClicked, this, &PaletteWidget::editColour);
     }
 }
 
@@ -41,7 +41,6 @@ void PaletteWidget::editColour(QModelIndex index)
 {
     if (index.isValid()) {
         const QColor colour = index.data().value<QColor>();
-//        const QColor result = QColorDialog::getColor(colour, this, tr("Edit Colour"), QColorDialog::DontUseNativeDialog | QColorDialog::ShowAlphaChannel);
         const QColor result = QColorDialog::getColor(colour, this, QString(), QColorDialog::ShowAlphaChannel);
         if (result.isValid() && result != colour) {
             ui->paletteView->model()->setData(index, result);

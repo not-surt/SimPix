@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QDebug>
 
-#include "scene.h"
+#include "image.h"
 
 static const QSize sizePresets[] = {
     {50, 50}, {100, 100}, {200, 200},
@@ -68,7 +68,7 @@ NewDialog::NewDialog(QWidget *parent) :
             action->setText(QString("%1x%2").arg(size.width()).arg(size.height()));
             action->setProperty("size", size);
             presetMenu->addAction(action);
-            QObject::connect(action, SIGNAL(triggered()), this, SLOT(setPreset()));
+            QObject::connect(action, &QAction::triggered, this, &NewDialog::setPreset);
         }
     }
     ui->presetButton->setMenu(presetMenu);

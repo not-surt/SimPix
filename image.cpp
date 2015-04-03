@@ -1,4 +1,4 @@
-#include "scene.h"
+#include "image.h"
 
 #include <QDebug>
 #include <QColor>
@@ -158,7 +158,7 @@ const QRect &ImageData::rect()
     return QRect(QPoint(0, 0), m_size);
 }
 
-Scene::Scene(const QSize &size, ImageDataFormat format, QObject *parent) :
+Image::Image(const QSize &size, ImageDataFormat format, QObject *parent) :
     QObject(parent), m_fileName(), m_imageData(nullptr), m_paletteData(nullptr), m_dirty(true)
 {
     ContextGrabber grab(APP->shareWidget());
@@ -189,7 +189,7 @@ Scene::Scene(const QSize &size, ImageDataFormat format, QObject *parent) :
 
 }
 
-Scene::Scene(const QString &fileName, const char *fileFormat, QObject *parent) :
+Image::Image(const QString &fileName, const char *fileFormat, QObject *parent) :
     QObject(parent), m_fileName(fileName), m_dirty(false)
 {
     ContextGrabber grab(APP->shareWidget());
@@ -249,24 +249,24 @@ Scene::Scene(const QString &fileName, const char *fileFormat, QObject *parent) :
     m_imageData = new ImageData(APP->shareWidget(), image.size(), format, image.constBits());
 }
 
-Scene::~Scene()
+Image::~Image()
 {
     ContextGrabber grab(APP->shareWidget());
     delete m_imageData;
     delete m_paletteData;
 }
 
-ImageDataFormat Scene::format() const
+ImageDataFormat Image::format() const
 {
     return m_imageData->format();
 }
 
-const QString &Scene::fileName() const
+const QString &Image::fileName() const
 {
     return m_fileName;
 }
 
-bool Scene::save(QString fileName)
+bool Image::save(QString fileName)
 {
 
     bool saved = false;
@@ -305,17 +305,17 @@ bool Scene::save(QString fileName)
     return saved;
 }
 
-bool Scene::dirty() const
+bool Image::dirty() const
 {
     return m_dirty;
 }
 
-ImageData *Scene::imageData()
+ImageData *Image::imageData()
 {
     return m_imageData;
 }
 
-PaletteData *Scene::paletteData()
+PaletteData *Image::paletteData()
 {
     return m_paletteData;
 }
@@ -521,26 +521,25 @@ typedef bool (*ComparisonCallback)(TextureData &texture, const QPoint &point, co
 typedef void (*PointCallback)(TextureData &texture, const QPoint &point, const uint colour, const void *const data);
 typedef void (*SegmentCallback)(TextureData &texture, const QPoint &point0, const QPoint &point1, const uint colour, void (*pointCallback)(TextureData &texture, const QPoint &point, const uint colour, const void *const data), const void *const data, const bool inclusive);
 
-void Scene::point(const QPoint &point, EditingContext *const editingContext)
+void Image::point(const QPoint &point, EditingContext *const editingContext)
 {
     m_dirty = true;
     PointCallback pointCallback = drawPixel;
     pointCallback(*m_imageData, point, editingContext->colourSlot(editingContext->activeColourSlot()), nullptr);
-    emit changed(QRegion(QRect(point, QSize(1, 1))));
+    emit changed();
 }
 
-void Scene::stroke(const QPoint &point0, const QPoint &point1, EditingContext *const editingContext)
+void Image::stroke(const QPoint &point0, const QPoint &point1, EditingContext *const editingContext)
 {
     m_dirty = true;
     PointCallback pointCallback = drawPixel;
     SegmentCallback segmentCallback = doLine;
     segmentCallback(*m_imageData, point0, point1, editingContext->colourSlot(editingContext->activeColourSlot()), pointCallback, nullptr, true);
 //    undoStack->push(new StrokeCommand(*m_image, a, b));
-//    emit changed(QRect(a, b));
-    emit changed(QRegion(m_imageData->rect()));
+    emit changed();
 }
 
-void Scene::pick(const QPoint &point, EditingContext *const editingContext)
+void Image::pick(const QPoint &point, EditingContext *const editingContext)
 {
     if (m_imageData->rect().contains(point)) {
         if (format() == ImageDataFormat::Indexed) {
@@ -552,7 +551,7 @@ void Scene::pick(const QPoint &point, EditingContext *const editingContext)
     }
 }
 
-void Scene::setFileName(const QString &fileName)
+void Image::setFileName(const QString &fileName)
 {
     if (m_fileName != fileName) {
         m_fileName = fileName;

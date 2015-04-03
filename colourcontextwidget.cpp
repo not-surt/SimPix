@@ -18,13 +18,13 @@ void ColourContextWidget::setContextColour(const uint colour, const int context)
     ColourSwatch *swatch = nullptr;
     switch (context) {
     default:
-    case Scene::Primary:
+    case Image::Primary:
         swatch = ui->primaryColourSwatch;
         break;
-    case Scene::Secondary:
+    case Image::Secondary:
         swatch = ui->secondaryColourSwatch;
         break;
-    case Scene::Eraser:
+    case Image::Eraser:
         swatch = ui->eraserColourSwatch;
         break;
     }
