@@ -22,13 +22,16 @@ ImageEditor::~ImageEditor()
 
 void ImageEditor::initializeGL()
 {
+    initializeOpenGLFunctions();
 
+    glDisable(GL_BLEND);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 }
 
 void ImageEditor::resizeGL(int w, int h)
 {
     initializeOpenGLFunctions();
-    glViewport(0, 0, (GLint)w, (GLint)h);
+
     glDeleteBuffers((GLsizei)1, &m_vertexBuffer);
     glGenBuffers((GLsizei)1, &m_vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
@@ -46,22 +49,19 @@ void ImageEditor::resizeGL(int w, int h)
 void ImageEditor::paintGL()
 {
     initializeOpenGLFunctions();
-    glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
-    glDisable(GL_BLEND);
-    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
     if (true || !m_tiled || m_showAlpha) {
-        glActiveTexture(GL_TEXTURE0 + 0);
         GLuint program = APP->program("checkerboard");
         glUseProgram(program);
+
         GLint positionAttrib = glGetAttribLocation(program, "position");
         GLint matrixUniform = glGetUniformLocation(program, "matrix");
         GLint textureMatrixUniform = glGetUniformLocation(program, "textureMatrix");
         GLint sizeUniform = glGetUniformLocation(program, "size");
         GLint colour0Uniform = glGetUniformLocation(program, "colour0");
         GLint colour1Uniform = glGetUniformLocation(program, "colour1");
-        glUniform2f(sizeUniform, 32.f, 32.f);
 
+        glUniform2f(sizeUniform, 32.f, 32.f);
         const QColor base = QColor(127, 127, 127), light = colourAdjustLightness(base, 16), dark = colourAdjustLightness(base, -16);
         glUniform4i(colour0Uniform, light.red(), light.green(), light.blue(), 255);
         glUniform4i(colour1Uniform, dark.red(), dark.green(), dark.blue(), 255);
@@ -81,9 +81,6 @@ void ImageEditor::paintGL()
         if (m_showAlpha) {
             glEnable(GL_BLEND);
         }
-        else {
-            glDisable(GL_BLEND);
-        }
 
         glActiveTexture(GL_TEXTURE0 + 0);
         glBindTexture(GL_TEXTURE_2D, m_image->imageData()->texture());
@@ -97,23 +94,31 @@ void ImageEditor::paintGL()
         glUseProgram(program);
 
         GLint positionAttrib = glGetAttribLocation(program, "position");
-
         GLint textureUnitUniform = glGetUniformLocation(program, "textureUnit");
-
         GLint isIndexedUniform = glGetUniformLocation(program, "isIndexed");
         GLint hasPaletteUniform = glGetUniformLocation(program, "hasPalette");
         GLint paletteTextureUnitUniform = glGetUniformLocation(program, "paletteTextureUnit");
-
         GLint matrixUniform = glGetUniformLocation(program, "matrix");
         GLint textureMatrixUniform = glGetUniformLocation(program, "textureMatrix");
 
-
         glUniform1i(textureUnitUniform, 0);
-
         glUniform1i(isIndexedUniform, (m_image->imageData()->format() == ImageDataFormat::Indexed));
         glUniform1i(hasPaletteUniform, (m_image->paletteData() != nullptr));
         glUniform1i(paletteTextureUnitUniform, 1);
 
+//        QMatrix4x4 matrix;
+//        QMatrix4x4 textureMatrix;
+//        GLint vertexBuffer;
+//        if (m_tiled) {
+//            matrix = this->matrix();
+//            textureMatrix = m_transform.inverseMatrix();
+//            vertexBuffer = m_vertexBuffer;
+//        }
+//        else {
+//            matrix = this->matrix() * m_transform.matrix();
+//            textureMatrix = QMatrix4x4();
+//            vertexBuffer = m_vertexBuffer;
+//        }
         if (m_tiled) {
             glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, this->matrix().constData());
             glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, m_transform.inverseMatrix().constData());
@@ -143,10 +148,14 @@ void ImageEditor::paintGL()
 
         glUseProgram(0);
 
-        if (m_showFrame) {
+        if (m_showAlpha) {
             glDisable(GL_BLEND);
+        }
+
+        if (m_showFrame) {
             GLuint program = APP->program("frame");
             glUseProgram(program);
+
             GLint matrixUniform = glGetUniformLocation(program, "matrix");
             GLint textureMatrixUniform = glGetUniformLocation(program, "textureMatrix");
             GLint colourUniform = glGetUniformLocation(program, "colour");
@@ -163,6 +172,8 @@ void ImageEditor::paintGL()
 
             glDisableVertexAttribArray(positionAttrib);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+            glUseProgram(0);
         }
     }
 }
@@ -202,7 +213,6 @@ void ImageEditor::mouseMoveEvent(QMouseEvent *event)
         coord = pixel;
         if (m_image && pixel != lastPixel && m_image->imageData()->rect().contains(pixel)) {
             ContextGrabber grab(APP->shareWidget());
-//            ContextGrabber grab();
             if (m_image->imageData()->format() == ImageDataFormat::Indexed) {
                 index = m_image->imageData()->pixel(pixel);
                 colour = QColor(m_image->paletteData()->colour(index));
@@ -417,23 +427,25 @@ bool ImageEditor::limitTransform() const
 
 void ImageEditor::setImage(Image *const image)
 {
-    m_image = image;
-    Transform transform;
-    transform.setOrigin(QVector3D((float)floor(width() / 2.f), floor((float)height() / 2.f), 0.f));
-    transform.setPan(QVector3D(0.f, 0.f, 0.f));
-    transform.setZoom(1.f);
-    transform.setPixelAspect(QVector3D(1.f, 1.f, 0.f));
-    transform.setRotation(0.f);
-    if (image) {
-        transform.setPan(-QVector3D(floor((float)m_image->imageData()->size().width() / 2.f), floor((float)m_image->imageData()->size().height() / 2.f), 0.f));
-        m_editingContext.setImage(m_image->imageData());
-        m_editingContext.setPalette(m_image->paletteData());
+    if (m_image != image) {
+        m_image = image;
+        Transform transform;
+        transform.setOrigin(QVector3D((float)floor(width() / 2.f), floor((float)height() / 2.f), 0.f));
+        transform.setPan(QVector3D(0.f, 0.f, 0.f));
+        transform.setZoom(1.f);
+        transform.setPixelAspect(QVector3D(1.f, 1.f, 0.f));
+        transform.setRotation(0.f);
+        if (m_image) {
+            transform.setPan(-QVector3D(floor((float)m_image->imageData()->size().width() / 2.f), floor((float)m_image->imageData()->size().height() / 2.f), 0.f));
+            m_editingContext.setImage(m_image->imageData());
+            m_editingContext.setPalette(m_image->paletteData());
+        }
+        else {
+            m_editingContext.setImage(nullptr);
+            m_editingContext.setPalette(nullptr);
+        }
+        setTransform(transform);
     }
-    else {
-        m_editingContext.setImage(nullptr);
-        m_editingContext.setPalette(nullptr);
-    }
-    setTransform(transform);
 }
 
 void ImageEditor::setTransform(const Transform &transform)

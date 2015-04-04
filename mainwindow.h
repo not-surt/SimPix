@@ -5,6 +5,7 @@
 #include <QMdiArea>
 #include "image.h"
 #include "imageeditor.h"
+#include "statusmousewidget.h"
 
 namespace Ui {
 class MainWindow;
@@ -40,6 +41,7 @@ protected:
 private:
     Ui::MainWindow *ui;
     QMdiArea *m_mdi;
+    StatusMouseWidget *m_statusMouseWidget;
     QMdiSubWindow *m_oldSubWindow;
     QList<Image *> m_images;
     static const QString fileDialogFilterString;

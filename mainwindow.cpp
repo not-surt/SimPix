@@ -3,7 +3,6 @@
 #include "newdialog.h"
 #include "util.h"
 #include "colourswatch.h"
-#include "statusmousewidget.h"
 #include "application.h"
 #include "imageeditor.h"
 
@@ -18,7 +17,7 @@ const QString MainWindow::fileDialogFilterString = tr("PNG Image Files (*.png)")
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_mdi(nullptr), m_oldSubWindow(nullptr), m_images()
+    ui(new Ui::MainWindow), m_mdi(nullptr),m_statusMouseWidget(nullptr), m_oldSubWindow(nullptr), m_images()
 {    
     ui->setupUi(this);
     m_mdi = new QMdiArea;
@@ -29,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
     while (menu.hasNext()) {
         addActions(menu.next()->findChildren<QAction *>());
     }
+    ui->menuBar->hide();
 
     QObject::connect(m_mdi, &QMdiArea::subWindowActivated, this, &MainWindow::activateSubWindow);
 
@@ -82,12 +82,9 @@ MainWindow::MainWindow(QWidget *parent) :
         dockMenu->addAction(dock.next()->toggleViewAction());
     }
 
-    StatusMouseWidget *statusMouseWidget = new StatusMouseWidget;
-    statusMouseWidget->hide();
-    statusBar()->addWidget(statusMouseWidget);
-//    QObject::connect(m_imageEditor, &ImageEditor::mouseEntered, statusMouseWidget, &StatusMouseWidget::show);
-//    QObject::connect(m_imageEditor, &ImageEditor::mouseLeft, statusMouseWidget, &StatusMouseWidget::hide);
-//    QObject::connect(m_imageEditor, &ImageEditor::mousePixelChanged, statusMouseWidget, &StatusMouseWidget::setMouseInfo);
+    m_statusMouseWidget = new StatusMouseWidget;
+    m_statusMouseWidget->hide();
+    statusBar()->addWidget(m_statusMouseWidget);
     statusBar()->setSizeGripEnabled(true);
 
     QSettings settings;
@@ -112,10 +109,13 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(m_oldSubWindow->widget());
         Image *image = editor->image();
 
-        QObject::disconnect(image, &Image::changed, editor, SS_CAST(ImageEditor, update,));
-//            QObject::disconnect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
-        QObject::disconnect(editor, &ImageEditor::clicked, image, &Image::point);
-        QObject::disconnect(editor, &ImageEditor::dragged, image, &Image::stroke);
+        if (image) {
+            QObject::disconnect(image, &Image::changed, editor, SS_CAST(ImageEditor, update,));
+    //            QObject::disconnect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
+            QObject::disconnect(editor, &ImageEditor::clicked, image, &Image::point);
+            QObject::disconnect(editor, &ImageEditor::dragged, image, &Image::stroke);
+            ui->paletteWidget->setEditingContext(nullptr);
+        }
 
         QObject::disconnect(ui->paletteWidget, SS_CAST(PaletteWidget, colourChanged,),
                          editor, SS_CAST(ImageEditor, update,));
@@ -126,17 +126,23 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
         QObject::disconnect(ui->actionShowFrame, &QAction::triggered, editor, &ImageEditor::setShowFrame);
         QObject::disconnect(ui->actionAlpha, &QAction::triggered, editor, &ImageEditor::setShowAlpha);
 
-        ui->paletteWidget->setEditingContext(nullptr);
+        QObject::disconnect(editor, &ImageEditor::mouseEntered, m_statusMouseWidget, &StatusMouseWidget::show);
+        QObject::disconnect(editor, &ImageEditor::mouseLeft, m_statusMouseWidget, &StatusMouseWidget::hide);
+        QObject::disconnect(editor, &ImageEditor::mousePixelChanged, m_statusMouseWidget, &StatusMouseWidget::setMouseInfo);
 //        image->deleteLater();
     }
     if (subWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
         Image *image = editor->image();
 
-        QObject::connect(image, &Image::changed, editor, SS_CAST(ImageEditor, update,));
-//            QObject::connect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
-        QObject::connect(editor, &ImageEditor::clicked, image, &Image::point);
-        QObject::connect(editor, &ImageEditor::dragged, image, &Image::stroke);
+        if (image) {
+            QObject::connect(image, &Image::changed, editor, SS_CAST(ImageEditor, update,));
+    //            QObject::connect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
+            QObject::connect(editor, &ImageEditor::clicked, image, &Image::point);
+            QObject::connect(editor, &ImageEditor::dragged, image, &Image::stroke);
+            ui->paletteWidget->setEditingContext(&editor->editingContext());
+            setWindowFilePath(image->fileName());
+        }
 
         QObject::connect(ui->paletteWidget, SS_CAST(PaletteWidget, colourChanged,),
                          editor, SS_CAST(ImageEditor, update,));
@@ -147,8 +153,9 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
         QObject::connect(ui->actionShowFrame, &QAction::triggered, editor, &ImageEditor::setShowFrame);
         QObject::connect(ui->actionAlpha, &QAction::triggered, editor, &ImageEditor::setShowAlpha);
 
-        ui->paletteWidget->setEditingContext(&editor->editingContext());
-        setWindowFilePath(image->fileName());
+        QObject::connect(editor, &ImageEditor::mouseEntered, m_statusMouseWidget, &StatusMouseWidget::show);
+        QObject::connect(editor, &ImageEditor::mouseLeft, m_statusMouseWidget, &StatusMouseWidget::hide);
+        QObject::connect(editor, &ImageEditor::mousePixelChanged, m_statusMouseWidget, &StatusMouseWidget::setMouseInfo);
     }
     else {
         ui->paletteWidget->setEditingContext(nullptr);
@@ -220,18 +227,29 @@ void MainWindow::closeEvent(QCloseEvent *event)
 }
 
 ImageEditor *MainWindow::newEditor(Image *const image) {
-    ImageEditor *editor = new ImageEditor;
+//    QMdiSubWindow *subWindow = new QMdiSubWindow;
+//    subWindow->setAttribute(Qt::WA_DeleteOnClose);
+//    m_mdi->addSubWindow(subWindow);
+//    subWindow->setFocus();
+//    subWindow->resize(200, 200);/////////////////////
+
+//    ImageEditor *editor = new ImageEditor(this);
+////    editor->show();/////////////////
+////    editor->hide();/////////////
+////    editor->show();/////////////////
+////    editor->setImage(image);
+
+//    subWindow->setWidget(editor);
+//    subWindow->show();
+//    return editor;
     QMdiSubWindow *subWindow = new QMdiSubWindow;
-    editor->show();/////////////////
-    editor->hide();/////////////
-    subWindow->setWidget(editor);
-    editor->setImage(image);
     subWindow->setAttribute(Qt::WA_DeleteOnClose);
-    m_mdi->addSubWindow(subWindow);
-    subWindow->show();
-    subWindow->setFocus();
     subWindow->resize(200, 200);/////////////////////
-    editor->update();///////////////////////
+    m_mdi->addSubWindow(subWindow);
+    ImageEditor *editor = new ImageEditor;
+    subWindow->setWidget(editor);
+    editor->show();
+    editor->setImage(image);
     return editor;
 }
 
@@ -331,6 +349,7 @@ bool MainWindow::saveAsImage()
 
 bool MainWindow::closeImage(const bool doClose)
 {
+    return true;/////////////////////////////////////////////////////////////////////////////
     QMdiSubWindow *subWindow = m_mdi->activeSubWindow();
     if (subWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());

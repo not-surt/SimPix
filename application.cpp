@@ -19,8 +19,9 @@ Application::Application(int &argc, char **argv) :
 //        "* {color: #fff; background-color: #000}"
 //        "* {font-size: 24pt}"
 //        "* {icon-size: 48px}"
-//                "* {margin: 0px; border: 0px; padding: 0px}"
-//                "* {margin: 1px; border: 1px; padding: 1px}"
+//        "* {margin: 0px; border: 0px; padding: 0px}"
+//        "* {margin: 1px; border: 1px; padding: 1px}"
+//        "QSpinBox, QDoubleSpinBox {margin: 1px; border: 1px; padding: 1px}"
         ""
         );
 
@@ -36,6 +37,7 @@ Application::Application(int &argc, char **argv) :
     // Hack to initialize share widget
     m_shareWidget->show();
     m_shareWidget->hide();
+    qDebug() << "Share:" << m_shareWidget->context() << m_shareWidget->context()->isValid() << "Sharing:" << m_shareWidget->context()->shareContext();;
 
     {
         ContextGrabber grab(m_shareWidget);
