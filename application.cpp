@@ -28,11 +28,11 @@ Application::Application(int &argc, char **argv) :
     swatchBackgroundPixmap = generateBackgroundPixmap(16);
 
     // Why cause fail?
-    QSurfaceFormat format;
-    format.setRenderableType(QSurfaceFormat::OpenGL);
-    format.setVersion(3, 3);
-//    format.setProfile(QSurfaceFormat::CoreProfile);
-    QSurfaceFormat::setDefaultFormat(format);
+//    QSurfaceFormat format;
+//    format.setRenderableType(QSurfaceFormat::OpenGL);
+//    format.setVersion(3, 3);
+////    format.setProfile(QSurfaceFormat::CoreProfile);
+//    QSurfaceFormat::setDefaultFormat(format);
 
     m_window = new MainWindow;
 

@@ -194,9 +194,9 @@
    </attribute>
    <widget class="TransformWidget" name="transformWidget"/>
   </widget>
-  <widget class="QToolBar" name="viewToolBar">
+  <widget class="QToolBar" name="editorToolBar">
    <property name="windowTitle">
-    <string>View</string>
+    <string>Editor</string>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -654,7 +654,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Lock Docks</string>
+    <string>Loc&amp;k Docks</string>
    </property>
    <property name="toolTip">
     <string>Lock Docks</string>

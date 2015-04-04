@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QDebug>
 
-#include "image.h"
+#include "document.h"
 
 static const QSize sizePresets[] = {
     {50, 50}, {100, 100}, {200, 200},

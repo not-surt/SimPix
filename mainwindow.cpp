@@ -12,8 +12,25 @@
 #include <QSettings>
 #include <QTextStream>
 #include <QMdiSubWindow>
+#include <QWidgetAction>
+#include <QSpinBox>
 
 const QString MainWindow::fileDialogFilterString = tr("PNG Image Files (*.png)");
+
+class MdiSubWindow : public QMdiSubWindow
+{
+public:
+    explicit MdiSubWindow(QWidget *parent = nullptr) :
+        QMdiSubWindow(parent) {}
+
+protected:
+    void closeEvent(QCloseEvent *event)
+    {
+//        if (!closeImage()) {
+            event->ignore();
+//        }
+    }
+};
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -21,6 +38,9 @@ MainWindow::MainWindow(QWidget *parent) :
 {    
     ui->setupUi(this);
     m_mdi = new QMdiArea;
+    m_mdi->setViewMode(QMdiArea::TabbedView);
+    m_mdi->setTabsClosable(true);
+    m_mdi->setTabsMovable(true);
     setCentralWidget(m_mdi);
 
     // Copy actions to window. Is there a better way?
@@ -88,7 +108,13 @@ MainWindow::MainWindow(QWidget *parent) :
     statusBar()->addWidget(m_statusMouseWidget);
     statusBar()->setSizeGripEnabled(true);
 
+    QWidgetAction *act = new QWidgetAction(ui->menuFile);
+    QSpinBox* edt = new QSpinBox();
+    act->setDefaultWidget(edt);
+    ui->menuFile->addAction(act);
+
     ui->windowToolBar->hide();
+    activateSubWindow(nullptr);
 
     QSettings settings;
     settings.beginGroup("window");
@@ -113,7 +139,7 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
         Image *image = editor->image();
 
         if (image) {
-            QObject::disconnect(image, &Image::changed, editor, SS_CAST(ImageEditor, update,));
+            QObject::disconnect(image, &Image::dirtied, editor, SS_CAST(ImageEditor, update,));
     //            QObject::disconnect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
             QObject::disconnect(editor, &ImageEditor::clicked, image, &Image::point);
             QObject::disconnect(editor, &ImageEditor::dragged, image, &Image::stroke);
@@ -137,7 +163,7 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
         Image *image = editor->image();
 
         if (image) {
-            QObject::connect(image, &Image::changed, editor, SS_CAST(ImageEditor, update,));
+            QObject::connect(image, &Image::dirtied, editor, SS_CAST(ImageEditor, update,));
     //            QObject::connect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
             QObject::connect(editor, &ImageEditor::clicked, image, &Image::point);
             QObject::connect(editor, &ImageEditor::dragged, image, &Image::stroke);
@@ -150,8 +176,11 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
         QObject::connect(editor, &ImageEditor::transformChanged, ui->transformWidget, &TransformWidget::setTransform);
 
         QObject::connect(ui->actionTiled, &QAction::triggered, editor, &ImageEditor::setTiled);
+        ui->actionTiled->setChecked(editor->tiled());
         QObject::connect(ui->actionShowBounds, &QAction::triggered, editor, &ImageEditor::setShowBounds);
+        ui->actionShowBounds->setChecked(editor->showBounds());
         QObject::connect(ui->actionAlpha, &QAction::triggered, editor, &ImageEditor::setShowAlpha);
+        ui->actionAlpha->setChecked(editor->showAlpha());
 
         QObject::connect(editor, &ImageEditor::mouseEntered, m_statusMouseWidget, &StatusMouseWidget::show);
         QObject::connect(editor, &ImageEditor::mouseLeft, m_statusMouseWidget, &StatusMouseWidget::hide);
@@ -161,6 +190,9 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
         ui->paletteWidget->setEditingContext(nullptr);
         setWindowFilePath(QString());
     }
+    ui->actionTiled->setEnabled(subWindow);
+    ui->actionShowBounds->setEnabled(subWindow);
+    ui->actionAlpha->setEnabled(subWindow);
     m_oldSubWindow = subWindow;
 }
 
@@ -231,8 +263,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
 }
 
 ImageEditor *MainWindow::newEditor(Image *const image) {
-    QMdiSubWindow *subWindow = new QMdiSubWindow;
+    QMdiSubWindow *subWindow = new MdiSubWindow;
     subWindow->setAttribute(Qt::WA_DeleteOnClose);
+    subWindow->setWindowTitle(image->shortName());
     QSize size;
     if (image) {
         size = QSize(image->imageData()->size());

@@ -1,5 +1,5 @@
-#ifndef IMAGE_H
-#define IMAGE_H
+#ifndef DATA_H
+#define DATA_H
 
 #include <QSize>
 #include <QQueue>
@@ -7,6 +7,8 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include "transform.h"
 #include "editingcontext.h"
+
+class ImageEditor;
 
 enum class ImageDataFormat {
     Indexed,
@@ -108,45 +110,4 @@ protected:
     PaletteData *m_paletteData;
 };
 
-class Image : public QObject
-{
-    Q_OBJECT
-public:
-    enum ContextColour {
-        Primary,
-        Secondary,
-        Eraser,
-    };
-    explicit Image(const QSize &size, ImageDataFormat format, QObject *parent = nullptr);
-    explicit Image(const QString &fileName, const char *format = nullptr, QObject *parent = nullptr);
-    ~Image();
-
-    ImageDataFormat format() const;
-
-    const QString &fileName() const;
-    bool save(QString fileName = QString());
-
-    bool dirty() const;
-
-    ImageData *imageData();
-    PaletteData *paletteData();
-
-signals:
-    void fileNameChanged(const QString &fileName);
-    void changed();
-
-public slots:
-    void point(const QPoint &position, EditingContext *const editingContext);
-    void stroke(const QPoint &a, const QPoint &b, EditingContext *const editingContext);
-    void pick(const QPoint &position, EditingContext *const editingContext);
-    void setFileName(const QString &fileName);
-
-protected:
-    QString m_fileName;
-    ImageData *m_imageData;
-    PaletteData *m_paletteData;
-    QList<ImageData *> m_layers;
-    bool m_dirty;
-};
-
-#endif // IMAGE_H
+#endif // DATA_H

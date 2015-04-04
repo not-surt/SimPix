@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include <QMdiArea>
-#include "image.h"
+#include "document.h"
 #include "imageeditor.h"
 #include "statusmousewidget.h"
 

@@ -1,7 +1,7 @@
 #ifndef NEWDIALOG_H
 #define NEWDIALOG_H
 
-#include "image.h"
+#include "document.h"
 
 #include <QDialog>
 

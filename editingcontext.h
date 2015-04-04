@@ -13,9 +13,8 @@ public:
     enum ColourSlot {
         Primary,
         Secondary,
-        Eraser,
+        Background,
     };
-    static const int COLOUR_SLOT_COUNT = 3;
     explicit EditingContext(QObject *parent = nullptr);
     ImageData *image() const;
     PaletteData *palette() const;
@@ -32,6 +31,7 @@ public slots:
     void setActiveColourSlot(const ColourSlot colourSlot);
 
 protected:
+    static const int COLOUR_SLOT_COUNT = 3;
     ImageData *m_image;
     PaletteData *m_palette;
     uint m_colourSlots[COLOUR_SLOT_COUNT];

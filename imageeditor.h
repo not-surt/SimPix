@@ -4,7 +4,7 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLWidget>
 #include <memory>
-#include "image.h"
+#include "document.h"
 #include "transform.h"
 #include "editingcontext.h"
 

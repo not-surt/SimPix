@@ -74,7 +74,7 @@ public:
     {
         context->makeCurrent(surface);
     }
-    explicit ContextGrabber(QOpenGLWidget *const widget = APP->shareWidget()) :
+    explicit ContextGrabber(QOpenGLWidget *const widget/* Why break? = APP->shareWidget()*/) :
         ContextGrabber(widget->context())
     {
         widget->makeCurrent();

@@ -2,7 +2,7 @@
 #define COLOURCONTEXTWIDGET_H
 
 #include <QWidget>
-#include "image.h"
+#include "document.h"
 
 namespace Ui {
 class ColourContextWidget;

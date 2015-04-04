@@ -234,7 +234,6 @@ void ImageEditor::mouseMoveEvent(QMouseEvent *event)
     else {
         event->ignore();
     }
-    update();
 }
 
 void ImageEditor::mouseReleaseEvent(QMouseEvent *event)
@@ -265,7 +264,6 @@ void ImageEditor::mouseReleaseEvent(QMouseEvent *event)
     else {
         event->ignore();
     }
-    update();
 }
 
 void ImageEditor::wheelEvent(QWheelEvent *event)
