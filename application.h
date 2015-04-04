@@ -23,9 +23,6 @@ public:
     bool addProgram(const QString &name, const QStringList &shaders);
     GLuint program(const QString &name);
     QOpenGLWidget *shareWidget();
-//    void openImage(const QString &path);
-//    bool removeImage(const QString &path);
-//    Image *image(const QString &path);
 
 private:
     GLuint processShader(const GLenum type, const QString &src);
@@ -34,7 +31,6 @@ private:
     QHash<QString, QOpenGLShaderProgram *> m_programs;
     MainWindow *m_window;
     QOpenGLWidget *m_shareWidget;
-//    QHash<QString, Image *> m_images;
 };
 
 #define APP (static_cast<Application *>(qApp))

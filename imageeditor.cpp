@@ -9,7 +9,7 @@
 #include <QOpenGLShaderProgram>
 
 ImageEditor::ImageEditor(QWidget *parent) :
-    QOpenGLWidget(parent), m_image(nullptr), m_transform(), m_tiled(false), panKeyDown(false), m_showFrame(false), matricesDirty(true), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true)
+    QOpenGLWidget(parent), m_image(nullptr), m_transform(), m_tiled(false), panKeyDown(false), m_showBounds(false), matricesDirty(true), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true)
 {
     setImage(nullptr);
     setMouseTracking(true);
@@ -109,45 +109,30 @@ void ImageEditor::paintGL()
         glUniform1i(hasPaletteUniform, (m_image->paletteData() != nullptr));
         glUniform1i(paletteTextureUnitUniform, 1);
 
-//        QMatrix4x4 matrix;
-//        QMatrix4x4 textureMatrix;
-//        GLint vertexBuffer;
-//        if (m_tiled) {
-//            matrix = this->matrix();
-//            textureMatrix = m_transform.inverseMatrix();
-//            vertexBuffer = m_vertexBuffer;
-//        }
-//        else {
-//            matrix = this->matrix() * m_transform.matrix();
-//            textureMatrix = QMatrix4x4();
-//            vertexBuffer = m_vertexBuffer;
-//        }
+        QMatrix4x4 matrix;
+        QMatrix4x4 textureMatrix;
+        GLint vertexBuffer;
         if (m_tiled) {
-            glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, this->matrix().constData());
-            glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, m_transform.inverseMatrix().constData());
-
-            glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-            glEnableVertexAttribArray(positionAttrib);
-            glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-            glDisableVertexAttribArray(positionAttrib);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            matrix = this->matrix();
+            textureMatrix = m_transform.inverseMatrix();
+            vertexBuffer = m_vertexBuffer;
         }
         else {
-            glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (this->matrix() * m_transform.matrix()).constData());
-            glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, QMatrix4x4().constData());
-
-            glBindBuffer(GL_ARRAY_BUFFER, m_image->imageData()->vertexBuffer());
-            glEnableVertexAttribArray(positionAttrib);
-            glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-            glDisableVertexAttribArray(positionAttrib);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            matrix = this->matrix() * m_transform.matrix();
+            textureMatrix = QMatrix4x4();
+            vertexBuffer = m_image->imageData()->vertexBuffer();
         }
+        glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, matrix.constData());
+        glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, textureMatrix.constData());
+
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+        glEnableVertexAttribArray(positionAttrib);
+        glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+        glDisableVertexAttribArray(positionAttrib);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         glUseProgram(0);
 
@@ -155,7 +140,7 @@ void ImageEditor::paintGL()
             glDisable(GL_BLEND);
         }
 
-        if (m_showFrame) {
+        if (m_showBounds) {
             GLuint program = APP->program("frame");
             glUseProgram(program);
 
@@ -374,9 +359,9 @@ bool ImageEditor::tiled() const
     return m_tiled;
 }
 
-bool ImageEditor::showFrame() const
+bool ImageEditor::showBounds() const
 {
-    return m_showFrame;
+    return m_showBounds;
 }
 
 bool ImageEditor::showAlpha() const
@@ -486,12 +471,12 @@ void ImageEditor::setTiled(const bool tiled)
     }
 }
 
-void ImageEditor::setShowFrame(const bool showFrame)
+void ImageEditor::setShowBounds(const bool showBounds)
 {
-    if (m_showFrame != showFrame) {
-        m_showFrame = showFrame;
+    if (m_showBounds != showBounds) {
+        m_showBounds = showBounds;
         update();
-        emit showFrameChanged(showFrame);
+        emit showBoundsChanged(showBounds);
     }
 }
 

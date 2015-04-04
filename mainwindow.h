@@ -19,19 +19,20 @@ public:
     ~MainWindow();
 
 public slots:
-    bool newImage();
-    bool openImage();
+    void newImage();
+    void openImage();
     bool saveImage();
     bool saveAsImage();
     void setFullscreen(bool);
     void about();
     void aboutQt();
-    bool closeImage(const bool doClose = true);
+    bool closeImage();
     void license();
     void showToolbars(bool checked);
+    void lockToolbars(bool checked);
     void showDocks(bool checked);
     void showDockTitles(bool checked);
-    void lockSubwindows(bool checked);
+    void lockDocks(bool checked);
     ImageEditor *newEditor(Image *const image);
     void activateSubWindow(QMdiSubWindow *const subWindow);
 

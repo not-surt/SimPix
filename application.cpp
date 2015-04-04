@@ -27,11 +27,12 @@ Application::Application(int &argc, char **argv) :
 
     swatchBackgroundPixmap = generateBackgroundPixmap(16);
 
-//    QSurfaceFormat format;
-//    format.setRenderableType(QSurfaceFormat::OpenGL);
-//    format.setVersion(3, 3);
+    // Why cause fail?
+    QSurfaceFormat format;
+    format.setRenderableType(QSurfaceFormat::OpenGL);
+    format.setVersion(3, 3);
 //    format.setProfile(QSurfaceFormat::CoreProfile);
-//    QSurfaceFormat::setDefaultFormat(format);
+    QSurfaceFormat::setDefaultFormat(format);
 
     m_window = new MainWindow;
 
@@ -39,7 +40,6 @@ Application::Application(int &argc, char **argv) :
     // Hack to initialize share widget
     m_shareWidget->show();
     m_shareWidget->hide();
-    qDebug() << "Share:" << m_shareWidget->context() << m_shareWidget->context()->isValid() << "Sharing:" << m_shareWidget->context()->shareContext();
 
     {
         ContextGrabber grab(m_shareWidget);
@@ -90,21 +90,6 @@ QOpenGLWidget *Application::shareWidget()
 {
     return m_shareWidget;
 }
-
-//void Application::openImage(const QString &path)
-//{
-//    m_images[path] = new Image(path);
-//}
-
-//bool Application::removeImage(const QString &path)
-//{
-//    return (m_images.remove(path) > 0);
-//}
-
-//Image *Application::image(const QString &path)
-//{
-//    return m_images[path];
-//}
 
 bool Application::addShader(const QString &name, const QOpenGLShader::ShaderType type, const QString &src)
 {

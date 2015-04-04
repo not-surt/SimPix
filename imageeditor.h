@@ -13,7 +13,7 @@ class ImageEditor : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     Q_OBJECT
     Q_PROPERTY(Transform transform READ transform WRITE setTransform NOTIFY transformChanged)
     Q_PROPERTY(bool tiled READ tiled WRITE setTiled NOTIFY tiledChanged)
-    Q_PROPERTY(bool showFrame READ showFrame WRITE setShowFrame NOTIFY showFrameChanged)
+    Q_PROPERTY(bool showBounds READ showBounds WRITE setShowBounds NOTIFY showBoundsChanged)
     Q_PROPERTY(bool showAlpha READ showAlpha WRITE setShowAlpha NOTIFY showAlphaChanged)
     Q_PROPERTY(bool limitTransform READ limitTransform WRITE setLimitTransform NOTIFY limitTransformChanged)
     Q_ENUMS(image transform)
@@ -24,7 +24,7 @@ public:
     Image *image() const;
     const Transform &transform() const;
     bool tiled() const;
-    bool showFrame() const;
+    bool showBounds() const;
     bool showAlpha() const;
     QRect rect() const;
     const QMatrix4x4 &matrix();
@@ -36,7 +36,7 @@ public:
 signals:
     void transformChanged(const Transform &transform);
     void tiledChanged(const bool tiled);
-    void showFrameChanged(const bool showFrame);
+    void showBoundsChanged(const bool showBounds);
     void showAlphaChanged(bool showAlpha);
     void clicked(const QPoint &position, EditingContext *const editingContext);
     void dragged(const QPoint &a, const QPoint &b, EditingContext *const editingContext);
@@ -49,7 +49,7 @@ public slots:
     void setImage(Image *const image);
     void setTransform(const Transform &transform);
     void setTiled(const bool tiled);
-    void setShowFrame(const bool showFrame);
+    void setShowBounds(const bool showBounds);
     void setShowAlpha(bool showAlpha);
     void setLimitTransform(bool arg);
 
@@ -75,7 +75,7 @@ private:
     QPoint lastMousePos;
     QVector3D lastMouseImagePos;
     bool panKeyDown;
-    bool m_showFrame;
+    bool m_showBounds;
     bool m_showAlpha;
     QMatrix4x4 m_matrix;
     QMatrix4x4 m_inverseMatrix;

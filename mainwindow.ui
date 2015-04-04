@@ -58,14 +58,17 @@
     <addaction name="actionFullscreen"/>
     <addaction name="separator"/>
     <addaction name="actionMenu"/>
+    <addaction name="separator"/>
     <addaction name="actionAllToolbars"/>
     <addaction name="actionToolbars"/>
+    <addaction name="actionLockToolbars"/>
+    <addaction name="separator"/>
     <addaction name="actionAllDocks"/>
     <addaction name="actionDocks"/>
-    <addaction name="actionStatusBar"/>
-    <addaction name="separator"/>
+    <addaction name="actionLockDocks"/>
     <addaction name="actionDockTitles"/>
-    <addaction name="actionLockSubwindows"/>
+    <addaction name="separator"/>
+    <addaction name="actionStatusBar"/>
     <addaction name="separator"/>
     <addaction name="actionTileSubwindows"/>
     <addaction name="actionCascadeSubwindows"/>
@@ -87,7 +90,7 @@
      <string>&amp;View</string>
     </property>
     <addaction name="actionTiled"/>
-    <addaction name="actionShowFrame"/>
+    <addaction name="actionShowBounds"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -166,8 +169,9 @@
    <addaction name="actionDocksMenu"/>
    <addaction name="actionStatusBar"/>
    <addaction name="separator"/>
+   <addaction name="actionLockToolbars"/>
    <addaction name="actionDockTitles"/>
-   <addaction name="actionLockSubwindows"/>
+   <addaction name="actionLockDocks"/>
   </widget>
   <widget class="QDockWidget" name="colourContextDockWidget">
    <property name="windowTitle">
@@ -201,7 +205,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionTiled"/>
-   <addaction name="actionShowFrame"/>
+   <addaction name="actionShowBounds"/>
    <addaction name="actionAlpha"/>
   </widget>
   <widget class="QToolBar" name="modeToolBar">
@@ -501,15 +505,15 @@
     <string>Ctrl+T</string>
    </property>
   </action>
-  <action name="actionShowFrame">
+  <action name="actionShowBounds">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show &amp;Frame</string>
+    <string>Show &amp;Bounds</string>
    </property>
    <property name="toolTip">
-    <string>Show Frame</string>
+    <string>Show Bounds</string>
    </property>
   </action>
   <action name="actionAlpha">
@@ -645,12 +649,15 @@
     <string>Dock Titles</string>
    </property>
   </action>
-  <action name="actionLockSubwindows">
+  <action name="actionLockDocks">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Lock Subwindows</string>
+    <string>&amp;Lock Docks</string>
+   </property>
+   <property name="toolTip">
+    <string>Lock Docks</string>
    </property>
   </action>
   <action name="actionDocksMenu">
@@ -741,6 +748,17 @@
    </property>
    <property name="text">
     <string>Us&amp;e Tabs</string>
+   </property>
+  </action>
+  <action name="actionLockToolbars">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Lock Toolbars</string>
+   </property>
+   <property name="toolTip">
+    <string>Lock Toolbars</string>
    </property>
   </action>
  </widget>
