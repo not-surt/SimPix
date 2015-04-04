@@ -101,5 +101,6 @@ QString fileToString(QString fileName);
 void qTransformFillGlslMat3(const QTransform &transform, GLfloat *const matrix);
 void drawColourSwatch(QPainter *const painter, const QRect &rect, const QColor &colour);
 QColor colourAdjustLightness(const QColor &colour, const int offset);
+float randUnit();
 
 #endif // UTIL_H

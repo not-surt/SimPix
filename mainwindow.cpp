@@ -227,21 +227,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
 }
 
 ImageEditor *MainWindow::newEditor(Image *const image) {
-//    QMdiSubWindow *subWindow = new QMdiSubWindow;
-//    subWindow->setAttribute(Qt::WA_DeleteOnClose);
-//    m_mdi->addSubWindow(subWindow);
-//    subWindow->setFocus();
-//    subWindow->resize(200, 200);/////////////////////
-
-//    ImageEditor *editor = new ImageEditor(this);
-////    editor->show();/////////////////
-////    editor->hide();/////////////
-////    editor->show();/////////////////
-////    editor->setImage(image);
-
-//    subWindow->setWidget(editor);
-//    subWindow->show();
-//    return editor;
     QMdiSubWindow *subWindow = new QMdiSubWindow;
     subWindow->setAttribute(Qt::WA_DeleteOnClose);
     subWindow->resize(200, 200);/////////////////////
@@ -260,7 +245,6 @@ bool MainWindow::newImage()
     }
     NewDialog *dialog = new NewDialog(this);
     if (dialog->exec()) {
-        qDebug() << "POOPIES!";
         Image *newImage = new Image(dialog->imageSize(), dialog->mode());
         m_images.append(newImage);
         ImageEditor *editor = newEditor(newImage);
@@ -276,8 +260,10 @@ bool MainWindow::openImage()
     }
     QSettings settings;
     settings.beginGroup("file");
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), settings.value("lastOpened", QDir::homePath()).toString(), fileDialogFilterString);
-    if (!fileName.isNull()) {
+    QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open Image"), settings.value("lastOpened", QDir::homePath()).toString(), fileDialogFilterString);
+    QStringListIterator fileNameIterator(fileNames);
+    while (fileNameIterator.hasNext()) {
+        QString fileName = fileNameIterator.next();
         settings.setValue("lastOpened", fileName);
         Image *image = new Image(fileName);
         if (!image->imageData()) {

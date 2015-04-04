@@ -5,7 +5,7 @@
 #include <exception>
 
 Application::Application(int &argc, char **argv) :
-    QApplication(argc, argv), m_shaders(), m_programs(), m_window()
+    QApplication(argc, argv), m_shaders(), m_programs(), m_window(nullptr), m_shareWidget(nullptr)
 {
     setWindowIcon(QIcon(":/images/simpix-48x48.png"));
 
@@ -27,17 +27,19 @@ Application::Application(int &argc, char **argv) :
 
     swatchBackgroundPixmap = generateBackgroundPixmap(16);
 
-    QSurfaceFormat format;
-    format.setRenderableType(QSurfaceFormat::OpenGL);
-    format.setVersion(3, 3);
-    format.setProfile(QSurfaceFormat::CoreProfile);
-    QSurfaceFormat::setDefaultFormat(format);
+//    QSurfaceFormat format;
+//    format.setRenderableType(QSurfaceFormat::OpenGL);
+//    format.setVersion(3, 3);
+//    format.setProfile(QSurfaceFormat::CoreProfile);
+//    QSurfaceFormat::setDefaultFormat(format);
+
+    m_window = new MainWindow;
 
     m_shareWidget = new QOpenGLWidget;
     // Hack to initialize share widget
     m_shareWidget->show();
     m_shareWidget->hide();
-    qDebug() << "Share:" << m_shareWidget->context() << m_shareWidget->context()->isValid() << "Sharing:" << m_shareWidget->context()->shareContext();;
+    qDebug() << "Share:" << m_shareWidget->context() << m_shareWidget->context()->isValid() << "Sharing:" << m_shareWidget->context()->shareContext();
 
     {
         ContextGrabber grab(m_shareWidget);
@@ -61,7 +63,7 @@ Application::Application(int &argc, char **argv) :
         addProgram("rectanglebrush", QStringList() << "brush.vert" << "rectanglebrush.frag");
     }
 
-    m_window.show();
+    m_window->show();
 }
 
 Application::~Application()
@@ -79,8 +81,8 @@ Application::~Application()
         }
     }
 
+    delete m_window;
     delete m_shareWidget;
-
     delete swatchBackgroundPixmap;
 }
 

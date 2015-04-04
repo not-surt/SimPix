@@ -30,10 +30,10 @@ public:
 private:
     GLuint processShader(const GLenum type, const QString &src);
     GLuint processProgram(const QStringList &shaders);
-    QOpenGLWidget *m_shareWidget;
     QHash<QString, QOpenGLShader *> m_shaders;
     QHash<QString, QOpenGLShaderProgram *> m_programs;
-    MainWindow m_window;
+    MainWindow *m_window;
+    QOpenGLWidget *m_shareWidget;
 //    QHash<QString, Image *> m_images;
 };
 

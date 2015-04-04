@@ -3,8 +3,14 @@
 #include <QFile>
 #include <QPainter>
 #include <QTextStream>
+#include <cstdlib>
 
 QPixmap *swatchBackgroundPixmap = nullptr;
+
+float randUnit()
+{
+    return (float)rand() / (float)RAND_MAX;
+}
 
 void qTransformFillGlslMat3(const QTransform &transform, GLfloat *const matrix)
 {

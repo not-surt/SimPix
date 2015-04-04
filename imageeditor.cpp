@@ -26,6 +26,7 @@ void ImageEditor::initializeGL()
 
     glDisable(GL_BLEND);
     glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+    glClearColor(1, 0, 0, 1);
 }
 
 void ImageEditor::resizeGL(int w, int h)
@@ -50,7 +51,7 @@ void ImageEditor::paintGL()
 {
     initializeOpenGLFunctions();
 
-    if (true || !m_tiled || m_showAlpha) {
+    if (!m_tiled || m_showAlpha) {
         GLuint program = APP->program("checkerboard");
         glUseProgram(program);
 
@@ -76,6 +77,8 @@ void ImageEditor::paintGL()
         glDisableVertexAttribArray(positionAttrib);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+//    glClearColor(randUnit(), randUnit(), randUnit(), 1);
+//    glClear(GL_COLOR_BUFFER_BIT);
 
     if (m_image) {
         if (m_showAlpha) {
