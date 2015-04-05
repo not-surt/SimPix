@@ -5,7 +5,7 @@ uniform ivec4 colour;
 uniform bool isIndexed;
 uniform uint index;
 
-varying vec2 position;
+in vec2 position;
 
 void main(void)
 {

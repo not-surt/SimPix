@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1010</width>
+    <width>1237</width>
     <height>494</height>
    </rect>
   </property>
@@ -22,38 +22,40 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1010</width>
+     <width>1237</width>
      <height>30</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
+   <widget class="QMenu" name="menuProgram">
     <property name="title">
-     <string>&amp;File</string>
+     <string>Pro&amp;gram</string>
     </property>
-    <addaction name="actionNew"/>
-    <addaction name="actionOpen"/>
-    <addaction name="actionRevert"/>
-    <addaction name="actionRecentFiles"/>
-    <addaction name="actionReopenLast"/>
+    <addaction name="actionAbout"/>
+    <addaction name="actionAboutQt"/>
     <addaction name="separator"/>
-    <addaction name="actionSave"/>
-    <addaction name="actionSaveAs"/>
+    <addaction name="actionLicense"/>
     <addaction name="separator"/>
-    <addaction name="actionClose"/>
-    <addaction name="separator"/>
+    <addaction name="actionRememberSession"/>
     <addaction name="actionExit"/>
-    <addaction name="separator"/>
    </widget>
-   <widget class="QMenu" name="menuEdit">
+   <widget class="QMenu" name="menuSession">
     <property name="title">
-     <string>&amp;Edit</string>
+     <string>&amp;Session</string>
     </property>
-    <addaction name="actionUndo"/>
-    <addaction name="actionRedo"/>
+    <addaction name="actionSessionNew"/>
+    <addaction name="actionSessionOpen"/>
+    <addaction name="actionSessionRecent"/>
+    <addaction name="actionSessionLoadLayout"/>
+    <addaction name="separator"/>
+    <addaction name="actionSessionSave"/>
+    <addaction name="actionSessionSaveAs"/>
+    <addaction name="actionSave_on_Close"/>
+    <addaction name="separator"/>
+    <addaction name="actionSessionClose"/>
    </widget>
-   <widget class="QMenu" name="menuWindow">
+   <widget class="QMenu" name="menuLayout">
     <property name="title">
-     <string>&amp;Window</string>
+     <string>&amp;Layout</string>
     </property>
     <addaction name="actionFullscreen"/>
     <addaction name="separator"/>
@@ -72,31 +74,49 @@
     <addaction name="separator"/>
     <addaction name="actionTileSubwindows"/>
     <addaction name="actionCascadeSubwindows"/>
-    <addaction name="actionNextSubwindow"/>
-    <addaction name="actionPreviousSubwindow"/>
     <addaction name="actionUseTabs"/>
    </widget>
-   <widget class="QMenu" name="menuHelp">
+   <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>&amp;Help</string>
+     <string>&amp;File</string>
     </property>
-    <addaction name="actionAbout"/>
-    <addaction name="actionAboutQt"/>
+    <addaction name="actionFileNew"/>
+    <addaction name="actionFileOpen"/>
+    <addaction name="actionFileRevert"/>
+    <addaction name="actionFileRecent"/>
     <addaction name="separator"/>
-    <addaction name="actionLicense"/>
+    <addaction name="actionFileSave"/>
+    <addaction name="actionFileSaveAs"/>
+    <addaction name="separator"/>
+    <addaction name="actionFileClose"/>
    </widget>
-   <widget class="QMenu" name="menu_View">
+   <widget class="QMenu" name="menuEditor">
     <property name="title">
-     <string>&amp;View</string>
+     <string>E&amp;ditor</string>
     </property>
     <addaction name="actionTiled"/>
+    <addaction name="actionTileX"/>
+    <addaction name="actionTileY"/>
+    <addaction name="separator"/>
+    <addaction name="actionShowAlpha"/>
     <addaction name="actionShowBounds"/>
+    <addaction name="separator"/>
+    <addaction name="actionNextSubwindow"/>
+    <addaction name="actionPreviousSubwindow"/>
    </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
+   </widget>
+   <addaction name="menuProgram"/>
+   <addaction name="menuSession"/>
+   <addaction name="menuLayout"/>
    <addaction name="menuFile"/>
+   <addaction name="menuEditor"/>
    <addaction name="menuEdit"/>
-   <addaction name="menu_View"/>
-   <addaction name="menuWindow"/>
-   <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <property name="windowTitle">
@@ -109,10 +129,10 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionMenuMenu"/>
-   <addaction name="actionNew"/>
-   <addaction name="actionOpen"/>
-   <addaction name="actionSave"/>
-   <addaction name="actionClose"/>
+   <addaction name="actionFileNew"/>
+   <addaction name="actionFileOpen"/>
+   <addaction name="actionFileSave"/>
+   <addaction name="actionFileClose"/>
    <addaction name="separator"/>
    <addaction name="actionUndo"/>
    <addaction name="actionRedo"/>
@@ -152,7 +172,7 @@
    </attribute>
    <widget class="ColourSelector" name="colourSelector"/>
   </widget>
-  <widget class="QToolBar" name="windowToolBar">
+  <widget class="QToolBar" name="layoutToolBar">
    <property name="windowTitle">
     <string>Window</string>
    </property>
@@ -165,17 +185,19 @@
    <addaction name="actionFullscreen"/>
    <addaction name="separator"/>
    <addaction name="actionMenu"/>
-   <addaction name="actionToolbarsMenu"/>
-   <addaction name="actionDocksMenu"/>
-   <addaction name="actionStatusBar"/>
    <addaction name="separator"/>
+   <addaction name="actionToolbarsMenu"/>
    <addaction name="actionLockToolbars"/>
+   <addaction name="separator"/>
+   <addaction name="actionDocksMenu"/>
    <addaction name="actionDockTitles"/>
    <addaction name="actionLockDocks"/>
+   <addaction name="separator"/>
+   <addaction name="actionStatusBar"/>
   </widget>
   <widget class="QDockWidget" name="colourContextDockWidget">
    <property name="windowTitle">
-    <string>Co&amp;lour Context</string>
+    <string>Colo&amp;ur Context</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -205,8 +227,11 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionTiled"/>
+   <addaction name="actionTileX"/>
+   <addaction name="actionTileY"/>
+   <addaction name="separator"/>
+   <addaction name="actionShowAlpha"/>
    <addaction name="actionShowBounds"/>
-   <addaction name="actionAlpha"/>
   </widget>
   <widget class="QToolBar" name="modeToolBar">
    <property name="windowTitle">
@@ -228,7 +253,7 @@
    <addaction name="actionModeFlood"/>
    <addaction name="actionModeMatchColour"/>
   </widget>
-  <action name="actionNew">
+  <action name="actionFileNew">
    <property name="icon">
     <iconset theme="document-new">
      <normaloff/>
@@ -241,7 +266,7 @@
     <string>Ctrl+N</string>
    </property>
   </action>
-  <action name="actionOpen">
+  <action name="actionFileOpen">
    <property name="icon">
     <iconset theme="document-open">
      <normaloff/>
@@ -254,7 +279,7 @@
     <string>Ctrl+O</string>
    </property>
   </action>
-  <action name="actionSave">
+  <action name="actionFileSave">
    <property name="icon">
     <iconset theme="document-save">
      <normaloff/>
@@ -267,7 +292,7 @@
     <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="actionSaveAs">
+  <action name="actionFileSaveAs">
    <property name="icon">
     <iconset theme="document-save-as">
      <normaloff/>
@@ -415,7 +440,7 @@
     <string>About &amp;Qt</string>
    </property>
   </action>
-  <action name="actionRevert">
+  <action name="actionFileRevert">
    <property name="icon">
     <iconset theme="document-revert">
      <normaloff/>
@@ -425,17 +450,17 @@
     <string>Re&amp;vert</string>
    </property>
   </action>
-  <action name="actionRecentFiles">
+  <action name="actionFileRecent">
    <property name="icon">
     <iconset theme="document-open-recent">
      <normaloff/>
     </iconset>
    </property>
    <property name="text">
-    <string>&amp;Recent Files</string>
+    <string>&amp;Recent</string>
    </property>
   </action>
-  <action name="actionClose">
+  <action name="actionFileClose">
    <property name="icon">
     <iconset theme="window-close">
      <normaloff/>
@@ -481,12 +506,15 @@
     <string>Ctrl+M</string>
    </property>
   </action>
-  <action name="actionReopenLast">
+  <action name="actionRememberSession">
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Reopen &amp;Last File at Startup</string>
+    <string>Remember Session</string>
    </property>
   </action>
   <action name="actionLicense">
@@ -516,7 +544,7 @@
     <string>Show Bounds</string>
    </property>
   </action>
-  <action name="actionAlpha">
+  <action name="actionShowAlpha">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -524,7 +552,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Alpha</string>
+    <string>Show &amp;Alpha</string>
    </property>
    <property name="toolTip">
     <string>Alpha</string>
@@ -724,22 +752,22 @@
   </action>
   <action name="actionTileSubwindows">
    <property name="text">
-    <string>T&amp;ile Subwindows</string>
+    <string>T&amp;ile Editors</string>
    </property>
   </action>
   <action name="actionCascadeSubwindows">
    <property name="text">
-    <string>Cascade S&amp;ubwindows</string>
+    <string>Cascade Edito&amp;rs</string>
    </property>
   </action>
   <action name="actionNextSubwindow">
    <property name="text">
-    <string>&amp;Next Subwindow</string>
+    <string>&amp;Next</string>
    </property>
   </action>
   <action name="actionPreviousSubwindow">
    <property name="text">
-    <string>&amp;Previous Subwindow</string>
+    <string>&amp;Previous</string>
    </property>
   </action>
   <action name="actionUseTabs">
@@ -759,6 +787,97 @@
    </property>
    <property name="toolTip">
     <string>Lock Toolbars</string>
+   </property>
+  </action>
+  <action name="actionTileX">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Tile &amp;X</string>
+   </property>
+   <property name="toolTip">
+    <string>Tile X</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
+  </action>
+  <action name="actionTileY">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Tile &amp;Y</string>
+   </property>
+   <property name="toolTip">
+    <string>Tile Y</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
+   </property>
+  </action>
+  <action name="actionSessionNew">
+   <property name="text">
+    <string>&amp;New</string>
+   </property>
+  </action>
+  <action name="actionSessionOpen">
+   <property name="text">
+    <string>&amp;Open</string>
+   </property>
+  </action>
+  <action name="actionSessionClose">
+   <property name="text">
+    <string>&amp;Close</string>
+   </property>
+  </action>
+  <action name="actionSessionRecent">
+   <property name="text">
+    <string>&amp;Recent</string>
+   </property>
+  </action>
+  <action name="actionSessionSave">
+   <property name="text">
+    <string>Sa&amp;ve</string>
+   </property>
+  </action>
+  <action name="actionSessionSaveAs">
+   <property name="text">
+    <string>Sav&amp;e As</string>
+   </property>
+  </action>
+  <action name="actionSessionLoadLayout">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Load Layout</string>
+   </property>
+  </action>
+  <action name="actionLayout">
+   <property name="text">
+    <string>Layout</string>
+   </property>
+  </action>
+  <action name="actionSave_on_Close">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Save on Close</string>
    </property>
   </action>
  </widget>

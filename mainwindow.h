@@ -33,6 +33,7 @@ public slots:
     void showDocks(bool checked);
     void showDockTitles(bool checked);
     void lockDocks(bool checked);
+    void useTabs(bool checked);
     ImageEditor *newEditor(Image *const image);
     void activateSubWindow(QMdiSubWindow *const subWindow);
 

@@ -38,27 +38,37 @@ MainWindow::MainWindow(QWidget *parent) :
 {    
     ui->setupUi(this);
     m_mdi = new QMdiArea;
-    m_mdi->setViewMode(QMdiArea::TabbedView);
     m_mdi->setTabsClosable(true);
     m_mdi->setTabsMovable(true);
     setCentralWidget(m_mdi);
     setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
 
-    // Copy actions to window. Is there a better way?
-    QListIterator<QMenu *> menu(ui->menuBar->findChildren<QMenu *>());
-    while (menu.hasNext()) {
-        addActions(menu.next()->findChildren<QAction *>());
+    // Copy actions to window so available when menu hidden. Is there a better way?
+    QListIterator<QMenu *> menuIterator(ui->menuBar->findChildren<QMenu *>());
+    while (menuIterator.hasNext()) {
+        addActions(menuIterator.next()->findChildren<QAction *>());
+//        // The better way? No.
+//        QList<QAction *> actions = menuIterator.next()->findChildren<QAction *>();
+//        QListIterator<QAction *> actionIterator(actions);
+//        while (actionIterator.hasNext()) {
+//            actionIterator.next()->setShortcutContext(Qt::ApplicationShortcut);
+//        }
     }
     ui->menuBar->hide();
 
     QObject::connect(m_mdi, &QMdiArea::subWindowActivated, this, &MainWindow::activateSubWindow);
 
-    QObject::connect(ui->actionNew, &QAction::triggered, this, &MainWindow::newImage);
-    QObject::connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::openImage);
-    QObject::connect(ui->actionSave, &QAction::triggered, this, &MainWindow::saveImage);
-    QObject::connect(ui->actionSaveAs, &QAction::triggered, this, &MainWindow::saveAsImage);
-    QObject::connect(ui->actionClose, &QAction::triggered, this, &MainWindow::closeImage);
+    QObject::connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
+    QObject::connect(ui->actionAboutQt, &QAction::triggered, this, &MainWindow::aboutQt);
+    QObject::connect(ui->actionLicense, &QAction::triggered, this, &MainWindow::license);
     QObject::connect(ui->actionExit, &QAction::triggered, this, &MainWindow::close);
+
+    QObject::connect(ui->actionFileNew, &QAction::triggered, this, &MainWindow::newImage);
+    QObject::connect(ui->actionFileOpen, &QAction::triggered, this, &MainWindow::openImage);
+    QObject::connect(ui->actionFileSave, &QAction::triggered, this, &MainWindow::saveImage);
+    QObject::connect(ui->actionFileSaveAs, &QAction::triggered, this, &MainWindow::saveAsImage);
+    QObject::connect(ui->actionFileClose, &QAction::triggered, this, &MainWindow::closeImage);
+
     QObject::connect(ui->actionMenu, &QAction::triggered, this->menuBar(), &QToolBar::setVisible);
     QObject::connect(ui->actionStatusBar, &QAction::triggered, this->statusBar(), &QToolBar::setVisible);
     QObject::connect(ui->actionFullscreen, &QAction::triggered, this, &MainWindow::setFullscreen);
@@ -66,10 +76,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionCascadeSubwindows, &QAction::triggered, m_mdi, &QMdiArea::cascadeSubWindows);
     QObject::connect(ui->actionNextSubwindow, &QAction::triggered, m_mdi, &QMdiArea::activateNextSubWindow);
     QObject::connect(ui->actionPreviousSubwindow, &QAction::triggered, m_mdi, &QMdiArea::activatePreviousSubWindow);
-    QObject::connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
-    QObject::connect(ui->actionAboutQt, &QAction::triggered, this, &MainWindow::aboutQt);
-    QObject::connect(ui->actionLicense, &QAction::triggered, this, &MainWindow::license);
-
+    QObject::connect(ui->actionUseTabs, &QAction::triggered, this, &MainWindow::useTabs);
     QObject::connect(ui->actionToolbarsMenu, &QAction::triggered, this, &MainWindow::showToolbars);
     QObject::connect(ui->actionAllToolbars, &QAction::triggered, this, &MainWindow::showToolbars);
     QObject::connect(ui->actionLockToolbars, &QAction::triggered, this, &MainWindow::lockToolbars);
@@ -89,7 +96,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMenu *toolBarMenu = new QMenu;
     ui->actionToolbars->setMenu(toolBarMenu);
     ui->actionToolbarsMenu->setMenu(toolBarMenu);
-    static_cast<QToolButton *>(ui->windowToolBar->widgetForAction(ui->actionToolbarsMenu))->setPopupMode(QToolButton::MenuButtonPopup);
+    static_cast<QToolButton *>(ui->layoutToolBar->widgetForAction(ui->actionToolbarsMenu))->setPopupMode(QToolButton::MenuButtonPopup);
     QListIterator<QToolBar *> toolbar(findChildren<QToolBar *>());
     while (toolbar.hasNext()) {
         toolBarMenu->addAction(toolbar.next()->toggleViewAction());
@@ -98,7 +105,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMenu *dockMenu = new QMenu;
     ui->actionDocks->setMenu(dockMenu);
     ui->actionDocksMenu->setMenu(dockMenu);
-    static_cast<QToolButton *>(ui->windowToolBar->widgetForAction(ui->actionDocksMenu))->setPopupMode(QToolButton::MenuButtonPopup);
+    static_cast<QToolButton *>(ui->layoutToolBar->widgetForAction(ui->actionDocksMenu))->setPopupMode(QToolButton::MenuButtonPopup);
     QListIterator<QDockWidget *> dock(findChildren<QDockWidget *>());
     while (dock.hasNext()) {
         dockMenu->addAction(dock.next()->toggleViewAction());
@@ -114,7 +121,7 @@ MainWindow::MainWindow(QWidget *parent) :
     act->setDefaultWidget(edt);
     ui->menuFile->addAction(act);
 
-    ui->windowToolBar->hide();
+    ui->layoutToolBar->hide();
     activateSubWindow(nullptr);
 
     QSettings settings;
@@ -142,8 +149,6 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
         if (image) {
             QObject::disconnect(image, &Image::dirtied, editor, SS_CAST(ImageEditor, update,));
     //            QObject::disconnect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
-//            QObject::disconnect(editor, &ImageEditor::clicked, image, &Image::point);
-//            QObject::disconnect(editor, &ImageEditor::dragged, image, &Image::stroke);
             ui->paletteWidget->setEditingContext(nullptr);
         }
 
@@ -152,8 +157,12 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
         QObject::disconnect(editor, &ImageEditor::transformChanged, ui->transformWidget, &TransformWidget::setTransform);
 
         QObject::disconnect(ui->actionTiled, &QAction::triggered, editor, &ImageEditor::setTiled);
+        QObject::disconnect(ui->actionTileX, &QAction::triggered, editor, &ImageEditor::setTileX);
+        ui->actionTileX->setChecked(editor->tileX());
+        QObject::disconnect(ui->actionTileY, &QAction::triggered, editor, &ImageEditor::setTileY);
+        ui->actionTileY->setChecked(editor->tileY());
         QObject::disconnect(ui->actionShowBounds, &QAction::triggered, editor, &ImageEditor::setShowBounds);
-        QObject::disconnect(ui->actionAlpha, &QAction::triggered, editor, &ImageEditor::setShowAlpha);
+        QObject::disconnect(ui->actionShowAlpha, &QAction::triggered, editor, &ImageEditor::setShowAlpha);
 
         QObject::disconnect(editor, &ImageEditor::mouseEntered, m_statusMouseWidget, &StatusMouseWidget::show);
         QObject::disconnect(editor, &ImageEditor::mouseLeft, m_statusMouseWidget, &StatusMouseWidget::hide);
@@ -166,8 +175,6 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
         if (image) {
             QObject::connect(image, &Image::dirtied, editor, SS_CAST(ImageEditor, update,));
     //            QObject::connect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
-//            QObject::connect(editor, &ImageEditor::clicked, image, &Image::point);
-//            QObject::connect(editor, &ImageEditor::dragged, image, &Image::stroke);
             ui->paletteWidget->setEditingContext(&editor->editingContext());
             setWindowFilePath(image->fileName());
         }
@@ -178,10 +185,14 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
 
         QObject::connect(ui->actionTiled, &QAction::triggered, editor, &ImageEditor::setTiled);
         ui->actionTiled->setChecked(editor->tiled());
+        QObject::connect(ui->actionTileX, &QAction::triggered, editor, &ImageEditor::setTileX);
+        ui->actionTileX->setChecked(editor->tileX());
+        QObject::connect(ui->actionTileY, &QAction::triggered, editor, &ImageEditor::setTileY);
+        ui->actionTileY->setChecked(editor->tileY());
         QObject::connect(ui->actionShowBounds, &QAction::triggered, editor, &ImageEditor::setShowBounds);
         ui->actionShowBounds->setChecked(editor->showBounds());
-        QObject::connect(ui->actionAlpha, &QAction::triggered, editor, &ImageEditor::setShowAlpha);
-        ui->actionAlpha->setChecked(editor->showAlpha());
+        QObject::connect(ui->actionShowAlpha, &QAction::triggered, editor, &ImageEditor::setShowAlpha);
+        ui->actionShowAlpha->setChecked(editor->showAlpha());
 
         QObject::connect(editor, &ImageEditor::mouseEntered, m_statusMouseWidget, &StatusMouseWidget::show);
         QObject::connect(editor, &ImageEditor::mouseLeft, m_statusMouseWidget, &StatusMouseWidget::hide);
@@ -192,8 +203,10 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
         setWindowFilePath(QString());
     }
     ui->actionTiled->setEnabled(subWindow);
+    ui->actionTileX->setEnabled(subWindow);
+    ui->actionTileY->setEnabled(subWindow);
     ui->actionShowBounds->setEnabled(subWindow);
-    ui->actionAlpha->setEnabled(subWindow);
+    ui->actionShowAlpha->setEnabled(subWindow);
     m_oldSubWindow = subWindow;
 }
 
@@ -235,6 +248,11 @@ void MainWindow::lockDocks(bool checked)
         dock->setAllowedAreas(dock->isFloating() && checked ? Qt::NoDockWidgetArea : Qt::AllDockWidgetAreas);
         dock->setFeatures(dock->isFloating() || !checked ? (QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable) : QDockWidget::NoDockWidgetFeatures);
     }
+}
+
+void MainWindow::useTabs(bool checked)
+{
+    m_mdi->setViewMode(checked ? QMdiArea::TabbedView : QMdiArea::SubWindowView);
 }
 
 void MainWindow::lockToolbars(bool checked)

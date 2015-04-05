@@ -304,7 +304,6 @@ void Image::stroke(const QPoint &point0, const QPoint &point1, EditingContext *c
 
 void Image::pick(const QPoint &point, EditingContext *const editingContext)
 {
-    qDebug() << "Pick a winner!";
     if (m_imageData->rect().contains(point)) {
         if (format() == ImageDataFormat::Indexed) {
             editingContext->setColourSlot(m_imageData->pixel(point), editingContext->activeColourSlot());

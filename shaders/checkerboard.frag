@@ -3,7 +3,7 @@
 uniform ivec4 colour0, colour1;
 uniform vec2 size;
 
-varying vec2 texturePosition;
+in vec2 texturePosition;
 
 void main(void)
 {

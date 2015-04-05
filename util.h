@@ -54,6 +54,16 @@ inline T wrap(T value, const T min, const T max)
     return remainder * range + min;
 }
 
+template<typename R, typename P>
+void expandRect(R &rect, const P &point)
+{
+    rect.setLeft(std::min(rect.left(), point.x()));
+    rect.setRight(std::max(rect.right(), point.x()));
+    rect.setTop(std::min(rect.top(), point.y()));
+    rect.setBottom(std::max(rect.bottom(), point.y()));
+}
+
+
 class ObjectSignalBlocker
 {
 public:

@@ -1,6 +1,6 @@
 #version 130
 
-uniform ivec4 colour;
+flat in ivec4 colour;
 
 void main(void)
 {

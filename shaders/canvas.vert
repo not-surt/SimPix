@@ -1,14 +1,14 @@
 #version 130
 
 uniform mat4 matrix;
-uniform mat4 textureMatrix;
+uniform vec2 offset;
 
-attribute vec3 position;
+in vec3 position;
 
-varying vec2 texturePosition;
+out vec2 texturePosition;
 
 void main(void)
 {
-    gl_Position = matrix * vec4(position, 1.);
-    texturePosition = (textureMatrix * vec4(position, 1.)).xy;
+    gl_Position = matrix * (vec4(position, 1.) + vec4(offset, 0., 0.));
+    texturePosition = vec4(position, 1.).xy;
 }

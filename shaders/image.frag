@@ -6,11 +6,11 @@ uniform bool isIndexed;
 uniform bool hasPalette;
 uniform usampler2D paletteTextureUnit;
 
-varying vec2 texturePosition;
+in vec2 texturePosition;
 
 void main(void)
 {
-    ivec2 texelPosition = ivec2(floor(mod(texturePosition, textureSize(textureUnit, 0))));
+    ivec2 texelPosition = ivec2(floor(texturePosition));
     if (isIndexed) {
         uint texel = texelFetch(textureUnit, texelPosition, 0).r;
         if (hasPalette) {
