@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_mdi->setTabsClosable(true);
     m_mdi->setTabsMovable(true);
     setCentralWidget(m_mdi);
+    setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
 
     // Copy actions to window. Is there a better way?
     QListIterator<QMenu *> menu(ui->menuBar->findChildren<QMenu *>());
@@ -141,8 +142,8 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
         if (image) {
             QObject::disconnect(image, &Image::dirtied, editor, SS_CAST(ImageEditor, update,));
     //            QObject::disconnect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
-            QObject::disconnect(editor, &ImageEditor::clicked, image, &Image::point);
-            QObject::disconnect(editor, &ImageEditor::dragged, image, &Image::stroke);
+//            QObject::disconnect(editor, &ImageEditor::clicked, image, &Image::point);
+//            QObject::disconnect(editor, &ImageEditor::dragged, image, &Image::stroke);
             ui->paletteWidget->setEditingContext(nullptr);
         }
 
@@ -165,8 +166,8 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
         if (image) {
             QObject::connect(image, &Image::dirtied, editor, SS_CAST(ImageEditor, update,));
     //            QObject::connect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
-            QObject::connect(editor, &ImageEditor::clicked, image, &Image::point);
-            QObject::connect(editor, &ImageEditor::dragged, image, &Image::stroke);
+//            QObject::connect(editor, &ImageEditor::clicked, image, &Image::point);
+//            QObject::connect(editor, &ImageEditor::dragged, image, &Image::stroke);
             ui->paletteWidget->setEditingContext(&editor->editingContext());
             setWindowFilePath(image->fileName());
         }
@@ -275,10 +276,9 @@ ImageEditor *MainWindow::newEditor(Image *const image) {
     }
     subWindow->resize(size);
     m_mdi->addSubWindow(subWindow);
-    ImageEditor *editor = new ImageEditor;
+    ImageEditor *editor = new ImageEditor(image);
     subWindow->setWidget(editor);
     editor->show();
-    editor->setImage(image);
     return editor;
 }
 
@@ -286,9 +286,9 @@ void MainWindow::newImage()
 {
     NewDialog *dialog = new NewDialog(this);
     if (dialog->exec()) {
-        Image *newImage = new Image(dialog->imageSize(), dialog->mode());
-        m_images.append(newImage);
-        ImageEditor *editor = newEditor(newImage);
+        Image *image = new Image(dialog->imageSize(), dialog->mode());
+        m_images.append(image);
+        ImageEditor *editor = newEditor(image);
     }
 }
 

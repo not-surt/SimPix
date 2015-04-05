@@ -107,6 +107,11 @@ ImageDataFormat Image::format() const
     return m_imageData->format();
 }
 
+Editor *Image::createEditor()
+{
+    return nullptr;
+}
+
 Document::Document(QObject *parent) :
     QObject(parent), m_fileName(QString()), m_dirty(false)
 {
@@ -117,6 +122,11 @@ Document::Document(const QString &fileName, QObject *parent) :
     QObject(parent), m_fileName(fileName), m_dirty(false)
 {
 
+}
+
+bool Document::revert()
+{
+    return doOpen(m_fileName);
 }
 
 const QString &Document::fileName() const
@@ -159,6 +169,11 @@ bool Document::save(QString fileName)
         saved = doSave(fileName);
     }
     return saved;
+}
+
+bool Image::doOpen(QString fileName)
+{
+    return true;
 }
 
 bool Image::doSave(QString fileName)
@@ -205,11 +220,6 @@ ImageData *Image::imageData()
 PaletteData *Image::paletteData()
 {
     return m_paletteData;
-}
-
-QList<ImageEditor *> &Image::editors()
-{
-    return m_editors;
 }
 
 void drawPixel(TextureData &texture, const QPoint &point, const uint colour, const void *const data = nullptr)
@@ -294,6 +304,7 @@ void Image::stroke(const QPoint &point0, const QPoint &point1, EditingContext *c
 
 void Image::pick(const QPoint &point, EditingContext *const editingContext)
 {
+    qDebug() << "Pick a winner!";
     if (m_imageData->rect().contains(point)) {
         if (format() == ImageDataFormat::Indexed) {
             editingContext->setColourSlot(m_imageData->pixel(point), editingContext->activeColourSlot());

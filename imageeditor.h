@@ -19,7 +19,7 @@ class ImageEditor : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     Q_ENUMS(image transform)
 
 public:
-    explicit ImageEditor(QWidget *parent = nullptr);
+    explicit ImageEditor(Image *image, QWidget *parent = nullptr);
     ~ImageEditor();
     Image *image() const;
     const Transform &transform() const;
@@ -46,7 +46,6 @@ signals:
     void limitTransformChanged(bool arg);
 
 public slots:
-    void setImage(Image *const image);
     void setTransform(const Transform &transform);
     void setTiled(const bool tiled);
     void setShowBounds(const bool showBounds);
@@ -69,7 +68,7 @@ protected:
     void updateMatrix();
 
 private:
-    Image *m_image;
+    Image *const m_image;
     Transform m_transform;
     bool m_tiled;
     QPoint lastMousePos;

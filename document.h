@@ -3,6 +3,18 @@
 
 #include "data.h"
 
+class Document;
+
+class Editor
+{
+public:
+    explicit Editor(Document *document) :
+        m_document(document) {}
+    Document *document() { return m_document; }
+protected:
+    Document *m_document;
+};
+
 class Document : public QObject
 {
     Q_OBJECT
@@ -11,13 +23,15 @@ public:
     explicit Document(const QString &fileName, QObject *parent = nullptr);
     virtual ~Document() {}
 
-//    bool reopen();
+    bool revert();
     bool save(QString fileName = QString());
 
     const QString &fileName() const;
     QString shortName() const;
     void setFileName(const QString &fileName);
     bool dirty() const;
+    virtual Editor *createEditor() = 0;
+    QList<Editor *> *editors();
 
 signals:
     void fileNameChanged(const QString &fileName);
@@ -28,10 +42,12 @@ public slots:
 
 protected:
     void makeDirty();
+    virtual bool doOpen(QString fileName) = 0;
     virtual bool doSave(QString fileName) = 0;
 
     QString m_fileName;
     bool m_dirty;
+    QList<Editor *> m_editors;
 };
 
 //class Palette : public Document
@@ -62,10 +78,10 @@ public:
     ~Image();
 
     ImageDataFormat format() const;
+    Editor *createEditor();
 
     ImageData *imageData();
     PaletteData *paletteData();
-    QList<ImageEditor *> &editors();
 
 signals:
 
@@ -75,12 +91,12 @@ public slots:
     void pick(const QPoint &position, EditingContext *const editingContext);
 
 protected:
-    virtual bool doSave(QString fileName);
+    bool doOpen(QString fileName);
+    bool doSave(QString fileName);
 
     ImageData *m_imageData;
     PaletteData *m_paletteData;
     QList<ImageData *> m_layers;
-    QList<ImageEditor *> m_editors;
 };
 
 class DocumentFactory {

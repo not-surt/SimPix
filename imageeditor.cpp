@@ -8,11 +8,27 @@
 #include "transform.h"
 #include <QOpenGLShaderProgram>
 
-ImageEditor::ImageEditor(QWidget *parent) :
-    QOpenGLWidget(parent), m_image(nullptr), m_transform(), m_tiled(false), panKeyDown(false), m_showBounds(false), matricesDirty(true), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true)
+ImageEditor::ImageEditor(Image *image, QWidget *parent) :
+    QOpenGLWidget(parent), m_image(image), m_transform(), m_tiled(false), panKeyDown(false), m_showBounds(false), matricesDirty(true), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true)
 {
-    setImage(nullptr);
     setMouseTracking(true);
+
+    Transform transform;
+    transform.setOrigin(QVector3D((float)floor(width() / 2.f), floor((float)height() / 2.f), 0.f));
+    transform.setPan(QVector3D(0.f, 0.f, 0.f));
+    transform.setZoom(1.f);
+    transform.setPixelAspect(QVector3D(1.f, 1.f, 0.f));
+    transform.setRotation(0.f);
+    if (m_image) {
+        transform.setPan(-QVector3D(floor((float)m_image->imageData()->size().width() / 2.f), floor((float)m_image->imageData()->size().height() / 2.f), 0.f));
+        m_editingContext.setImage(m_image->imageData());
+        m_editingContext.setPalette(m_image->paletteData());
+    }
+    else {
+        m_editingContext.setImage(nullptr);
+        m_editingContext.setPalette(nullptr);
+    }
+    setTransform(transform);
 }
 
 ImageEditor::~ImageEditor()
@@ -213,7 +229,8 @@ void ImageEditor::mouseMoveEvent(QMouseEvent *event)
     }
     if (!panKeyDown && event->buttons() & Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
         if (m_image) {
-            emit dragged(lastPixel, pixel, &m_editingContext);
+//            emit dragged(lastPixel, pixel, &m_editingContext);
+            m_image->stroke(lastPixel, pixel, &m_editingContext);
             lastMousePos = event->pos();
             lastMouseImagePos = mouseImagePosition;
             event->accept();
@@ -242,7 +259,8 @@ void ImageEditor::mouseReleaseEvent(QMouseEvent *event)
     if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
         if (m_image) {
             const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
-            emit clicked(pixel, &m_editingContext);
+//            emit clicked(pixel, &m_editingContext);
+            m_image->point(pixel, &m_editingContext);
         }
         QApplication::restoreOverrideCursor();
         event->accept();
@@ -409,29 +427,6 @@ EditingContext &ImageEditor::editingContext()
 bool ImageEditor::limitTransform() const
 {
     return m_limitTransform;
-}
-
-void ImageEditor::setImage(Image *const image)
-{
-    if (m_image != image) {
-        m_image = image;
-        Transform transform;
-        transform.setOrigin(QVector3D((float)floor(width() / 2.f), floor((float)height() / 2.f), 0.f));
-        transform.setPan(QVector3D(0.f, 0.f, 0.f));
-        transform.setZoom(1.f);
-        transform.setPixelAspect(QVector3D(1.f, 1.f, 0.f));
-        transform.setRotation(0.f);
-        if (m_image) {
-            transform.setPan(-QVector3D(floor((float)m_image->imageData()->size().width() / 2.f), floor((float)m_image->imageData()->size().height() / 2.f), 0.f));
-            m_editingContext.setImage(m_image->imageData());
-            m_editingContext.setPalette(m_image->paletteData());
-        }
-        else {
-            m_editingContext.setImage(nullptr);
-            m_editingContext.setPalette(nullptr);
-        }
-        setTransform(transform);
-    }
 }
 
 void ImageEditor::setTransform(const Transform &transform)
