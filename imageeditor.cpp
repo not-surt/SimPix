@@ -60,24 +60,7 @@ void ImageEditor::paintGL()
 {
     initializeOpenGLFunctions();
 
-    QRect tilingBounds(0, 0, 1, 1);
-    if (m_tiled) {
-        QRectF bounds(QPointF(0., 0.), QSizeF(1., 1.));
-        expandRect(bounds, m_transform.inverseMatrix().map(QPointF((float)width(), 0.)));
-        expandRect(bounds, m_transform.inverseMatrix().map(QPointF(0., (float)height())));
-        expandRect(bounds, m_transform.inverseMatrix().map(QPointF((float)width(), (float)height())));
-        if (m_tileX) {
-            tilingBounds.setLeft((int)floor(bounds.left() / m_image->imageData()->size().width()));
-            tilingBounds.setRight((int)ceil(bounds.right() / m_image->imageData()->size().width()));
-        }
-        if (m_tileY) {
-            tilingBounds.setTop((int)floor(bounds.top() / m_image->imageData()->size().height()));
-            tilingBounds.setBottom((int)ceil(bounds.bottom() / m_image->imageData()->size().height()));
-        }
-        qDebug() << size() << bounds << tilingBounds;///////////////////////////////
-    }
-
-    if (!m_tiled || !m_tileX || !m_tileX || m_showAlpha) {
+    if (!m_tiled || !m_tileX || !m_tileY || m_showAlpha) {
         GLuint program = APP->program("checkerboard");
         glUseProgram(program);
 
@@ -102,6 +85,23 @@ void ImageEditor::paintGL()
 
         glDisableVertexAttribArray(positionAttrib);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    QRect tilingBounds(0, 0, 1, 1);
+    if (m_tiled) {
+        QRectF bounds(m_transform.inverseMatrix().map(QPointF(0., 0.)), QSizeF(1., 1.));
+        expandRect(bounds, m_transform.inverseMatrix().map(QPointF((float)width(), 0.)));
+        expandRect(bounds, m_transform.inverseMatrix().map(QPointF(0., (float)height())));
+        expandRect(bounds, m_transform.inverseMatrix().map(QPointF((float)width(), (float)height())));
+        if (m_tileX) {
+            tilingBounds.setLeft((int)floor(bounds.left() / m_image->imageData()->size().width()));
+            tilingBounds.setRight((int)ceil(bounds.right() / m_image->imageData()->size().width()));
+        }
+        if (m_tileY) {
+            tilingBounds.setTop((int)floor(bounds.top() / m_image->imageData()->size().height()));
+            tilingBounds.setBottom((int)ceil(bounds.bottom() / m_image->imageData()->size().height()));
+        }
+        qDebug() << pos() << size() << bounds << tilingBounds;///////////////////////////////
     }
 
     for (int y = tilingBounds.top(); y <= tilingBounds.bottom(); y++) {
@@ -440,18 +440,9 @@ void ImageEditor::setTransform(const Transform &transform)
     if (m_transform != transform) {
         m_transform = transform;
         if (m_limitTransform) {
-            if (m_image) {
-                if (!m_tiled) {
-                    m_transform.setPan(QVector3D(clamp(m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f),
-                                               clamp(m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f),
-                                               0.f));
-                }
-                else {
-                    m_transform.setPan(QVector3D(wrap(m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f),
-                                               wrap(m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f),
-                                               0.f));
-                }
-            }
+            float panX = (m_tiled && m_tileX) ? wrap(m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f) : clamp(m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f);
+            float panY = (m_tiled && m_tileY) ? wrap(m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f) : clamp(m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f);
+            m_transform.setPan(QVector3D(panX, panY, 0.f));
             m_transform.setZoom(clamp(m_transform.zoom(), 1.f/16.f, 256.f));
             m_transform.setPixelAspect(QVector3D(clamp(m_transform.pixelAspect().x(), 1.f/16.f, 16.f), clamp(m_transform.pixelAspect().y(), 1.f/16.f, 16.f), 0.f));
             m_transform.setRotation(wrap(m_transform.rotation(), 0.f, 360.f));
