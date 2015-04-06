@@ -20,7 +20,7 @@ static const QSize sizePresets[] = {
     QSize(), QSize()
 };
 
-static const QSizeF pixelAspectPresets[] = {
+static const QSizeF pixelSizePresets[] = {
     {1., 1.},
     {2., 1.},
     {1., 2.},
@@ -30,7 +30,7 @@ static const QSizeF pixelAspectPresets[] = {
 
 typedef struct ImagePreset {
     QSize size;
-    QSize pixelAspect;
+    QSize pixelSize;
     QImage::Format mode;
     QString palette;
     QVariant fill;

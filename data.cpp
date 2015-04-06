@@ -132,13 +132,13 @@ ImageData::ImageData(QOpenGLWidget *const widget, const QSize &size, const Image
 
     glGenBuffers((GLsizei)1, &m_vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-    const GLfloat vertices[][3] = {
-        {0.f, 0.f, 0.f},
-        {(GLfloat)size.width(), 0.f, 0.f},
-        {(GLfloat)size.width(), (GLfloat)size.height(), 0.f},
-        {0.f, (GLfloat)size.height(), 0.f},
+    const GLfloat vertices[][2] = {
+        {0.f, 0.f},
+        {(GLfloat)size.width(), 0.f},
+        {(GLfloat)size.width(), (GLfloat)size.height()},
+        {0.f, (GLfloat)size.height()},
     };
-    glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 }
 
 ImageData::~ImageData()

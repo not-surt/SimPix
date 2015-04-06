@@ -32,7 +32,7 @@ signals:
 private slots:
     void clearPan();
     void clearZoom();
-    void clearPixelAspect();
+    void clearPixelSize();
     void clearRotation();
     void updateTransform();
 

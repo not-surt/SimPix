@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>272</width>
-    <height>144</height>
+    <height>158</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -68,7 +68,7 @@
     </widget>
    </item>
    <item row="2" column="0">
-    <widget class="QLabel" name="pixelAspectLabel">
+    <widget class="QLabel" name="pixelSizeLabel">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -76,10 +76,10 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>&amp;Aspect</string>
+      <string>Pi&amp;xel</string>
      </property>
      <property name="buddy">
-      <cstring>pixelAspectXSpinBox</cstring>
+      <cstring>pixelSizeXSpinBox</cstring>
      </property>
     </widget>
    </item>
@@ -152,7 +152,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>&amp;Pan</string>
+      <string>Pa&amp;n</string>
      </property>
      <property name="buddy">
       <cstring>panXSpinBox</cstring>
@@ -160,7 +160,7 @@
     </widget>
    </item>
    <item row="2" column="4">
-    <widget class="QToolButton" name="pixelAspectClearButton">
+    <widget class="QToolButton" name="pixelSizeClearButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -190,7 +190,7 @@
     </widget>
    </item>
    <item row="2" column="1">
-    <widget class="QDoubleSpinBox" name="pixelAspectXSpinBox">
+    <widget class="QDoubleSpinBox" name="pixelSizeXSpinBox">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -354,7 +354,7 @@
     </widget>
    </item>
    <item row="2" column="2">
-    <widget class="QDoubleSpinBox" name="pixelAspectYSpinBox">
+    <widget class="QDoubleSpinBox" name="pixelSizeYSpinBox">
      <property name="enabled">
       <bool>true</bool>
      </property>
