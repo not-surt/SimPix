@@ -95,11 +95,11 @@ void ImageEditor::paintGL()
         expandRect(bounds, m_transform.inverseMatrix().map(QPointF((float)width(), (float)height())));
         if (m_tileX) {
             tilingBounds.setLeft((int)floor(bounds.left() / m_image->imageData()->size().width()));
-            tilingBounds.setRight((int)ceil(bounds.right() / m_image->imageData()->size().width()));
+            tilingBounds.setRight((int)floor(bounds.right() / m_image->imageData()->size().width()));
         }
         if (m_tileY) {
             tilingBounds.setTop((int)floor(bounds.top() / m_image->imageData()->size().height()));
-            tilingBounds.setBottom((int)ceil(bounds.bottom() / m_image->imageData()->size().height()));
+            tilingBounds.setBottom((int)floor(bounds.bottom() / m_image->imageData()->size().height()));
         }
         qDebug() << pos() << size() << bounds << tilingBounds;///////////////////////////////
     }
