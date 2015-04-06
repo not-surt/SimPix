@@ -2,8 +2,6 @@
 
 #include "util.h"
 
-#include <QFileInfo>
-
 Image::Image(const QSize &size, ImageDataFormat format, QObject *parent) :
     Document(parent), m_imageData(nullptr), m_paletteData(nullptr)
 {
@@ -102,11 +100,6 @@ Image::~Image()
     delete m_paletteData;
 }
 
-ImageDataFormat Image::format() const
-{
-    return m_imageData->format();
-}
-
 Editor *Image::createEditor()
 {
     return nullptr;
@@ -127,29 +120,6 @@ Document::Document(const QString &fileName, QObject *parent) :
 bool Document::revert()
 {
     return doOpen(m_fileName);
-}
-
-const QString &Document::fileName() const
-{
-    return m_fileName;
-}
-
-QString Document::shortName() const
-{
-    return QFileInfo(m_fileName).fileName();
-}
-
-void Document::setFileName(const QString &fileName)
-{
-    if (m_fileName != fileName) {
-        m_fileName = fileName;
-        emit fileNameChanged(fileName);
-    }
-}
-
-bool Document::dirty() const
-{
-    return m_dirty;
 }
 
 void Document::makeDirty()
@@ -210,16 +180,6 @@ bool Image::doSave(QString fileName)
     delete data;
 
     return saved;
-}
-
-ImageData *Image::imageData()
-{
-    return m_imageData;
-}
-
-PaletteData *Image::paletteData()
-{
-    return m_paletteData;
 }
 
 void drawPixel(TextureData &texture, const QPoint &point, const uint colour, const void *const data = nullptr)

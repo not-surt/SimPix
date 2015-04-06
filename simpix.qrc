@@ -3,12 +3,13 @@
         <file>images/simpix-48x48.png</file>
         <file>text/LICENSE</file>
         <file>shaders/image.frag</file>
-        <file>shaders/canvas.vert</file>
+        <file>shaders/tiledcanvas.vert</file>
         <file>shaders/frame.frag</file>
         <file>shaders/checkerboard.frag</file>
         <file>shaders/brush.vert</file>
         <file>shaders/ellipsebrush.frag</file>
         <file>shaders/rectanglebrush.frag</file>
         <file>text/ABOUT</file>
+        <file>shaders/viewport.vert</file>
     </qresource>
 </RCC>

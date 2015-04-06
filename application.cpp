@@ -43,16 +43,18 @@ Application::Application(int &argc, char **argv) :
 
     {
         ContextGrabber grab(m_shareWidget);
-        addShader("canvas.vert", QOpenGLShader::Vertex, fileToString(":/shaders/canvas.vert"));
+        addShader("tiledcanvas.vert", QOpenGLShader::Vertex, fileToString(":/shaders/tiledcanvas.vert"));
 
         addShader("image.frag", QOpenGLShader::Fragment, fileToString(":/shaders/image.frag"));
-        addProgram("image", QStringList() << "canvas.vert" << "image.frag");
+        addProgram("image", QStringList() << "tiledcanvas.vert" << "image.frag");
 
         addShader("frame.frag", QOpenGLShader::Fragment, fileToString(":/shaders/frame.frag"));
-        addProgram("frame", QStringList() << "canvas.vert" << "frame.frag");
+        addProgram("frame", QStringList() << "tiledcanvas.vert" << "frame.frag");
+
+        addShader("viewport.vert", QOpenGLShader::Vertex, fileToString(":/shaders/viewport.vert"));
 
         addShader("checkerboard.frag", QOpenGLShader::Fragment, fileToString(":/shaders/checkerboard.frag"));
-        addProgram("checkerboard", QStringList() << "canvas.vert" << "checkerboard.frag");
+        addProgram("checkerboard", QStringList() << "viewport.vert" << "checkerboard.frag");
 
         addShader("brush.vert", QOpenGLShader::Vertex, fileToString(":/shaders/brush.vert"));
 

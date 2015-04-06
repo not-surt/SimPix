@@ -1,4 +1,4 @@
-#version 130
+#version 330
 
 uniform ivec4 colour0, colour1;
 uniform vec2 size;

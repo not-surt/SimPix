@@ -8,7 +8,7 @@
 #include "transform.h"
 #include "editingcontext.h"
 
-class ImageEditor : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
+class ImageEditor : public QOpenGLWidget, public Editor, protected QOpenGLFunctions_3_3_Core
 {
     Q_OBJECT
     Q_PROPERTY(Transform transform READ transform WRITE setTransform NOTIFY transformChanged)
@@ -23,19 +23,17 @@ class ImageEditor : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 public:
     explicit ImageEditor(Image *image, QWidget *parent = nullptr);
     ~ImageEditor();
-    Image *image() const;
-    const Transform &transform() const;
-    bool tiled() const;
-    bool tileX() const;
-    bool tileY() const;
-    bool showBounds() const;
-    bool showAlpha() const;
-    QRect rect() const;
-    const QMatrix4x4 &matrix();
-    const QMatrix4x4 &inverseMatrix();
-    GLuint vertexBuffer() const;
-    EditingContext &editingContext();
-    bool limitTransform() const;
+    Image *image() const { return m_image; }
+    const Transform &transform() const { return m_transform; }
+    bool tiled() const { return m_tiled; }
+    bool tileX() const { return m_tileX; }
+    bool tileY() const { return m_tileY; }
+    bool showBounds() const { return m_showBounds; }
+    bool showAlpha() const { return m_showAlpha; }
+    QRect rect() const { return QRect(0, 0, width(), height()); }
+    GLuint vertexBuffer() const { return m_vertexBuffer; }
+    EditingContext &editingContext() { return m_editingContext; }
+    bool limitTransform() const { return m_limitTransform; }
 
 signals:
     void transformChanged(const Transform &transform);
@@ -51,12 +49,47 @@ signals:
 
 public slots:
     void setTransform(const Transform &transform);
-    void setTiled(const bool tiled);
-    void setTileX(const bool tileX);
-    void setTileY(const bool tileY);
-    void setShowBounds(const bool showBounds);
-    void setShowAlpha(bool showAlpha);
-    void setLimitTransform(bool arg);
+    void setTiled(const bool tiled) {
+        if (m_tiled != tiled) {
+            m_tiled = tiled;
+            update();
+            emit tiledChanged(tiled);
+        }
+    }
+    void setTileX(const bool tileX) {
+        if (m_tileX != tileX) {
+            m_tileX = tileX;
+            update();
+            emit tiledChanged(tileX);
+        }
+    }
+    void setTileY(const bool tileY) {
+        if (m_tileY != tileY) {
+            m_tileY = tileY;
+            update();
+            emit tiledChanged(tileY);
+        }
+    }
+    void setShowBounds(const bool showBounds) {
+        if (m_showBounds != showBounds) {
+            m_showBounds = showBounds;
+            update();
+            emit showBoundsChanged(showBounds);
+        }
+    }
+    void setShowAlpha(bool showAlpha) {
+        if (m_showAlpha != showAlpha) {
+            m_showAlpha = showAlpha;
+            update();
+            emit showAlphaChanged(showAlpha);
+        }
+    }
+    void setLimitTransform(bool arg) {
+        if (m_limitTransform != arg) {
+            m_limitTransform = arg;
+            emit limitTransformChanged(arg);
+        }
+    }
 
 protected:
     void initializeGL();
@@ -71,7 +104,6 @@ protected:
     virtual void keyReleaseEvent(QKeyEvent * event);
     virtual void enterEvent(QEvent *const event);
     virtual void leaveEvent(QEvent * const event);
-    void updateMatrix();
 
 private:
     Image *const m_image;
@@ -83,8 +115,6 @@ private:
     bool m_showBounds;
     bool m_showAlpha;
     QMatrix4x4 m_matrix, m_inverseMatrix;
-    bool matricesDirty;
-    void updateMatrices();
     GLuint m_vertexBuffer;
     QList<ImageData *>::iterator m_currentLayer;
     EditingContext m_editingContext;

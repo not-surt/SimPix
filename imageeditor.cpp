@@ -9,7 +9,7 @@
 #include <QOpenGLShaderProgram>
 
 ImageEditor::ImageEditor(Image *image, QWidget *parent) :
-    QOpenGLWidget(parent), m_image(image), m_transform(), m_tiled(false), m_tileX(true), m_tileY(true), panKeyDown(false), m_showBounds(false), matricesDirty(true), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true)
+    QOpenGLWidget(parent), Editor(image), m_image(image), m_transform(), m_tiled(false), m_tileX(true), m_tileY(true), panKeyDown(false), m_showAlpha(true), m_showBounds(false), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true), m_matrix(), m_inverseMatrix()
 {
     setMouseTracking(true);
 
@@ -53,7 +53,9 @@ void ImageEditor::resizeGL(int w, int h)
     };
     glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
     m_transform.setOrigin(QVector3D(floor(w / 2.f), floor(h / 2.f), 0.f));
-    matricesDirty = true;
+    m_matrix = QMatrix4x4();
+    m_matrix.ortho(0., (float)w, (float)h, 0.f, -1.f, 1.f);
+    m_inverseMatrix = m_matrix.inverted();
 }
 
 void ImageEditor::paintGL()
@@ -76,7 +78,7 @@ void ImageEditor::paintGL()
         const QColor base = QColor(127, 127, 127), light = colourAdjustLightness(base, 16), dark = colourAdjustLightness(base, -16);
         glUniform4i(colour0Uniform, light.red(), light.green(), light.blue(), 255);
         glUniform4i(colour1Uniform, dark.red(), dark.green(), dark.blue(), 255);
-        glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, this->matrix().constData());
+        glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, m_matrix.constData());
         glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
         glEnableVertexAttribArray(positionAttrib);
         glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -101,64 +103,62 @@ void ImageEditor::paintGL()
             tilingBounds.setTop((int)floor(bounds.top() / m_image->imageData()->size().height()));
             tilingBounds.setBottom((int)floor(bounds.bottom() / m_image->imageData()->size().height()));
         }
-        qDebug() << pos() << size() << bounds << tilingBounds;///////////////////////////////
     }
 
-    for (int y = tilingBounds.top(); y <= tilingBounds.bottom(); y++) {
-        for (int x = tilingBounds.left(); x <= tilingBounds.right(); x++) {
-            float tileOffsetX = x * m_image->imageData()->size().width();
-            float tileOffsetY = y * m_image->imageData()->size().height();
+    const int numberOfInstances = tilingBounds.width() * tilingBounds.height();
 
-            if (m_showAlpha) {
-                glEnable(GL_BLEND);
-            }
+    if (m_showAlpha) {
+        glEnable(GL_BLEND);
+    }
 
-            glActiveTexture(GL_TEXTURE0 + 0);
-            glBindTexture(GL_TEXTURE_2D, m_image->imageData()->texture());
+    const int textureUnit = 0;
+    glActiveTexture(GL_TEXTURE0 + textureUnit);
+    glBindTexture(GL_TEXTURE_2D, m_image->imageData()->texture());
 
-            if (m_image->paletteData()) {
-                glActiveTexture(GL_TEXTURE0 + 1);
-                glBindTexture(GL_TEXTURE_2D, m_image->paletteData()->texture());
-            }
+    const int palleteTextureUnit = 1;
+    if (m_image->paletteData()) {
+        glActiveTexture(GL_TEXTURE0 + palleteTextureUnit);
+        glBindTexture(GL_TEXTURE_2D, m_image->paletteData()->texture());
+    }
 
-            GLuint program = APP->program("image");
-            glUseProgram(program);
+    GLuint program = APP->program("image");
+    glUseProgram(program);
 
-            GLint positionAttrib = glGetAttribLocation(program, "position");
-            GLint offsetUniform = glGetUniformLocation(program, "offset");
-            GLint textureUnitUniform = glGetUniformLocation(program, "textureUnit");
-            GLint isIndexedUniform = glGetUniformLocation(program, "isIndexed");
-            GLint hasPaletteUniform = glGetUniformLocation(program, "hasPalette");
-            GLint paletteTextureUnitUniform = glGetUniformLocation(program, "paletteTextureUnit");
-            GLint matrixUniform = glGetUniformLocation(program, "matrix");
+    GLint positionAttrib = glGetAttribLocation(program, "position");
+    GLint textureUnitUniform = glGetUniformLocation(program, "textureUnit");
+    GLint isIndexedUniform = glGetUniformLocation(program, "isIndexed");
+    GLint hasPaletteUniform = glGetUniformLocation(program, "hasPalette");
+    GLint paletteTextureUnitUniform = glGetUniformLocation(program, "paletteTextureUnit");
+    GLint matrixUniform = glGetUniformLocation(program, "matrix");
+    GLint tilesStartUniform = glGetUniformLocation(program, "tilesStart");
+    GLint tilesSizeUniform = glGetUniformLocation(program, "tilesSize");
 
-            glUniform1i(textureUnitUniform, 0);
-            glUniform1i(isIndexedUniform, (m_image->imageData()->format() == ImageDataFormat::Indexed));
-            glUniform1i(hasPaletteUniform, (m_image->paletteData() != nullptr));
-            glUniform1i(paletteTextureUnitUniform, 1);
-            glUniform2f(offsetUniform, tileOffsetX, tileOffsetY);
+    glUniform1i(textureUnitUniform, textureUnit);
+    glUniform1i(isIndexedUniform, (m_image->imageData()->format() == ImageDataFormat::Indexed));
+    glUniform1i(hasPaletteUniform, (m_image->paletteData() != nullptr));
+    glUniform1i(paletteTextureUnitUniform, palleteTextureUnit);
+    glUniform2i(tilesStartUniform, tilingBounds.x(), tilingBounds.y());
+    glUniform2i(tilesSizeUniform, tilingBounds.width(), tilingBounds.height());
 
-            QMatrix4x4 matrix;
-            GLint vertexBuffer;
-            matrix = this->matrix() * m_transform.matrix();
-            vertexBuffer = m_image->imageData()->vertexBuffer();
-            glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, matrix.constData());
+    QMatrix4x4 matrix;
+    GLint vertexBuffer;
+    matrix = m_matrix * m_transform.matrix();
+    vertexBuffer = m_image->imageData()->vertexBuffer();
+    glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, matrix.constData());
 
-            glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-            glEnableVertexAttribArray(positionAttrib);
-            glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glEnableVertexAttribArray(positionAttrib);
+    glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, numberOfInstances);
 
-            glDisableVertexAttribArray(positionAttrib);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDisableVertexAttribArray(positionAttrib);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-            glUseProgram(0);
+    glUseProgram(0);
 
-            if (m_showAlpha) {
-                glDisable(GL_BLEND);
-            }
-        }
+    if (m_showAlpha) {
+        glDisable(GL_BLEND);
     }
 
     if (m_showBounds) {
@@ -166,11 +166,9 @@ void ImageEditor::paintGL()
         glUseProgram(program);
 
         GLint matrixUniform = glGetUniformLocation(program, "matrix");
-        GLint textureMatrixUniform = glGetUniformLocation(program, "textureMatrix");
         GLint colourUniform = glGetUniformLocation(program, "colour");
         glUniform4i(colourUniform, 255, 255, 255, 127);
-        glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (this->matrix() * m_transform.matrix()).constData());
-        glUniformMatrix4fv(textureMatrixUniform, 1, GL_FALSE, QMatrix4x4().constData());
+        glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (m_matrix * m_transform.matrix()).constData());
 
         GLint positionAttrib = glGetAttribLocation(program, "position");
         glBindBuffer(GL_ARRAY_BUFFER, m_image->imageData()->vertexBuffer());
@@ -356,85 +354,6 @@ void ImageEditor::leaveEvent(QEvent *const event)
     emit mouseLeft();
 }
 
-Image *ImageEditor::image() const
-{
-    return m_image;
-}
-
-const Transform &ImageEditor::transform() const
-{
-    return m_transform;
-}
-
-bool ImageEditor::tiled() const
-{
-    return m_tiled;
-}
-
-bool ImageEditor::tileX() const
-{
-    return m_tileX;
-}
-
-bool ImageEditor::tileY() const
-{
-    return m_tileY;
-}
-
-bool ImageEditor::showBounds() const
-{
-    return m_showBounds;
-}
-
-bool ImageEditor::showAlpha() const
-{
-    return m_showAlpha;
-}
-
-QRect ImageEditor::rect() const
-{
-    return QRect(0, 0, width(), height());
-}
-
-GLuint ImageEditor::vertexBuffer() const
-{
-    return m_vertexBuffer;
-}
-
-const QMatrix4x4 &ImageEditor::matrix()
-{
-    if (matricesDirty) {
-        updateMatrices();
-    }
-    return m_matrix;
-}
-
-const QMatrix4x4 &ImageEditor::inverseMatrix()
-{
-    if (matricesDirty) {
-        updateMatrices();
-    }
-    return m_inverseMatrix;
-}
-
-void ImageEditor::updateMatrices()
-{
-    m_matrix = QMatrix4x4();
-    m_matrix.ortho(0., (float)width(), (float)height(), 0.f, -1.f, 1.f);
-    m_inverseMatrix = m_matrix.inverted();
-    matricesDirty = false;
-}
-
-EditingContext &ImageEditor::editingContext()
-{
-    return m_editingContext;
-}
-
-bool ImageEditor::limitTransform() const
-{
-    return m_limitTransform;
-}
-
 void ImageEditor::setTransform(const Transform &transform)
 {
     if (m_transform != transform) {
@@ -449,58 +368,5 @@ void ImageEditor::setTransform(const Transform &transform)
         }
         update();
         emit transformChanged(m_transform);
-    }
-}
-
-void ImageEditor::setTiled(const bool tiled)
-{
-    if (m_tiled != tiled) {
-        m_tiled = tiled;
-        update();
-        emit tiledChanged(tiled);
-    }
-}
-
-void ImageEditor::setTileX(const bool tileX)
-{
-    if (m_tileX != tileX) {
-        m_tileX = tileX;
-        update();
-        emit tiledChanged(tileX);
-    }
-}
-
-void ImageEditor::setTileY(const bool tileY)
-{
-    if (m_tileY != tileY) {
-        m_tileY = tileY;
-        update();
-        emit tiledChanged(tileY);
-    }
-}
-
-void ImageEditor::setShowBounds(const bool showBounds)
-{
-    if (m_showBounds != showBounds) {
-        m_showBounds = showBounds;
-        update();
-        emit showBoundsChanged(showBounds);
-    }
-}
-
-void ImageEditor::setShowAlpha(bool showAlpha)
-{
-    if (m_showAlpha != showAlpha) {
-        m_showAlpha = showAlpha;
-        update();
-        emit showAlphaChanged(showAlpha);
-    }
-}
-
-void ImageEditor::setLimitTransform(bool arg)
-{
-    if (m_limitTransform != arg) {
-        m_limitTransform = arg;
-        emit limitTransformChanged(arg);
     }
 }

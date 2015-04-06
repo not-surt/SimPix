@@ -70,11 +70,12 @@ OTHER_FILES += \
     shaders/image.frag \
     shaders/frame.frag \
     shaders/checkerboard.frag \
-    shaders/canvas.vert \
     shaders/ellipsebrush.frag \
     shaders/rectanglebrush.frag \
     shaders/brush.vert \
-    text/ABOUT
+    text/ABOUT \
+    shaders/viewport.vert \
+    shaders/tiledcanvas.vert
 
 RESOURCES += \
     simpix.qrc

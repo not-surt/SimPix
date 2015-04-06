@@ -1,7 +1,6 @@
-#version 130
+#version 330
 
 uniform usampler2D textureUnit;
-
 uniform bool isIndexed;
 uniform bool hasPalette;
 uniform usampler2D paletteTextureUnit;

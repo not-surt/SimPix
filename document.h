@@ -2,6 +2,7 @@
 #define DOCUMENT_H
 
 #include "data.h"
+#include <QFileInfo>
 
 class Document;
 
@@ -26,10 +27,25 @@ public:
     bool revert();
     bool save(QString fileName = QString());
 
-    const QString &fileName() const;
-    QString shortName() const;
-    void setFileName(const QString &fileName);
-    bool dirty() const;
+    const QString &fileName() const
+    {
+        return m_fileName;
+    }
+    QString shortName() const
+    {
+        return QFileInfo(m_fileName).fileName();
+    }
+    void setFileName(const QString &fileName)
+    {
+        if (m_fileName != fileName) {
+            m_fileName = fileName;
+            emit fileNameChanged(fileName);
+        }
+    }
+    bool dirty() const
+    {
+        return m_dirty;
+    }
     virtual Editor *createEditor() = 0;
     QList<Editor *> *editors();
 
@@ -77,11 +93,11 @@ public:
     explicit Image(const QString &fileName, const char *format = nullptr, QObject *parent = nullptr);
     ~Image();
 
-    ImageDataFormat format() const;
     Editor *createEditor();
 
-    ImageData *imageData();
-    PaletteData *paletteData();
+    ImageDataFormat format() const { return m_imageData->format(); }
+    ImageData *imageData() { return m_imageData; }
+    PaletteData *paletteData() { return m_paletteData; }
 
 signals:
 
