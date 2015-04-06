@@ -192,14 +192,16 @@ void ImageEditor::paintGL()
 void ImageEditor::mousePressEvent(QMouseEvent *event)
 {
     QMatrix4x4 matrix = m_transform.inverseMatrix() * viewToWorld;
-    lastMousePos = event->pos();
-    lastMouseImagePos = matrix.map(QPointF(event->pos()));
+    mouseLastPos = event->pos();
+    mouseLastImagePos = matrix.map(QPointF(event->pos()));
     if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
         QApplication::setOverrideCursor(Qt::CrossCursor);
         event->accept();
     }
     else if (event->button() == Qt::MiddleButton || (event->button() == Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
         QApplication::setOverrideCursor(Qt::ClosedHandCursor);
+        mouseGrabPos = event->pos();
+        mouseGrabImagePos = matrix.map(QPointF(event->pos()));
         event->accept();
     }
     else if (event->button() == Qt::RightButton) {
@@ -215,15 +217,12 @@ void ImageEditor::mousePressEvent(QMouseEvent *event)
 void ImageEditor::mouseMoveEvent(QMouseEvent *event)
 {
     QMatrix4x4 matrix = m_transform.inverseMatrix() * viewToWorld;
-    const QPointF mouseImagePosition = matrix.map(QPointF(event->pos()));
-    const QPoint lastPixel = QPoint(floor(lastMouseImagePos.x()), floor(lastMouseImagePos.y()));
-    const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
-    QPoint coord = QPoint(0, 0);
-    QColor colour = QColor();
-    int index = -1;
+    const QPointF mouseImagePos = matrix.map(QPointF(event->pos()));
+    const QPoint lastPixel = QPoint(floor(mouseLastImagePos.x()), floor(mouseLastImagePos.y()));
+    const QPoint pixel = QPoint(floor(mouseImagePos.x()), floor(mouseImagePos.y()));
     if (rect().contains(event->pos())) {
-//        setFocus();
-        coord = pixel;
+        QColor colour = QColor();
+        int index = -1;
         if (pixel != lastPixel && m_image->imageData()->rect().contains(pixel)) {
             ContextGrabber grab(APP->shareWidget());
             if (m_image->imageData()->format() == ImageDataFormat::Indexed) {
@@ -234,39 +233,36 @@ void ImageEditor::mouseMoveEvent(QMouseEvent *event)
                 colour = QColor(m_image->imageData()->pixel(pixel));
             }
         }
-        emit mousePixelChanged(coord, colour, index);
+        emit mousePixelChanged(pixel, colour, index);
     }
     if (!panKeyDown && event->buttons() & Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
-//            emit dragged(lastPixel, pixel, &m_editingContext);
         m_image->stroke(lastPixel, pixel, &m_editingContext);
-        lastMousePos = event->pos();
-        lastMouseImagePos = mouseImagePosition;
+        mouseLastPos = event->pos();
+        mouseLastImagePos = mouseImagePos;
         event->accept();
     }
     else if (event->buttons() & Qt::RightButton) {
 
     }
     else if (panKeyDown || event->buttons() & Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
-        const QPointF delta = mouseImagePosition - matrix.map(QPointF(lastMousePos));
         Transform transform = m_transform;
-        transform.setPan(transform.pan() + delta);
+        transform.setPan(m_transform.pan() - mouseGrabImagePos + mouseImagePos);
         setTransform(transform);
-        lastMousePos = event->pos();
-        lastMouseImagePos = mouseImagePosition;
         event->accept();
     }
     else {
         event->ignore();
     }
+    mouseLastPos = event->pos();
+    mouseLastImagePos = mouseImagePos;
 }
 
 void ImageEditor::mouseReleaseEvent(QMouseEvent *event)
 {
     QMatrix4x4 matrix = m_transform.inverseMatrix() * viewToWorld;
-    QPointF mouseImagePosition = matrix.map(QPointF(event->pos()));
+    QPointF mouseImagePos = matrix.map(QPointF(event->pos()));
     if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
-        const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
-//            emit clicked(pixel, &m_editingContext);
+        const QPoint pixel = QPoint(floor(mouseImagePos.x()), floor(mouseImagePos.y()));
         m_image->point(pixel, &m_editingContext);
         QApplication::restoreOverrideCursor();
         event->accept();
@@ -276,7 +272,7 @@ void ImageEditor::mouseReleaseEvent(QMouseEvent *event)
         event->accept();
     }
     else if (event->button() == Qt::RightButton) {
-        const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
+        const QPoint pixel = QPoint(floor(mouseImagePos.x()), floor(mouseImagePos.y()));
 //            Scene::ContextColour context = (event->modifiers() & Qt::SHIFT) ? Scene::Secondary : Scene::Primary;
         ContextGrabber grab(APP->shareWidget());
         m_image->pick(pixel, &editingContext());
@@ -296,8 +292,8 @@ void ImageEditor::wheelEvent(QWheelEvent *event)
         const float angle = event->angleDelta().y() > 0 ? 15 : (event->angleDelta().y() < 0 ? -15 : 0);
         transform.setRotation(transform.rotation() + angle);
         if (transformAroundCursor) {
-            const QPointF mouseImagePosition = m_transform.inverseMatrix().map(QPointF(event->pos()));
-            const QPointF mouseDelta = mouseImagePosition - transform.pan();
+            const QPointF mouseImagePos = m_transform.inverseMatrix().map(QPointF(event->pos()));
+            const QPointF mouseDelta = mouseImagePos - transform.pan();
         }
         setTransform(transform);
         event->accept();
@@ -307,7 +303,7 @@ void ImageEditor::wheelEvent(QWheelEvent *event)
         const float scale = event->angleDelta().y() > 0 ? 2 : (event->angleDelta().y() < 0 ? .5 : 1);
         transform.setZoom(transform.zoom() * scale);
         if (transformAroundCursor) {
-            const QPointF mouseImagePosition = m_transform.inverseMatrix().map(QPointF(event->pos()));
+            const QPointF mouseImagePos = m_transform.inverseMatrix().map(QPointF(event->pos()));
 
         }
         setTransform(transform);
@@ -329,7 +325,7 @@ void ImageEditor::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Space && !event->isAutoRepeat()) {
         panKeyDown = true;
-        lastMousePos = mapFromGlobal(QCursor::pos());
+        mouseLastPos = mapFromGlobal(QCursor::pos());
 //        grabMouse();
         QApplication::setOverrideCursor(Qt::ClosedHandCursor);
         event->accept();

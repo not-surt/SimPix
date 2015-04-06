@@ -109,8 +109,10 @@ private:
     Image *const m_image;
     Transform m_transform;
     bool m_tiled, m_tileX, m_tileY;
-    QPoint lastMousePos;
-    QPointF lastMouseImagePos;
+    QPoint mouseGrabPos;
+    QPointF mouseGrabImagePos;
+    QPoint mouseLastPos;
+    QPointF mouseLastImagePos;
     bool panKeyDown;
     bool m_showBounds;
     bool m_showAlpha;

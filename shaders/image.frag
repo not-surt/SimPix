@@ -9,7 +9,8 @@ in vec2 texturePosition;
 
 void main(void)
 {
-    ivec2 texelPosition = ivec2(floor(texturePosition));
+    const float edgeOffset = 0.00390625;
+    ivec2 texelPosition = ivec2(floor(texturePosition + edgeOffset));
     if (isIndexed) {
         uint texel = texelFetch(textureUnit, texelPosition, 0).r;
         if (hasPalette) {
