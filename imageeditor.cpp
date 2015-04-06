@@ -179,6 +179,11 @@ void ImageEditor::paintGL()
         glBindBuffer(GL_ARRAY_BUFFER, m_image->imageData()->vertexBuffer());
         glEnableVertexAttribArray(positionAttrib);
         glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        QRect tilingBounds(0, 0, 1, 1);
+        GLint tilesStartUniform = glGetUniformLocation(program, "tilesStart");
+        glUniform2i(tilesStartUniform, tilingBounds.x(), tilingBounds.y());
+        GLint tilesSizeUniform = glGetUniformLocation(program, "tilesSize");
+        glUniform2i(tilesSizeUniform, tilingBounds.width(), tilingBounds.height());
 
         glDrawArrays(GL_LINE_LOOP, 0, 4);
 
