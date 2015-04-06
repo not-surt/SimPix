@@ -2,7 +2,7 @@
 #include <QOpenGLFunctions>
 
 Transform::Transform(QObject *parent) :
-    QObject(parent), m_pan(0.f, 0.f, 0.f), m_zoom(1.f), m_pixelSize(1.f, 1.f, 0.f), m_rotation(0.f), dirty(true)
+    QObject(parent), m_pan(0.f, 0.f), m_zoom(1.f), m_pixelSize(1.f, 1.f), m_rotation(0.f), dirty(true)
 {
 }
 

@@ -110,7 +110,7 @@ private:
     Transform m_transform;
     bool m_tiled, m_tileX, m_tileY;
     QPoint lastMousePos;
-    QVector3D lastMouseImagePos;
+    QPointF lastMouseImagePos;
     bool panKeyDown;
     bool m_showBounds;
     bool m_showAlpha;

@@ -3,15 +3,15 @@
 
 #include <QObject>
 #include <QMatrix4x4>
-#include <QVector3D>
+#include <QPointF>
 
 
 class Transform : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QVector3D pan READ pan WRITE setPan)
+    Q_PROPERTY(QPointF pan READ pan WRITE setPan)
     Q_PROPERTY(float zoom READ zoom WRITE setZoom)
-    Q_PROPERTY(QVector3D pixelSize READ pixelSize WRITE setPixelSize)
+    Q_PROPERTY(QPointF pixelSize READ pixelSize WRITE setPixelSize)
     Q_PROPERTY(float rotation READ rotation WRITE setRotation)
     Q_PROPERTY(QMatrix4x4 worldToClip READ worldToClip)
     Q_PROPERTY(QMatrix4x4 clipToWorld READ clipToWorld)
@@ -19,9 +19,9 @@ class Transform : public QObject
 public:
     explicit Transform(QObject *parent = nullptr);
     Transform(const Transform &transform);
-    const QVector3D &pan() const { return m_pan; }
+    const QPointF &pan() const { return m_pan; }
     float zoom() const { return m_zoom; }
-    const QVector3D &pixelSize() const { return m_pixelSize; }
+    const QPointF &pixelSize() const { return m_pixelSize; }
     float rotation() const { return m_rotation; }
     const QMatrix4x4 &worldToClip() {
         if (dirty) {
@@ -60,7 +60,7 @@ signals:
     void changed(const Transform &transform);    
 
 public slots:
-    void setPan(const QVector3D &pan) {
+    void setPan(const QPointF &pan) {
         if (m_pan != pan) {
             dirty = true;
             m_pan = pan;
@@ -74,7 +74,7 @@ public slots:
             emit changed(*this);
         }
     }
-    void setPixelSize(const QVector3D &pixelSize) {
+    void setPixelSize(const QPointF &pixelSize) {
         if (m_pixelSize != pixelSize) {
             dirty = true;
             m_pixelSize = pixelSize;
@@ -90,9 +90,9 @@ public slots:
     }
 
 private:
-    QVector3D m_pan;
+    QPointF m_pan;
     float m_zoom;
-    QVector3D m_pixelSize;
+    QPointF m_pixelSize;
     float m_rotation;
     QMatrix4x4 m_worldToClip;
     QMatrix4x4 m_clipToWorld;

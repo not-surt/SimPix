@@ -14,11 +14,11 @@ ImageEditor::ImageEditor(Image *image, QWidget *parent) :
     setMouseTracking(true);
 
     Transform transform;
-    transform.setPan(QVector3D(0.f, 0.f, 0.f));
+    transform.setPan(QPointF(0.f, 0.f));
     transform.setZoom(1.f);
-    transform.setPixelSize(QVector3D(1.f, 1.f, 0.f));
+    transform.setPixelSize(QPointF(1.f, 1.f));
     transform.setRotation(0.f);
-//    transform.setPan(-QVector3D(floor((float)m_image->imageData()->size().width() / 2.f), floor((float)m_image->imageData()->size().height() / 2.f), 0.f));
+//    transform.setPan(-QPointF(floor((float)m_image->imageData()->size().width() / 2.f), floor((float)m_image->imageData()->size().height() / 2.f), 0.f));
     setTransform(transform);
     m_editingContext.setImage(m_image->imageData());
     m_editingContext.setPalette(m_image->paletteData());
@@ -220,7 +220,7 @@ void ImageEditor::paintGL()
 void ImageEditor::mousePressEvent(QMouseEvent *event)
 {
     lastMousePos = event->pos();
-    lastMouseImagePos = m_transform.clipToWorld().map(QVector3D(event->pos()));
+    lastMouseImagePos = m_transform.clipToWorld().map(QPointF(event->pos()));
     if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
         QApplication::setOverrideCursor(Qt::CrossCursor);
         event->accept();
@@ -242,7 +242,7 @@ void ImageEditor::mousePressEvent(QMouseEvent *event)
 void ImageEditor::mouseMoveEvent(QMouseEvent *event)
 {
 //    qDebug() << viewToClip.map(QPointF(event->pos()));/////////////////////////////////////////////////////////
-    const QVector3D mouseImagePosition = m_transform.clipToWorld().map(QVector3D(event->pos()));
+    const QPointF mouseImagePosition = m_transform.clipToWorld().map(QPointF(event->pos()));
     const QPoint lastPixel = QPoint(floor(lastMouseImagePos.x()), floor(lastMouseImagePos.y()));
     const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
     QPoint coord = QPoint(0, 0);
@@ -274,7 +274,7 @@ void ImageEditor::mouseMoveEvent(QMouseEvent *event)
 
     }
     else if (panKeyDown || event->buttons() & Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
-        const QVector3D delta = mouseImagePosition - m_transform.clipToWorld().map(QVector3D(lastMousePos));
+        const QPointF delta = mouseImagePosition - m_transform.clipToWorld().map(QPointF(lastMousePos));
         Transform transform = m_transform;
         transform.setPan(transform.pan() + delta);
         setTransform(transform);
@@ -322,8 +322,8 @@ void ImageEditor::wheelEvent(QWheelEvent *event)
         const float angle = event->angleDelta().y() > 0 ? 15 : (event->angleDelta().y() < 0 ? -15 : 0);
         transform.setRotation(transform.rotation() + angle);
         if (transformAroundCursor) {
-            const QVector3D mouseImagePosition = m_transform.clipToWorld().map(QVector3D(event->pos()));
-            const QVector3D mouseDelta = mouseImagePosition - transform.pan();
+            const QPointF mouseImagePosition = m_transform.clipToWorld().map(QPointF(event->pos()));
+            const QPointF mouseDelta = mouseImagePosition - transform.pan();
         }
         setTransform(transform);
         event->accept();
@@ -393,11 +393,11 @@ void ImageEditor::setTransform(const Transform &transform)
     if (m_transform != transform) {
         m_transform = transform;
         if (m_limitTransform) {
-            float panX = (m_tiled && m_tileX) ? wrap(m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f) : clamp(m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f);
-            float panY = (m_tiled && m_tileY) ? wrap(m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f) : clamp(m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f);
-            m_transform.setPan(QVector3D(panX, panY, 0.f));
+            float panX = (m_tiled && m_tileX) ? wrap((float)m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f) : clamp((float)m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f);
+            float panY = (m_tiled && m_tileY) ? wrap((float)m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f) : clamp((float)m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f);
+            m_transform.setPan(QPointF(panX, panY));
             m_transform.setZoom(clamp(m_transform.zoom(), 1.f/16.f, 256.f));
-            m_transform.setPixelSize(QVector3D(clamp(m_transform.pixelSize().x(), 1.f/16.f, 16.f), clamp(m_transform.pixelSize().y(), 1.f/16.f, 16.f), 0.f));
+            m_transform.setPixelSize(QPointF(clamp((float)m_transform.pixelSize().x(), 1.f/16.f, 16.f), clamp((float)m_transform.pixelSize().y(), 1.f/16.f, 16.f)));
             m_transform.setRotation(wrap(m_transform.rotation(), 0.f, 360.f));
         }
         update();
