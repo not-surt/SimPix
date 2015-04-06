@@ -114,7 +114,8 @@ private:
     bool panKeyDown;
     bool m_showBounds;
     bool m_showAlpha;
-    QMatrix4x4 viewToClip, clipToView;
+    QMatrix4x4 worldToClip;
+    QMatrix4x4 viewToWorld;
     GLuint m_vertexBuffer;
     QList<ImageData *>::iterator m_currentLayer;
     EditingContext m_editingContext;

@@ -9,7 +9,7 @@
 #include <QOpenGLShaderProgram>
 
 ImageEditor::ImageEditor(Image *image, QWidget *parent) :
-    QOpenGLWidget(parent), Editor(image), m_image(image), m_transform(), m_tiled(false), m_tileX(true), m_tileY(true), panKeyDown(false), m_showAlpha(true), m_showBounds(false), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true), viewToClip(), clipToView()
+    QOpenGLWidget(parent), Editor(image), m_image(image), m_transform(), m_tiled(false), m_tileX(true), m_tileY(true), panKeyDown(false), m_showAlpha(true), m_showBounds(false), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true), viewToWorld(), worldToClip()
 {
     setMouseTracking(true);
 
@@ -53,41 +53,15 @@ void ImageEditor::resizeGL(int w, int h)
         {-halfWidth, halfHeight},
     };
     glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-    viewToClip.setToIdentity();
-//    m_viewToClip.ortho(-halfWidth, halfWidth, halfHeight, -halfHeight, -1.f, 1.f);
-    viewToClip.translate(-1.f, 1.f, 0.f);
-    viewToClip.scale(2.f / (float)w, -2.f / (float)h, 1.f);
-    clipToView = viewToClip.inverted();
-//    // 0,0 -> -1,1
-//    // w,h -> 1,-1
-//    qDebug() << QPointF(0, 0) << viewToClip.map(QPointF(0, 0));
-//    qDebug() << QPointF(w, h) << viewToClip.map(QPointF(w, h));
-////     view -> clip -> world
-////     world -> clip
-    // view -> camera/clip -> world
-    // world -> camera/clip
-    // 0,0 -> -1,1 -> -w/2,-h/2
-    // w/2,h/2 -> 0,0 -> 0,0
-    // w,h -> 1,-1 -> w/2,h/2
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    {
-        const float w = 640, h = 480;
-        const float halfWidth = (float)w / 2.f;
-        const float halfHeight = (float)h / 2.f;
+    worldToClip.setToIdentity();
+    worldToClip.scale(1.f / halfWidth, -1.f / halfHeight);
+    qDebug() << "worldToClip" << worldToClip.map(QPointF(-halfWidth, -halfHeight)) << worldToClip.map(QPointF(halfWidth, halfHeight));
 
-        QMatrix4x4 viewToClip;
-        viewToClip.translate(-1.f, 1.f, 0.f);
-        viewToClip.scale(2.f / (float)w, -2.f / (float)h, 1.f);
-        qDebug() << viewToClip.map(QVector4D(0, 0, 0, 1)) << viewToClip.map(QVector4D(w, h, 0, 1));
-
-        QMatrix4x4 clipToWorld;
-        clipToWorld.scale((float)w / 2.f, (float)h / -2.f, 1.f);
-        qDebug() << clipToWorld.map(QVector4D(-1, 1, 0, 1)) << clipToWorld.map(QVector4D(1, -1, 0, 1));
-
-        QMatrix4x4 viewToWorld;
-        viewToWorld = viewToClip * clipToWorld;
-        qDebug() << viewToWorld.map(QVector4D(0, 0, 0, 1)) << viewToWorld.map(QVector4D(w, h, 0, 1));
-    }
+    viewToWorld.setToIdentity();
+    viewToWorld.translate(-halfWidth, -halfHeight);
+    qDebug() << "viewToWorld" << viewToWorld.map(QPointF(0, 0)) << viewToWorld.map(QPointF(w, h));
 }
 
 void ImageEditor::paintGL()
@@ -109,7 +83,7 @@ void ImageEditor::paintGL()
         glUniform4i(colour1Uniform, dark.red(), dark.green(), dark.blue(), 255);
 
         GLint matrixUniform = glGetUniformLocation(program, "matrix");
-        glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, viewToClip.constData());
+        glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, worldToClip.constData());
 
         GLint positionAttrib = glGetAttribLocation(program, "position");
         glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
@@ -123,23 +97,22 @@ void ImageEditor::paintGL()
     }
 
     QRect tilingBounds(0, 0, 1, 1);
-//    if (m_tiled) {
-//        QRectF bounds(m_transform.clipToWorld().map(QPointF(0., 0.)), QSizeF(1., 1.));
-//        expandRect(bounds, m_transform.clipToWorld().map(QPointF((float)width(), 0.)));
-//        expandRect(bounds, m_transform.clipToWorld().map(QPointF(0., (float)height())));
-//        expandRect(bounds, m_transform.clipToWorld().map(QPointF((float)width(), (float)height())));
-//        if (m_tileX) {
-//            tilingBounds.setLeft((int)floor(bounds.left() / m_image->imageData()->size().width()));
-//            tilingBounds.setRight((int)floor(bounds.right() / m_image->imageData()->size().width()));
-//        }
-//        if (m_tileY) {
-//            tilingBounds.setTop((int)floor(bounds.top() / m_image->imageData()->size().height()));
-//            tilingBounds.setBottom((int)floor(bounds.bottom() / m_image->imageData()->size().height()));
-//        }
-//    }
-//    qDebug() << tilingBounds;
-
-    glClear(GL_COLOR_BUFFER_BIT);///////////////////////////////////////////////
+    if (m_tiled) {
+        QMatrix4x4 matrix = m_transform.inverseMatrix() * viewToWorld;
+        QRectF bounds(matrix.map(QPointF(0.f, 0.f)), QSizeF(0.f, 0.f));
+        expandRect(bounds, matrix.map(QPointF((float)width(), 0.f)));
+        expandRect(bounds, matrix.map(QPointF(0.f, (float)height())));
+        expandRect(bounds, matrix.map(QPointF((float)width(), (float)height())));
+        if (m_tileX) {
+            tilingBounds.setLeft((int)floor(bounds.left() / m_image->imageData()->size().width()));
+            tilingBounds.setRight((int)floor(bounds.right() / m_image->imageData()->size().width()));
+        }
+        if (m_tileY) {
+            tilingBounds.setTop((int)floor(bounds.top() / m_image->imageData()->size().height()));
+            tilingBounds.setBottom((int)floor(bounds.bottom() / m_image->imageData()->size().height()));
+        }
+    }
+    qDebug() << tilingBounds;
 
     const int numberOfInstances = tilingBounds.width() * tilingBounds.height();
 
@@ -174,8 +147,7 @@ void ImageEditor::paintGL()
     glUniform2i(tilesSizeUniform, tilingBounds.width(), tilingBounds.height());
 
     GLint matrixUniform = glGetUniformLocation(program, "matrix");
-    glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (viewToClip * m_transform.worldToClip()).constData());
-//    glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, m_transform.worldToClip().constData());
+    glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (worldToClip * m_transform.matrix()).constData());
 
     GLint positionAttrib = glGetAttribLocation(program, "position");
     glBindBuffer(GL_ARRAY_BUFFER, m_image->imageData()->vertexBuffer());
@@ -201,7 +173,7 @@ void ImageEditor::paintGL()
         glUniform4i(colourUniform, 255, 255, 255, 127);
 
         GLint matrixUniform = glGetUniformLocation(program, "matrix");
-        glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (viewToClip * m_transform.worldToClip()).constData());
+        glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (worldToClip * m_transform.matrix()).constData());
 
         GLint positionAttrib = glGetAttribLocation(program, "position");
         glBindBuffer(GL_ARRAY_BUFFER, m_image->imageData()->vertexBuffer());
@@ -219,8 +191,9 @@ void ImageEditor::paintGL()
 
 void ImageEditor::mousePressEvent(QMouseEvent *event)
 {
+    QMatrix4x4 matrix = m_transform.inverseMatrix() * viewToWorld;
     lastMousePos = event->pos();
-    lastMouseImagePos = m_transform.clipToWorld().map(QPointF(event->pos()));
+    lastMouseImagePos = matrix.map(QPointF(event->pos()));
     if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
         QApplication::setOverrideCursor(Qt::CrossCursor);
         event->accept();
@@ -241,8 +214,8 @@ void ImageEditor::mousePressEvent(QMouseEvent *event)
 
 void ImageEditor::mouseMoveEvent(QMouseEvent *event)
 {
-//    qDebug() << viewToClip.map(QPointF(event->pos()));/////////////////////////////////////////////////////////
-    const QPointF mouseImagePosition = m_transform.clipToWorld().map(QPointF(event->pos()));
+    QMatrix4x4 matrix = m_transform.inverseMatrix() * viewToWorld;
+    const QPointF mouseImagePosition = matrix.map(QPointF(event->pos()));
     const QPoint lastPixel = QPoint(floor(lastMouseImagePos.x()), floor(lastMouseImagePos.y()));
     const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
     QPoint coord = QPoint(0, 0);
@@ -274,7 +247,7 @@ void ImageEditor::mouseMoveEvent(QMouseEvent *event)
 
     }
     else if (panKeyDown || event->buttons() & Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
-        const QPointF delta = mouseImagePosition - m_transform.clipToWorld().map(QPointF(lastMousePos));
+        const QPointF delta = mouseImagePosition - matrix.map(QPointF(lastMousePos));
         Transform transform = m_transform;
         transform.setPan(transform.pan() + delta);
         setTransform(transform);
@@ -289,7 +262,8 @@ void ImageEditor::mouseMoveEvent(QMouseEvent *event)
 
 void ImageEditor::mouseReleaseEvent(QMouseEvent *event)
 {
-    QPointF mouseImagePosition = m_transform.clipToWorld().map(QPointF(event->pos()));
+    QMatrix4x4 matrix = m_transform.inverseMatrix() * viewToWorld;
+    QPointF mouseImagePosition = matrix.map(QPointF(event->pos()));
     if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
         const QPoint pixel = QPoint(floor(mouseImagePosition.x()), floor(mouseImagePosition.y()));
 //            emit clicked(pixel, &m_editingContext);
@@ -322,7 +296,7 @@ void ImageEditor::wheelEvent(QWheelEvent *event)
         const float angle = event->angleDelta().y() > 0 ? 15 : (event->angleDelta().y() < 0 ? -15 : 0);
         transform.setRotation(transform.rotation() + angle);
         if (transformAroundCursor) {
-            const QPointF mouseImagePosition = m_transform.clipToWorld().map(QPointF(event->pos()));
+            const QPointF mouseImagePosition = m_transform.inverseMatrix().map(QPointF(event->pos()));
             const QPointF mouseDelta = mouseImagePosition - transform.pan();
         }
         setTransform(transform);
@@ -333,7 +307,7 @@ void ImageEditor::wheelEvent(QWheelEvent *event)
         const float scale = event->angleDelta().y() > 0 ? 2 : (event->angleDelta().y() < 0 ? .5 : 1);
         transform.setZoom(transform.zoom() * scale);
         if (transformAroundCursor) {
-            const QPointF mouseImagePosition = m_transform.clipToWorld().map(QPointF(event->pos()));
+            const QPointF mouseImagePosition = m_transform.inverseMatrix().map(QPointF(event->pos()));
 
         }
         setTransform(transform);

@@ -13,8 +13,8 @@ class Transform : public QObject
     Q_PROPERTY(float zoom READ zoom WRITE setZoom)
     Q_PROPERTY(QPointF pixelSize READ pixelSize WRITE setPixelSize)
     Q_PROPERTY(float rotation READ rotation WRITE setRotation)
-    Q_PROPERTY(QMatrix4x4 worldToClip READ worldToClip)
-    Q_PROPERTY(QMatrix4x4 clipToWorld READ clipToWorld)
+    Q_PROPERTY(QMatrix4x4 matrix READ matrix)
+    Q_PROPERTY(QMatrix4x4 inverseMatrix READ inverseMatrix)
     Q_ENUMS(origin pan zoom pixelSize rotation)
 public:
     explicit Transform(QObject *parent = nullptr);
@@ -23,25 +23,25 @@ public:
     float zoom() const { return m_zoom; }
     const QPointF &pixelSize() const { return m_pixelSize; }
     float rotation() const { return m_rotation; }
-    const QMatrix4x4 &worldToClip() {
+    const QMatrix4x4 &matrix() {
         if (dirty) {
             updateMatrices();
         }
-        return m_worldToClip;
+        return m_matrix;
     }
-    const QMatrix4x4 &clipToWorld() {
+    const QMatrix4x4 &inverseMatrix() {
         if (dirty) {
             updateMatrices();
         }
-        return m_clipToWorld;
+        return m_inverseMatrix;
     }
     const Transform &operator=(const Transform& other) {
         m_pan = other.m_pan;
         m_zoom = other.m_zoom;
         m_pixelSize = other.m_pixelSize;
         m_rotation = other.m_rotation;
-        m_worldToClip = other.m_worldToClip;
-        m_clipToWorld = other.m_clipToWorld;
+        m_matrix = other.m_matrix;
+        m_inverseMatrix = other.m_inverseMatrix;
         dirty = other.dirty;
         emit changed(*this);
         return *this;
@@ -94,8 +94,8 @@ private:
     float m_zoom;
     QPointF m_pixelSize;
     float m_rotation;
-    QMatrix4x4 m_worldToClip;
-    QMatrix4x4 m_clipToWorld;
+    QMatrix4x4 m_matrix;
+    QMatrix4x4 m_inverseMatrix;
     bool dirty;
     void updateMatrices();
 };

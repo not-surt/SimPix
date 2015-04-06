@@ -13,10 +13,10 @@ Transform::Transform(const Transform &transform):
 
 void Transform::updateMatrices()
 {
-    m_worldToClip.setToIdentity();
-    m_worldToClip.rotate(m_rotation, 0.f, 0.f, 1.f);
-    m_worldToClip.scale(m_zoom * m_pixelSize.x(), m_zoom * m_pixelSize.y());
-    m_worldToClip.translate(m_pan.x(), m_pan.y());
-    m_clipToWorld = m_worldToClip.inverted();
+    m_matrix.setToIdentity();
+    m_matrix.rotate(m_rotation, 0.f, 0.f, 1.f);
+    m_matrix.scale(m_zoom * m_pixelSize.x(), m_zoom * m_pixelSize.y());
+    m_matrix.translate(m_pan.x(), m_pan.y());
+    m_inverseMatrix = m_matrix.inverted();
     dirty = false;
 }
