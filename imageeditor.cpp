@@ -18,7 +18,7 @@ ImageEditor::ImageEditor(Image *image, QWidget *parent) :
     transform.setZoom(1.f);
     transform.setPixelSize(QPointF(1.f, 1.f));
     transform.setRotation(0.f);
-//    transform.setPan(-QPointF(floor((float)m_image->imageData()->size().width() / 2.f), floor((float)m_image->imageData()->size().height() / 2.f), 0.f));
+    transform.setPan(-QPointF(floor((float)m_image->imageData()->size().width() / 2.f), floor((float)m_image->imageData()->size().height() / 2.f)));
     setTransform(transform);
     m_editingContext.setImage(m_image->imageData());
     m_editingContext.setPalette(m_image->paletteData());
@@ -39,8 +39,6 @@ void ImageEditor::initializeGL()
 
 void ImageEditor::resizeGL(int w, int h)
 {
-    initializeOpenGLFunctions();
-
     glDeleteBuffers((GLsizei)1, &m_vertexBuffer);
     glGenBuffers((GLsizei)1, &m_vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
@@ -66,8 +64,6 @@ void ImageEditor::resizeGL(int w, int h)
 
 void ImageEditor::paintGL()
 {
-    initializeOpenGLFunctions();
-
     if (!m_tiled || !m_tileX || !m_tileY || m_showAlpha) {
         GLuint program = APP->program("checkerboard");
         glUseProgram(program);
@@ -112,7 +108,7 @@ void ImageEditor::paintGL()
             tilingBounds.setBottom((int)floor(bounds.bottom() / m_image->imageData()->size().height()));
         }
     }
-    qDebug() << tilingBounds;
+//    qDebug() << tilingBounds;
 
     const int numberOfInstances = tilingBounds.width() * tilingBounds.height();
 

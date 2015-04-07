@@ -285,16 +285,17 @@ ImageEditor *MainWindow::newEditor(Image *const image) {
     QMdiSubWindow *subWindow = new MdiSubWindow;
     subWindow->setAttribute(Qt::WA_DeleteOnClose);
     subWindow->setWindowTitle(image->shortName());
-    QSize size;
-    if (image) {
-        size = QSize(image->imageData()->size());
-    }
-    else {
-        size = QSize(128, 128);
-    }
-    subWindow->resize(size);
+
+    const float scaleStep = 2;
+    const float scale = std::min(pow(scaleStep, floor(log(m_mdi->width() / image->imageData()->size().width()) / log(scaleStep))), pow(scaleStep, floor(log(m_mdi->height() / image->imageData()->size().height()) / log(scaleStep))));
+    qDebug() << scale << image->imageData()->size();
+    subWindow->resize(image->imageData()->size() * scale);
     m_mdi->addSubWindow(subWindow);
+
     ImageEditor *editor = new ImageEditor(image);
+    Transform transform(editor->transform());
+    transform.setZoom(scale);
+    editor->setTransform(transform);
     subWindow->setWidget(editor);
     editor->show();
     return editor;

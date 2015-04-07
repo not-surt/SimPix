@@ -11,5 +11,6 @@
         <file>shaders/rectanglebrush.frag</file>
         <file>text/ABOUT</file>
         <file>shaders/viewport.vert</file>
+        <file>shaders/singlecanvas.vert</file>
     </qresource>
 </RCC>

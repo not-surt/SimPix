@@ -12,25 +12,23 @@ Image::Image(const QSize &size, ImageDataFormat format, QObject *parent) :
         return;
     }
 
-    QRgb fillColour;
+    uint fillColour = 0;
     if (format == ImageDataFormat::Indexed) {
         m_paletteData = new PaletteData(APP->shareWidget(), 2);
         m_paletteData->setColour(0, qRgba(0, 0, 0, 255));
         m_paletteData->setColour(1, qRgba(255, 255, 255, 255));
-        fillColour = 0;
+        fillColour = 1;
 //        m_contextColours[ContextColour::Primary] = 1;
 //        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = 0;
     }
     else if (format == ImageDataFormat::RGBA) {
-        fillColour = qRgba(0, 0, 0, 0);
+        fillColour = qRgba(255, 0, 0, 255);
 //        m_contextColours[ContextColour::Primary] = qRgba(255, 255, 255, 255);
 //        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = qRgba(0, 0, 0, 0);
     }
 
     m_imageData = new ImageData(APP->shareWidget(), size, format);
-    m_imageData->initializeOpenGLFunctions();
-    // clear here
-
+    m_imageData->clear(fillColour);
 }
 
 Image::Image(const QString &fileName, const char *fileFormat, QObject *parent) :
@@ -188,6 +186,37 @@ void drawPixel(TextureData &texture, const QPoint &point, const uint colour, con
     if (QRect(QPoint(0, 0), texture.size()).contains(point)) {
         texture.setPixel(point, colour);
     }
+
+    QOpenGLFunctions gl;
+    gl.initializeOpenGLFunctions();
+
+    gl.glBindFramebuffer(GL_FRAMEBUFFER, texture.framebuffer());
+
+    GLint program = 0;
+    gl.glUseProgram(program);
+
+    GLuint vertexBuffer;
+    gl.glGenBuffers((GLsizei)1, &vertexBuffer);
+    gl.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    const GLfloat vertices[][2] = {
+        {-1.f, -1.f},
+        {1.f, -1.f},
+        {1.f, 1.f},
+        {-1.f, 1.f},
+    };
+    gl.glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+    gl.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+//    GLint positionAttrib = gl.glGetAttribLocation(program, "position");
+//    gl.glEnableVertexAttribArray(positionAttrib);
+//    gl.glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+//    gl.glDisableVertexAttribArray(positionAttrib);
+//    gl.glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+//    gl.glDisableVertexAttribArray(positionAttrib);
+    gl.glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    gl.glUseProgram(0);
+    gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void drawRectangularBrush(QImage &image, const QPoint &point, const uint colour, const void *const data)

@@ -2,6 +2,7 @@
 #include "mainwindow.h"
 #include <QDebug>
 #include "util.h"
+#include <QDirIterator>
 #include <exception>
 
 Application::Application(int &argc, char **argv) :
@@ -43,26 +44,17 @@ Application::Application(int &argc, char **argv) :
 
     {
         ContextGrabber grab(m_shareWidget);
-        addShader("tiledcanvas.vert", QOpenGLShader::Vertex, fileToString(":/shaders/tiledcanvas.vert"));
-
-        addShader("image.frag", QOpenGLShader::Fragment, fileToString(":/shaders/image.frag"));
-        addProgram("image", QStringList() << "tiledcanvas.vert" << "image.frag");
-
-        addShader("frame.frag", QOpenGLShader::Fragment, fileToString(":/shaders/frame.frag"));
-        addProgram("frame", QStringList() << "tiledcanvas.vert" << "frame.frag");
-
-        addShader("viewport.vert", QOpenGLShader::Vertex, fileToString(":/shaders/viewport.vert"));
-
-        addShader("checkerboard.frag", QOpenGLShader::Fragment, fileToString(":/shaders/checkerboard.frag"));
-        addProgram("checkerboard", QStringList() << "viewport.vert" << "checkerboard.frag");
-
-        addShader("brush.vert", QOpenGLShader::Vertex, fileToString(":/shaders/brush.vert"));
-
-        addShader("ellipsebrush.frag", QOpenGLShader::Fragment, fileToString(":/shaders/ellipsebrush.frag"));
-        addProgram("ellipsebrush", QStringList() << "brush.vert" << "ellipsebrush.frag");
-
-        addShader("rectanglebrush.frag", QOpenGLShader::Fragment, fileToString(":/shaders/rectanglebrush.frag"));
-        addProgram("rectanglebrush", QStringList() << "brush.vert" << "rectanglebrush.frag");
+        QDirIterator iterator(":/shaders");
+        while (iterator.hasNext()) {
+            iterator.next();
+            QFileInfo info = iterator.fileInfo();
+            addShader(info.fileName(), info.completeSuffix() == "vert" ? QOpenGLShader::Vertex : QOpenGLShader::Fragment, fileToString(info.filePath()));
+        }
+        addProgram("image", {"tiledcanvas.vert", "image.frag"});
+        addProgram("frame", {"singlecanvas.vert", "frame.frag"});
+        addProgram("checkerboard", {"viewport.vert", "checkerboard.frag"});
+        addProgram("ellipsebrush", {"brush.vert", "ellipsebrush.frag"});
+        addProgram("rectanglebrush", {"brush.vert", "rectanglebrush.frag"});
     }
 
     m_window->show();

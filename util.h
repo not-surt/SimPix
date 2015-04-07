@@ -9,6 +9,8 @@
 
 #include "application.h"
 
+#define ARR_LEN(array) (sizeof (array) / sizeof (array)[0])
+
 #define SS_CAST(cls, method, ...) (static_cast<void (cls::*)(__VA_ARGS__)>(&cls::method))
 
 template<typename T>

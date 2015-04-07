@@ -1,7 +1,6 @@
 #version 330
 
 uniform mat4 matrix;
-uniform vec2 offset;
 uniform ivec2 tilesStart;
 uniform ivec2 tilesSize;
 uniform usampler2D textureUnit;
