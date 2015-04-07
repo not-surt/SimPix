@@ -15,12 +15,17 @@
 #include <QWidgetAction>
 #include <QSpinBox>
 
-const QString MainWindow::fileDialogFilterString = tr("PNG Image Files (*.png)");
+const QString MainWindow::fileDialogFilterString = tr(
+            "All Image Files (*.png *.gif *.bmp *.jpeg *.jpg);;"
+            "PNG Image Files (*.png);;"
+            "GIF Image Files (*.gif);;"
+            "BMP Image Files (*.bmp);;"
+            "JPEG Image Files (*.jpeg *.jpg)");
 
-class MdiSubWindow : public QMdiSubWindow
+class SubWindow : public QMdiSubWindow
 {
 public:
-    explicit MdiSubWindow(QWidget *parent = nullptr) :
+    explicit SubWindow(QWidget *parent = nullptr) :
         QMdiSubWindow(parent) {}
 
 protected:
@@ -153,8 +158,8 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
         }
 
         QObject::disconnect(ui->paletteWidget, SS_CAST(PaletteWidget, colourChanged,), editor, SS_CAST(ImageEditor, update,));
-        QObject::disconnect(ui->transformWidget, &TransformWidget::transformChanged, editor, &ImageEditor::setTransform);
-        QObject::disconnect(editor, &ImageEditor::transformChanged, ui->transformWidget, &TransformWidget::setTransform);
+        QObject::disconnect(ui->transformWidget, &TransformWidget::transformChanged, &editor->transform(), &Transform::copy);
+        QObject::disconnect(&editor->transform(), &Transform::changed, ui->transformWidget, &TransformWidget::setTransform);
 
         QObject::disconnect(ui->actionTiled, &QAction::triggered, editor, &ImageEditor::setTiled);
         QObject::disconnect(ui->actionTileX, &QAction::triggered, editor, &ImageEditor::setTileX);
@@ -180,8 +185,8 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
         }
 
         QObject::connect(ui->paletteWidget, SS_CAST(PaletteWidget, colourChanged,), editor, SS_CAST(ImageEditor, update,));
-        QObject::connect(ui->transformWidget, &TransformWidget::transformChanged, editor, &ImageEditor::setTransform);
-        QObject::connect(editor, &ImageEditor::transformChanged, ui->transformWidget, &TransformWidget::setTransform);
+        QObject::connect(ui->transformWidget, &TransformWidget::transformChanged, &editor->transform(), &Transform::copy);
+        QObject::connect(&editor->transform(), &Transform::changed, ui->transformWidget, &TransformWidget::setTransform);
 
         QObject::connect(ui->actionTiled, &QAction::triggered, editor, &ImageEditor::setTiled);
         ui->actionTiled->setChecked(editor->tiled());
@@ -282,20 +287,18 @@ void MainWindow::closeEvent(QCloseEvent *event)
 }
 
 ImageEditor *MainWindow::newEditor(Image *const image) {
-    QMdiSubWindow *subWindow = new MdiSubWindow;
+    QMdiSubWindow *subWindow = new SubWindow;
     subWindow->setAttribute(Qt::WA_DeleteOnClose);
     subWindow->setWindowTitle(image->shortName());
 
     const float scaleStep = 2;
-    const float scale = std::min(pow(scaleStep, floor(log(m_mdi->width() / image->imageData()->size().width()) / log(scaleStep))), pow(scaleStep, floor(log(m_mdi->height() / image->imageData()->size().height()) / log(scaleStep))));
+    const float scale = std::min(pow(scaleStep, floor(log((float)m_mdi->width() / (float)image->imageData()->size().width()) / log(scaleStep))), pow(scaleStep, floor(log((float)m_mdi->height() / (float)image->imageData()->size().height()) / log(scaleStep))));
     qDebug() << scale << image->imageData()->size();
     subWindow->resize(image->imageData()->size() * scale);
     m_mdi->addSubWindow(subWindow);
 
     ImageEditor *editor = new ImageEditor(image);
-    Transform transform(editor->transform());
-    transform.setZoom(scale);
-    editor->setTransform(transform);
+    editor->transform().setZoom(scale);
     subWindow->setWidget(editor);
     editor->show();
     return editor;

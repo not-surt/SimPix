@@ -11,7 +11,7 @@
 class ImageEditor : public QOpenGLWidget, public Editor, protected QOpenGLFunctions_3_3_Core
 {
     Q_OBJECT
-    Q_PROPERTY(Transform transform READ transform WRITE setTransform NOTIFY transformChanged)
+    Q_PROPERTY(Transform transform READ transform)
     Q_PROPERTY(bool tiled READ tiled WRITE setTiled NOTIFY tiledChanged)
     Q_PROPERTY(bool tileX READ tileX WRITE setTileX NOTIFY tileXChanged)
     Q_PROPERTY(bool tileY READ tileY WRITE setTileY NOTIFY tileYChanged)
@@ -24,7 +24,7 @@ public:
     explicit ImageEditor(Image *image, QWidget *parent = nullptr);
     ~ImageEditor();
     Image *image() const { return m_image; }
-    const Transform &transform() const { return m_transform; }
+    Transform &transform() { return m_transform; }
     bool tiled() const { return m_tiled; }
     bool tileX() const { return m_tileX; }
     bool tileY() const { return m_tileY; }
@@ -34,9 +34,10 @@ public:
     GLuint vertexBuffer() const { return m_vertexBuffer; }
     EditingContext &editingContext() { return m_editingContext; }
     bool limitTransform() const { return m_limitTransform; }
+    void applyTransformLimits();    
+    void updateTransform();
 
 signals:
-    void transformChanged(const Transform &transform);
     void tiledChanged(const bool tiled);
     void tileXChanged(const bool tileX);
     void tileYChanged(const bool tileY);
@@ -48,7 +49,6 @@ signals:
     void limitTransformChanged(bool arg);
 
 public slots:
-    void setTransform(const Transform &transform);
     void setTiled(const bool tiled) {
         if (m_tiled != tiled) {
             m_tiled = tiled;

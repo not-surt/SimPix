@@ -35,7 +35,7 @@ public:
         }
         return m_inverseMatrix;
     }
-    const Transform &operator=(const Transform& other) {
+    const Transform &operator=(const Transform &other) {
         m_pan = other.m_pan;
         m_zoom = other.m_zoom;
         m_pixelSize = other.m_pixelSize;
@@ -46,13 +46,13 @@ public:
         emit changed(*this);
         return *this;
     }
-    friend inline bool operator==(const Transform& lhs, const Transform& rhs) {
+    friend inline bool operator==(const Transform &lhs, const Transform &rhs) {
         return lhs.m_pan == rhs.m_pan &&
                 lhs.m_zoom == rhs.m_zoom &&
                 lhs.m_pixelSize == rhs.m_pixelSize &&
                 lhs.m_rotation == rhs.m_rotation;
     }
-    friend inline bool operator!=(const Transform& lhs, const Transform& rhs) {
+    friend inline bool operator!=(const Transform &lhs, const Transform &rhs) {
         return !(lhs == rhs);
     }
 
@@ -60,6 +60,9 @@ signals:
     void changed(const Transform &transform);    
 
 public slots:
+    void copy(const Transform &other) {
+        (*this) = other;
+    }
     void setPan(const QPointF &pan) {
         if (m_pan != pan) {
             dirty = true;

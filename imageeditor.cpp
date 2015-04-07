@@ -13,13 +13,12 @@ ImageEditor::ImageEditor(Image *image, QWidget *parent) :
 {
     setMouseTracking(true);
 
-    Transform transform;
-    transform.setPan(QPointF(0.f, 0.f));
-    transform.setZoom(1.f);
-    transform.setPixelSize(QPointF(1.f, 1.f));
-    transform.setRotation(0.f);
-    transform.setPan(-QPointF(floor((float)m_image->imageData()->size().width() / 2.f), floor((float)m_image->imageData()->size().height() / 2.f)));
-    setTransform(transform);
+    m_transform.setPan(QPointF(0.f, 0.f));
+    m_transform.setZoom(1.f);
+    m_transform.setPixelSize(QPointF(1.f, 1.f));
+    m_transform.setRotation(0.f);
+    m_transform.setPan(-QPointF(floor((float)m_image->imageData()->size().width() / 2.f), floor((float)m_image->imageData()->size().height() / 2.f)));
+    updateTransform();
     m_editingContext.setImage(m_image->imageData());
     m_editingContext.setPalette(m_image->paletteData());
 }
@@ -246,9 +245,8 @@ void ImageEditor::mouseMoveEvent(QMouseEvent *event)
 
     }
     else if (panKeyDown || event->buttons() & Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
-        Transform transform = m_transform;
-        transform.setPan(m_transform.pan() - mouseGrabImagePos + mouseImagePos);
-        setTransform(transform);
+        m_transform.setPan(m_transform.pan() - mouseGrabImagePos + mouseImagePos);
+        updateTransform();
         event->accept();
     }
     else {
@@ -289,25 +287,23 @@ void ImageEditor::wheelEvent(QWheelEvent *event)
 {
     const bool transformAroundCursor = true;
     if (event->modifiers() & Qt::SHIFT) {
-        Transform transform = m_transform;
         const float angle = event->angleDelta().y() > 0 ? 15 : (event->angleDelta().y() < 0 ? -15 : 0);
-        transform.setRotation(transform.rotation() + angle);
+        m_transform.setRotation(m_transform.rotation() + angle);
         if (transformAroundCursor) {
             const QPointF mouseImagePos = m_transform.inverseMatrix().map(QPointF(event->pos()));
-            const QPointF mouseDelta = mouseImagePos - transform.pan();
+            const QPointF mouseDelta = mouseImagePos - m_transform.pan();
         }
-        setTransform(transform);
+        updateTransform();
         event->accept();
     }
     else {
-        Transform transform = m_transform;
         const float scale = event->angleDelta().y() > 0 ? 2 : (event->angleDelta().y() < 0 ? .5 : 1);
-        transform.setZoom(transform.zoom() * scale);
+        m_transform.setZoom(m_transform.zoom() * scale);
         if (transformAroundCursor) {
             const QPointF mouseImagePos = m_transform.inverseMatrix().map(QPointF(event->pos()));
 
         }
-        setTransform(transform);
+        updateTransform();
         event->accept();
     }
 }
@@ -359,19 +355,18 @@ void ImageEditor::leaveEvent(QEvent *const event)
     emit mouseLeft();
 }
 
-void ImageEditor::setTransform(const Transform &transform)
+void ImageEditor::applyTransformLimits()
 {
-    if (m_transform != transform) {
-        m_transform = transform;
-        if (m_limitTransform) {
-            float panX = (m_tiled && m_tileX) ? wrap((float)m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f) : clamp((float)m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f);
-            float panY = (m_tiled && m_tileY) ? wrap((float)m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f) : clamp((float)m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f);
-            m_transform.setPan(QPointF(panX, panY));
-            m_transform.setZoom(clamp(m_transform.zoom(), 1.f/16.f, 256.f));
-            m_transform.setPixelSize(QPointF(clamp((float)m_transform.pixelSize().x(), 1.f/16.f, 16.f), clamp((float)m_transform.pixelSize().y(), 1.f/16.f, 16.f)));
-            m_transform.setRotation(wrap(m_transform.rotation(), 0.f, 360.f));
-        }
-        update();
-        emit transformChanged(m_transform);
-    }
+    float panX = (m_tiled && m_tileX) ? wrap((float)m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f) : clamp((float)m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f);
+    float panY = (m_tiled && m_tileY) ? wrap((float)m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f) : clamp((float)m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f);
+    m_transform.setPan(QPointF(panX, panY));
+    m_transform.setZoom(clamp(m_transform.zoom(), 1.f/16.f, 256.f));
+    m_transform.setPixelSize(QPointF(clamp((float)m_transform.pixelSize().x(), 1.f/16.f, 16.f), clamp((float)m_transform.pixelSize().y(), 1.f/16.f, 16.f)));
+    m_transform.setRotation(wrap(m_transform.rotation(), 0.f, 360.f));
+}
+
+void ImageEditor::updateTransform()
+{
+    applyTransformLimits();
+    update();
 }
