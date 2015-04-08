@@ -5,7 +5,7 @@ Session::Session(QObject *parent) :
 {
 }
 
-QList<Image *> Session::images() const
+QList<ImageDocument *> Session::images() const
 {
     return m_images;
 }

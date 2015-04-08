@@ -13,7 +13,7 @@ class Session : public QObject
 public:
     explicit Session(QObject *parent = nullptr);
 
-    QList<Image *> images() const;
+    QList<ImageDocument *> images() const;
     QList<ImageEditor *> editors() const;
 
 signals:
@@ -21,7 +21,7 @@ signals:
 public slots:
 
 private:
-    QList<Image *> m_images;
+    QList<ImageDocument *> m_images;
     QList<ImageEditor *> m_editors;
 };
 

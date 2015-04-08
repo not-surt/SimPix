@@ -5,6 +5,13 @@
 #include <QDirIterator>
 #include <exception>
 
+const QString Application::fileDialogFilterString = tr(
+            "All Image Files (*.png *.gif *.bmp *.jpeg *.jpg);;"
+            "PNG Image Files (*.png);;"
+            "GIF Image Files (*.gif);;"
+            "BMP Image Files (*.bmp);;"
+            "JPEG Image Files (*.jpeg *.jpg)");
+
 Application::Application(int &argc, char **argv) :
     QApplication(argc, argv), m_shaders(), m_programs(), m_window(nullptr), m_shareWidget(nullptr)
 {
@@ -29,11 +36,11 @@ Application::Application(int &argc, char **argv) :
     swatchBackgroundPixmap = generateBackgroundPixmap(16);
 
     // Why cause fail?
-//    QSurfaceFormat format;
+    QSurfaceFormat format;
 //    format.setRenderableType(QSurfaceFormat::OpenGL);
-//    format.setVersion(3, 3);
-////    format.setProfile(QSurfaceFormat::CoreProfile);
-//    QSurfaceFormat::setDefaultFormat(format);
+    format.setVersion(4, 0);
+//    format.setProfile(QSurfaceFormat::CoreProfile);
+    QSurfaceFormat::setDefaultFormat(format);
 
     m_window = new MainWindow;
 

@@ -18,6 +18,9 @@ class Application : public QApplication, public QOpenGLFunctions_3_3_Core
 public:
     explicit Application(int &argc, char **argv);
     ~Application();
+
+    static const QString fileDialogFilterString;
+
     bool addShader(const QString &name, const QOpenGLShader::ShaderType type, const QString &src);
     GLuint shader(const QString &name);
     bool addProgram(const QString &name, const QStringList &shaders);
@@ -32,6 +35,7 @@ private:
     MainWindow *m_window;
     QOpenGLWidget *m_shareWidget;
 };
+
 
 #define APP (static_cast<Application *>(qApp))
 

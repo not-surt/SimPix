@@ -7,8 +7,9 @@
 #include "util.h"
 #include "transform.h"
 #include <QOpenGLShaderProgram>
+#include "imagedocument.h"
 
-ImageEditor::ImageEditor(Image *image, QWidget *parent) :
+ImageEditor::ImageEditor(ImageDocument *image, QWidget *parent) :
     QOpenGLWidget(parent), Editor(image), m_image(image), m_transform(), m_tiled(false), m_tileX(true), m_tileY(true), panKeyDown(false), m_showAlpha(true), m_showBounds(false), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true), viewToWorld(), worldToClip()
 {
     setMouseTracking(true);
@@ -297,8 +298,36 @@ void ImageEditor::wheelEvent(QWheelEvent *event)
         event->accept();
     }
     else {
-        const float scale = event->angleDelta().y() > 0 ? 2 : (event->angleDelta().y() < 0 ? .5 : 1);
-        m_transform.setZoom(m_transform.zoom() * scale);
+        const float zoomStep = 2.f;
+        const float exp = floor(log(m_transform.zoom()) / log(zoomStep));
+        const float step = pow(2.f, exp - 1.f);
+        int zoomIndex = exp * 2 + round((m_transform.zoom() - 2.f * step) / step);
+        const bool halfSteps = true;
+        zoomIndex += (event->angleDelta().y() < 0 ? -1 : 1) * (halfSteps ? 1 : 2);
+        const float scale = step * (2 + mod(zoomIndex, 2));
+        qDebug() << exp*2 << zoomIndex << scale << mod(zoomIndex, 2);
+        m_transform.setZoom(scale);
+
+        auto zoomToNearestIndex = [](const float zoom, const bool halfSteps = true, const float zoomStep = 2) {
+            const float exponent = floor(log(zoom) / log(zoomStep));
+            return 1.f;
+        };
+        int index = zoomToNearestIndex(m_transform.zoom());
+
+        auto indexToZoom = [](const int index, const bool halfSteps = true, const float zoomStep = 2) {
+            const float exponent = floor((float)index / (float)2);
+            const float halfStep = pow(zoomStep, exponent - 1);
+//            const float result = (index - (2 * exponent) + scaleStep) * halfStep;
+//            const float result =  pow(scaleStep, exponent) + (index - (2 * exponent) == 1 ? pow(scaleStep, exponent - 1) : 0);
+            const float result =  zoomStep * halfStep + (index - (2 * exponent) == 1 ? halfStep : 0);
+//            qDebug() << "|" << "index:" << index << "exp:" << exponent << "halfStep:" << halfStep << "=" << result;
+            return result;
+        };
+//        for (int i = -4; i <= 8; i++) indexToZoom(i);
+        m_transform.setZoom(indexToZoom(index));
+
+//        const float scale = event->angleDelta().y() > 0 ? 2 : (event->angleDelta().y() < 0 ? .5 : 1);
+//        m_transform.setZoom(m_transform.zoom() * scale);
         if (transformAroundCursor) {
             const QPointF mouseImagePos = m_transform.inverseMatrix().map(QPointF(event->pos()));
 

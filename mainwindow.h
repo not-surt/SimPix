@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QMdiArea>
+#include <QMdiSubWindow>
 #include "document.h"
 #include "imageeditor.h"
 #include "statusmousewidget.h"
@@ -10,6 +11,16 @@
 namespace Ui {
 class MainWindow;
 }
+
+class SubWindow : public QMdiSubWindow
+{
+public:
+    explicit SubWindow(QWidget *parent = nullptr) :
+        QMdiSubWindow(parent) {}
+
+protected:
+    void closeEvent(QCloseEvent *event);
+};
 
 class MainWindow : public QMainWindow
 {
@@ -34,7 +45,7 @@ public slots:
     void showDockTitles(bool checked);
     void lockDocks(bool checked);
     void useTabs(bool checked);
-    ImageEditor *newEditor(Image *const image);
+    ImageEditor *newEditor(ImageDocument *const image);
     void activateSubWindow(QMdiSubWindow *const subWindow);
 
 protected:
@@ -45,7 +56,7 @@ private:
     QMdiArea *m_mdi;
     StatusMouseWidget *m_statusMouseWidget;
     QMdiSubWindow *m_oldSubWindow;
-    QList<Image *> m_images;
+    QList<ImageDocument *> m_images;
     static const QString fileDialogFilterString;
 };
 

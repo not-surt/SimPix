@@ -7,6 +7,11 @@
 
 QPixmap *swatchBackgroundPixmap = nullptr;
 
+float mod(const float dividend, const float divisor)
+{
+    return dividend - divisor * floor(dividend / divisor);
+}
+
 float randUnit()
 {
     return (float)rand() / (float)RAND_MAX;

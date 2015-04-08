@@ -5,8 +5,11 @@
 #include <QOpenGLWidget>
 #include <memory>
 #include "document.h"
+#include "editor.h"
 #include "transform.h"
 #include "editingcontext.h"
+
+class ImageDocument;
 
 class ImageEditor : public QOpenGLWidget, public Editor, protected QOpenGLFunctions_3_3_Core
 {
@@ -21,9 +24,9 @@ class ImageEditor : public QOpenGLWidget, public Editor, protected QOpenGLFuncti
     Q_ENUMS(image transform)
 
 public:
-    explicit ImageEditor(Image *image, QWidget *parent = nullptr);
+    explicit ImageEditor(ImageDocument *image, QWidget *parent = nullptr);
     ~ImageEditor();
-    Image *image() const { return m_image; }
+    ImageDocument *image() const { return m_image; }
     Transform &transform() { return m_transform; }
     bool tiled() const { return m_tiled; }
     bool tileX() const { return m_tileX; }
@@ -106,7 +109,7 @@ protected:
     virtual void leaveEvent(QEvent * const event);
 
 private:
-    Image *const m_image;
+    ImageDocument *const m_image;
     Transform m_transform;
     bool m_tiled, m_tileX, m_tileY;
     QPoint mouseGrabPos;

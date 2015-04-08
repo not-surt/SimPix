@@ -4,17 +4,7 @@
 #include "data.h"
 #include <QFileInfo>
 
-class Document;
-
-class Editor
-{
-public:
-    explicit Editor(Document *document) :
-        m_document(document) {}
-    Document *document() { return m_document; }
-protected:
-    Document *m_document;
-};
+class Editor;
 
 class Document : public QObject
 {
@@ -24,30 +14,21 @@ public:
     explicit Document(const QString &fileName, QObject *parent = nullptr);
     virtual ~Document() {}
 
-    bool revert();
+    bool revert() { return doOpen(m_fileName); }
     bool save(QString fileName = QString());
 
-    const QString &fileName() const
-    {
-        return m_fileName;
-    }
-    QString shortName() const
-    {
-        return QFileInfo(m_fileName).fileName();
-    }
-    void setFileName(const QString &fileName)
-    {
+    const QString &fileName() const { return m_fileName; }
+    QString shortName() const { return QFileInfo(m_fileName).fileName(); }
+    void setFileName(const QString &fileName) {
         if (m_fileName != fileName) {
             m_fileName = fileName;
             emit fileNameChanged(fileName);
         }
     }
-    bool dirty() const
-    {
-        return m_dirty;
-    }
+    bool dirty() const { return m_dirty; }
     virtual Editor *createEditor() = 0;
-    QList<Editor *> *editors();
+    void removeEditor(Editor *editor) { m_editors.remove(editor); }
+    QSet<Editor *> &editors() { return m_editors; }
 
 signals:
     void fileNameChanged(const QString &fileName);
@@ -57,13 +38,22 @@ signals:
 public slots:
 
 protected:
-    void makeDirty();
+    void makeDirty() {
+        m_dirty = true;
+        emit dirtied();
+        emit dirtyChanged();
+    }
+    void clearDirty() {
+        m_dirty = false;
+        emit dirtyChanged();
+    }
+
     virtual bool doOpen(QString fileName) = 0;
     virtual bool doSave(QString fileName) = 0;
 
     QString m_fileName;
     bool m_dirty;
-    QList<Editor *> m_editors;
+    QSet<Editor *> m_editors;
 };
 
 //class Palette : public Document
@@ -79,41 +69,6 @@ protected:
 //protected:
 //    PaletteData *m_paletteData;
 //};
-
-class Image : public Document
-{
-    Q_OBJECT
-public:
-    enum ContextColour {
-        Primary,
-        Secondary,
-        Eraser,
-    };
-    explicit Image(const QSize &size, ImageDataFormat format, QObject *parent = nullptr);
-    explicit Image(const QString &fileName, const char *format = nullptr, QObject *parent = nullptr);
-    ~Image();
-
-    Editor *createEditor();
-
-    ImageDataFormat format() const { return m_imageData->format(); }
-    ImageData *imageData() { return m_imageData; }
-    PaletteData *paletteData() { return m_paletteData; }
-
-signals:
-
-public slots:
-    void point(const QPoint &position, EditingContext *const editingContext);
-    void stroke(const QPoint &a, const QPoint &b, EditingContext *const editingContext);
-    void pick(const QPoint &position, EditingContext *const editingContext);
-
-protected:
-    bool doOpen(QString fileName);
-    bool doSave(QString fileName);
-
-    ImageData *m_imageData;
-    PaletteData *m_paletteData;
-    QList<ImageData *> m_layers;
-};
 
 class DocumentFactory {
 public:

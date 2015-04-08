@@ -30,7 +30,9 @@ SOURCES += main.cpp\
     imageeditor.cpp \
     session.cpp \
     document.cpp \
-    data.cpp
+    data.cpp \
+    editor.cpp \
+    imagedocument.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
@@ -50,7 +52,9 @@ HEADERS  += mainwindow.h \
     imageeditor.h \
     session.h \
     document.h \
-    data.h
+    data.h \
+    editor.h \
+    imagedocument.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \

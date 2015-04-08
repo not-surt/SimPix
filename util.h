@@ -107,6 +107,7 @@ private:
     QSurface *const m_oldSurface;
 };
 
+float mod(const float dividend, const float divisor);
 QPixmap *generateBackgroundPixmap(const uint size = 32);
 extern QPixmap *swatchBackgroundPixmap;
 QString fileToString(QString fileName);
