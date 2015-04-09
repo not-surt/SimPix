@@ -12,6 +12,7 @@
 #include <QOpenGLShader>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLWidget>
+#include "session.h"
 
 class Application : public QApplication, public QOpenGLFunctions_3_3_Core
 {
@@ -22,10 +23,11 @@ public:
     static const QString fileDialogFilterString;
 
     bool addShader(const QString &name, const QOpenGLShader::ShaderType type, const QString &src);
-    GLuint shader(const QString &name);
+    GLuint shader(const QString &name) { return m_shaders[name]->shaderId(); }
     bool addProgram(const QString &name, const QStringList &shaders);
-    GLuint program(const QString &name);
-    QOpenGLWidget *shareWidget();
+    GLuint program(const QString &name) { return m_programs[name]->programId(); }
+    QOpenGLWidget *shareWidget() { return m_shareWidget; }
+    Session *session() { return m_session; }
 
 private:
     GLuint processShader(const GLenum type, const QString &src);
@@ -34,6 +36,7 @@ private:
     QHash<QString, QOpenGLShaderProgram *> m_programs;
     MainWindow *m_window;
     QOpenGLWidget *m_shareWidget;
+    Session *m_session;
 };
 
 

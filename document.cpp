@@ -9,12 +9,6 @@
 #include <QDir>
 #include "newdialog.h"
 
-Document::Document(QObject *parent) :
-    QObject(parent), m_fileName(QString()), m_dirty(false)
-{
-
-}
-
 Document::Document(const QString &fileName, QObject *parent) :
     QObject(parent), m_fileName(fileName), m_dirty(false)
 {
@@ -29,6 +23,9 @@ bool Document::save(QString fileName)
     }
     if (!fileName.isNull()) {
         saved = doSave(fileName);
+        if (saved) {
+            setFileName(fileName);
+        }
     }
     return saved;
 }

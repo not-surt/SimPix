@@ -7,7 +7,7 @@
 #include <QFileDialog>
 
 ImageDocument::ImageDocument(const QSize &size, ImageDataFormat format, QObject *parent) :
-    Document(parent), m_imageData(nullptr), m_paletteData(nullptr)
+    Document(QString(), parent), m_imageData(nullptr), m_paletteData(nullptr)
 {
     ContextGrabber grab(APP->shareWidget());
 
@@ -36,7 +36,7 @@ ImageDocument::ImageDocument(const QSize &size, ImageDataFormat format, QObject 
 }
 
 ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QObject *parent) :
-    Document(fileName, parent)
+    Document(fileName, parent), m_imageData(nullptr), m_paletteData(nullptr)
 {
     ContextGrabber grab(APP->shareWidget());
 

@@ -5,12 +5,7 @@ Session::Session(QObject *parent) :
 {
 }
 
-QList<ImageDocument *> Session::images() const
+bool Session::save(QString fileName)
 {
-    return m_images;
-}
 
-QList<ImageEditor *> Session::editors() const
-{
-    return m_editors;
 }

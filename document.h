@@ -6,12 +6,49 @@
 
 class Editor;
 
+class FileInfo : public QObject
+{
+    Q_OBJECT
+public:
+    explicit FileInfo(const QString &fileName = QString(), QObject *parent = nullptr) :
+        QObject(parent), m_fileName(fileName), m_dirty(false) {}
+    const QString &fileName() const { return m_fileName; }
+    QString shortName() const { return QFileInfo(m_fileName).fileName(); }
+    bool dirty() const { return m_dirty; }
+
+signals:
+    void fileNameChanged(const QString &fileName);
+    void dirtied();
+    void dirtyChanged();
+
+public slots:
+    void setFileName(const QString &fileName) {
+        if (m_fileName != fileName) {
+            m_fileName = fileName;
+            emit fileNameChanged(fileName);
+        }
+    }
+
+protected:
+    void makeDirty() {
+        m_dirty = true;
+        emit dirtied();
+        emit dirtyChanged();
+    }
+    void clearDirty() {
+        m_dirty = false;
+        emit dirtyChanged();
+    }
+
+    QString m_fileName;
+    bool m_dirty;
+};
+
 class Document : public QObject
 {
     Q_OBJECT
 public:
-    explicit Document(QObject *parent = nullptr);
-    explicit Document(const QString &fileName, QObject *parent = nullptr);
+    explicit Document(const QString &fileName = QString(), QObject *parent = nullptr);
     virtual ~Document() {}
 
     bool revert() { return doOpen(m_fileName); }
@@ -29,6 +66,8 @@ public:
     virtual Editor *createEditor() = 0;
     void removeEditor(Editor *editor) { m_editors.remove(editor); }
     QSet<Editor *> &editors() { return m_editors; }
+
+    FileInfo fileInfo;
 
 signals:
     void fileNameChanged(const QString &fileName);
@@ -70,6 +109,13 @@ protected:
 //    PaletteData *m_paletteData;
 //};
 
+struct DocumentType {
+    char *id;
+    char *extensions[];
+    Document *(create)();
+    Document *(open)(const QString &fileName);
+};
+
 class DocumentFactory {
 public:
     enum DocumentType {
@@ -78,6 +124,8 @@ public:
     };
     bool create(const DocumentType type) {}
     bool open(QString fileName) {}
+private:
+    QMap<QString, Document *(*)()> creators;
 };
 
 #endif // DOCUMENT_H

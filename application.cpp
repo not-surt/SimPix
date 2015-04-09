@@ -87,11 +87,6 @@ Application::~Application()
     delete swatchBackgroundPixmap;
 }
 
-QOpenGLWidget *Application::shareWidget()
-{
-    return m_shareWidget;
-}
-
 bool Application::addShader(const QString &name, const QOpenGLShader::ShaderType type, const QString &src)
 {
     bool error = false;
@@ -113,11 +108,6 @@ bool Application::addShader(const QString &name, const QOpenGLShader::ShaderType
         qDebug() << errorText;
     }
     return error;
-}
-
-GLuint Application::shader(const QString &name)
-{
-    return m_shaders[name]->shaderId();
 }
 
 bool Application::addProgram(const QString &name, const QStringList &shaders)
@@ -153,9 +143,4 @@ bool Application::addProgram(const QString &name, const QStringList &shaders)
         qDebug() << errorText;
     }
     return error;
-}
-
-GLuint Application::program(const QString &name)
-{
-    return m_programs[name]->programId();
 }
