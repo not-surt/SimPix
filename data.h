@@ -10,14 +10,14 @@
 
 class ImageEditor;
 
-enum class ImageDataFormat {
+enum class TextureDataFormat {
     Indexed,
     RGBA,
     Invalid,
 };
 
-struct ImageDataFormatDefinition {
-    ImageDataFormat id;
+struct TextureDataFormatDefinition {
+    TextureDataFormat id;
     char name[16];
     GLint internalFormat;
     GLint format;
@@ -25,7 +25,7 @@ struct ImageDataFormatDefinition {
     GLint size;
 };
 
-extern const ImageDataFormatDefinition IMAGE_DATA_FORMATS[];
+extern const TextureDataFormatDefinition IMAGE_DATA_FORMATS[];
 
 union Pixel {
     GLubyte index;
@@ -47,21 +47,22 @@ union Pixel {
 class TextureData : public QOpenGLFunctions_3_3_Core
 {
 public:
-    explicit TextureData(QOpenGLWidget *const widget, const QSize &size, const ImageDataFormat format, const GLubyte *const data = nullptr);
+    explicit TextureData(QOpenGLWidget *const widget, const QSize &size, const TextureDataFormat format, const GLubyte *const data = nullptr);
     ~TextureData();
     uint pixel(const QPoint &position);
     void setPixel(const QPoint &position, const uint colour);
     QSize size() const { return m_size; }
-    ImageDataFormat format() const { return m_format; }
+    TextureDataFormat format() const { return m_format; }
     GLuint texture() const { return m_texture; }
     GLuint framebuffer() const { return m_framebuffer; }
     GLubyte *readData(GLubyte *const data = nullptr);
     void writeData(const GLubyte *const data);
     void clear(const uint colour);
+    const QMatrix4x4 matrix;
 protected:
     QOpenGLWidget *m_widget;
     QSize m_size;
-    ImageDataFormat m_format;
+    TextureDataFormat m_format;
     GLuint m_texture;
     GLuint m_framebuffer;
 };
@@ -78,7 +79,7 @@ public:
 class ImageData : public TextureData
 {
 public:
-    explicit ImageData(QOpenGLWidget *const widget, const QSize &size, const ImageDataFormat format, const GLubyte *const data = nullptr);
+    explicit ImageData(QOpenGLWidget *const widget, const QSize &size, const TextureDataFormat format, const GLubyte *const data = nullptr);
     ~ImageData();
     GLuint vertexBuffer() const;
     const QRect &rect();

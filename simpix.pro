@@ -79,7 +79,8 @@ OTHER_FILES += \
     shaders/brush.vert \
     text/ABOUT \
     shaders/viewport.vert \
-    shaders/tiledcanvas.vert
+    shaders/tiledcanvas.vert\
+    shaders/singlecanvas.vert
 
 RESOURCES += \
     simpix.qrc

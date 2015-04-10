@@ -9,19 +9,20 @@
 #include <QOpenGLShaderProgram>
 #include "imagedocument.h"
 
-ImageEditor::ImageEditor(ImageDocument *image, QWidget *parent) :
-    QOpenGLWidget(parent), Editor(image), m_image(image), m_transform(), m_tiled(false), m_tileX(true), m_tileY(true), panKeyDown(false), m_showAlpha(true), m_showBounds(false), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true), viewToWorld(), worldToClip()
+ImageEditor::ImageEditor(ImageDocument &_document, QWidget *parent) :
+    QOpenGLWidget(parent), Editor(_document), m_transform(), m_tiled(false), m_tileX(true), m_tileY(true), panKeyDown(false), m_showAlpha(true), m_showBounds(false), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true), viewToWorld(), worldToClip()
 {
+    ImageDocument &image = static_cast<ImageDocument &>(document);
     setMouseTracking(true);
 
     m_transform.setPan(QPointF(0.f, 0.f));
     m_transform.setZoom(1.f);
     m_transform.setPixelSize(QPointF(1.f, 1.f));
     m_transform.setRotation(0.f);
-    m_transform.setPan(-QPointF(floor((float)m_image->imageData()->size().width() / 2.f), floor((float)m_image->imageData()->size().height() / 2.f)));
+    m_transform.setPan(-QPointF(floor((float)image.imageData()->size().width() / 2.f), floor((float)image.imageData()->size().height() / 2.f)));
     updateTransform();
-    m_editingContext.setImage(m_image->imageData());
-    m_editingContext.setPalette(m_image->paletteData());
+    m_editingContext.setImage(image.imageData());
+    m_editingContext.setPalette(image.paletteData());
 }
 
 ImageEditor::~ImageEditor()
@@ -64,6 +65,7 @@ void ImageEditor::resizeGL(int w, int h)
 
 void ImageEditor::paintGL()
 {
+    ImageDocument &image = static_cast<ImageDocument &>(document);
     if (!m_tiled || !m_tileX || !m_tileY || m_showAlpha) {
         GLuint program = APP->program("checkerboard");
         glUseProgram(program);
@@ -100,12 +102,12 @@ void ImageEditor::paintGL()
         expandRect(bounds, matrix.map(QPointF(0.f, (float)height())));
         expandRect(bounds, matrix.map(QPointF((float)width(), (float)height())));
         if (m_tileX) {
-            tilingBounds.setLeft((int)floor(bounds.left() / m_image->imageData()->size().width()));
-            tilingBounds.setRight((int)floor(bounds.right() / m_image->imageData()->size().width()));
+            tilingBounds.setLeft((int)floor(bounds.left() / image.imageData()->size().width()));
+            tilingBounds.setRight((int)floor(bounds.right() / image.imageData()->size().width()));
         }
         if (m_tileY) {
-            tilingBounds.setTop((int)floor(bounds.top() / m_image->imageData()->size().height()));
-            tilingBounds.setBottom((int)floor(bounds.bottom() / m_image->imageData()->size().height()));
+            tilingBounds.setTop((int)floor(bounds.top() / image.imageData()->size().height()));
+            tilingBounds.setBottom((int)floor(bounds.bottom() / image.imageData()->size().height()));
         }
     }
 //    qDebug() << tilingBounds;
@@ -118,12 +120,12 @@ void ImageEditor::paintGL()
 
     const int textureUnit = 0;
     glActiveTexture(GL_TEXTURE0 + textureUnit);
-    glBindTexture(GL_TEXTURE_2D, m_image->imageData()->texture());
+    glBindTexture(GL_TEXTURE_2D, image.imageData()->texture());
 
     const int palleteTextureUnit = 1;
-    if (m_image->paletteData()) {
+    if (image.paletteData()) {
         glActiveTexture(GL_TEXTURE0 + palleteTextureUnit);
-        glBindTexture(GL_TEXTURE_2D, m_image->paletteData()->texture());
+        glBindTexture(GL_TEXTURE_2D, image.paletteData()->texture());
     }
 
     GLuint program = APP->program("image");
@@ -132,9 +134,9 @@ void ImageEditor::paintGL()
     GLint textureUnitUniform = glGetUniformLocation(program, "textureUnit");
     glUniform1i(textureUnitUniform, textureUnit);
     GLint isIndexedUniform = glGetUniformLocation(program, "isIndexed");
-    glUniform1i(isIndexedUniform, (m_image->imageData()->format() == ImageDataFormat::Indexed));
+    glUniform1i(isIndexedUniform, (image.imageData()->format() == TextureDataFormat::Indexed));
     GLint hasPaletteUniform = glGetUniformLocation(program, "hasPalette");
-    glUniform1i(hasPaletteUniform, (m_image->paletteData() != nullptr));
+    glUniform1i(hasPaletteUniform, (image.paletteData() != nullptr));
     GLint paletteTextureUnitUniform = glGetUniformLocation(program, "paletteTextureUnit");
     glUniform1i(paletteTextureUnitUniform, palleteTextureUnit);
     GLint tilesStartUniform = glGetUniformLocation(program, "tilesStart");
@@ -146,7 +148,7 @@ void ImageEditor::paintGL()
     glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (worldToClip * m_transform.matrix()).constData());
 
     GLint positionAttrib = glGetAttribLocation(program, "position");
-    glBindBuffer(GL_ARRAY_BUFFER, m_image->imageData()->vertexBuffer());
+    glBindBuffer(GL_ARRAY_BUFFER, image.imageData()->vertexBuffer());
     glEnableVertexAttribArray(positionAttrib);
     glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
@@ -172,7 +174,7 @@ void ImageEditor::paintGL()
         glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (worldToClip * m_transform.matrix()).constData());
 
         GLint positionAttrib = glGetAttribLocation(program, "position");
-        glBindBuffer(GL_ARRAY_BUFFER, m_image->imageData()->vertexBuffer());
+        glBindBuffer(GL_ARRAY_BUFFER, image.imageData()->vertexBuffer());
         glEnableVertexAttribArray(positionAttrib);
         glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
         QRect tilingBounds(0, 0, 1, 1);
@@ -217,6 +219,7 @@ void ImageEditor::mousePressEvent(QMouseEvent *event)
 
 void ImageEditor::mouseMoveEvent(QMouseEvent *event)
 {
+    ImageDocument &image = static_cast<ImageDocument &>(document);
     QMatrix4x4 matrix = m_transform.inverseMatrix() * viewToWorld;
     const QPointF mouseImagePos = matrix.map(QPointF(event->pos()));
     const QPoint lastPixel = QPoint(floor(mouseLastImagePos.x()), floor(mouseLastImagePos.y()));
@@ -224,20 +227,20 @@ void ImageEditor::mouseMoveEvent(QMouseEvent *event)
     if (rect().contains(event->pos())) {
         QColor colour = QColor();
         int index = -1;
-        if (pixel != lastPixel && m_image->imageData()->rect().contains(pixel)) {
+        if (pixel != lastPixel && image.imageData()->rect().contains(pixel)) {
             ContextGrabber grab(APP->shareWidget());
-            if (m_image->imageData()->format() == ImageDataFormat::Indexed) {
-                index = m_image->imageData()->pixel(pixel);
-                colour = QColor(m_image->paletteData()->colour(index));
+            if (image.imageData()->format() == TextureDataFormat::Indexed) {
+                index = image.imageData()->pixel(pixel);
+                colour = QColor(image.paletteData()->colour(index));
             }
             else {
-                colour = QColor(m_image->imageData()->pixel(pixel));
+                colour = QColor(image.imageData()->pixel(pixel));
             }
         }
         emit mousePixelChanged(pixel, colour, index);
     }
     if (!panKeyDown && event->buttons() & Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
-        m_image->stroke(lastPixel, pixel, &m_editingContext);
+        image.stroke(lastPixel, pixel, &m_editingContext);
         mouseLastPos = event->pos();
         mouseLastImagePos = mouseImagePos;
         event->accept();
@@ -259,11 +262,12 @@ void ImageEditor::mouseMoveEvent(QMouseEvent *event)
 
 void ImageEditor::mouseReleaseEvent(QMouseEvent *event)
 {
+    ImageDocument &image = static_cast<ImageDocument &>(document);
     QMatrix4x4 matrix = m_transform.inverseMatrix() * viewToWorld;
     QPointF mouseImagePos = matrix.map(QPointF(event->pos()));
     if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
         const QPoint pixel = QPoint(floor(mouseImagePos.x()), floor(mouseImagePos.y()));
-        m_image->point(pixel, &m_editingContext);
+        image.point(pixel, &m_editingContext);
         QApplication::restoreOverrideCursor();
         event->accept();
     }
@@ -275,7 +279,7 @@ void ImageEditor::mouseReleaseEvent(QMouseEvent *event)
         const QPoint pixel = QPoint(floor(mouseImagePos.x()), floor(mouseImagePos.y()));
 //            Scene::ContextColour context = (event->modifiers() & Qt::SHIFT) ? Scene::Secondary : Scene::Primary;
         ContextGrabber grab(APP->shareWidget());
-        m_image->pick(pixel, &editingContext());
+        image.pick(pixel, &editingContext());
         QApplication::restoreOverrideCursor();
         event->accept();
     }
@@ -372,8 +376,9 @@ void ImageEditor::leaveEvent(QEvent *const event)
 
 void ImageEditor::applyTransformLimits()
 {
-    float panX = (m_tiled && m_tileX) ? wrap((float)m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f) : clamp((float)m_transform.pan().x(), (float)-m_image->imageData()->size().width(), 0.f);
-    float panY = (m_tiled && m_tileY) ? wrap((float)m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f) : clamp((float)m_transform.pan().y(), (float)-m_image->imageData()->size().height(), 0.f);
+    ImageDocument &image = static_cast<ImageDocument &>(document);
+    float panX = (m_tiled && m_tileX) ? wrap((float)m_transform.pan().x(), (float)-image.imageData()->size().width(), 0.f) : clamp((float)m_transform.pan().x(), (float)-image.imageData()->size().width(), 0.f);
+    float panY = (m_tiled && m_tileY) ? wrap((float)m_transform.pan().y(), (float)-image.imageData()->size().height(), 0.f) : clamp((float)m_transform.pan().y(), (float)-image.imageData()->size().height(), 0.f);
     m_transform.setPan(QPointF(panX, panY));
     m_transform.setZoom(clamp(m_transform.zoom(), 1.f/16.f, 256.f));
     m_transform.setPixelSize(QPointF(clamp((float)m_transform.pixelSize().x(), 1.f/16.f, 16.f), clamp((float)m_transform.pixelSize().y(), 1.f/16.f, 16.f)));

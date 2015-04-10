@@ -6,11 +6,10 @@ class Document;
 class Editor
 {
 public:
-    explicit Editor(Document *document) :
-        m_document(document) {}
-    Document *document() { return m_document; }
+    explicit Editor(Document &_document) :
+        document(_document) {}
+    Document &document;
 protected:
-    Document *m_document;
 };
 
 #endif // EDITOR_H

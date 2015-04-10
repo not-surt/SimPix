@@ -10,7 +10,7 @@
 #include "newdialog.h"
 
 Document::Document(const QString &fileName, QObject *parent) :
-    QObject(parent), m_fileName(fileName), m_dirty(false)
+    QObject(parent), fileInfo(fileName)
 {
 
 }
@@ -18,14 +18,20 @@ Document::Document(const QString &fileName, QObject *parent) :
 bool Document::save(QString fileName)
 {
     bool saved = false;
-    if (fileName.isNull()) {
-        fileName = m_fileName;
+    if (fileInfo.fileName().isNull()) {
+        fileName = fileInfo.fileName();
     }
     if (!fileName.isNull()) {
         saved = doSave(fileName);
         if (saved) {
-            setFileName(fileName);
+            fileInfo.setFileName(fileName);
+            fileInfo.clearDirty();
         }
     }
     return saved;
 }
+
+const struct DocumentType DOCUMENT_TYPES[] = {
+//    {"image", (char *[]){"png", "gif", "bmp"}, &ImageDocument::create, &ImageDocument::open},
+    {"palette", (char *[]){"gpl", "pal"}, nullptr, nullptr},
+};

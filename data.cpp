@@ -6,16 +6,23 @@
 #include "application.h"
 #include "util.h"
 
-const ImageDataFormatDefinition IMAGE_DATA_FORMATS[] = {
-    {ImageDataFormat::Indexed, "Indexed", GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte)},
-    {ImageDataFormat::RGBA, "RGBA", GL_RGBA8UI, GL_BGRA_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte) * 4},
-    {ImageDataFormat::Invalid, "", 0, 0, 0, 0}
+const TextureDataFormatDefinition IMAGE_DATA_FORMATS[] = {
+    {TextureDataFormat::Indexed, "Indexed", GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte)},
+    {TextureDataFormat::RGBA, "RGBA", GL_RGBA8UI, GL_BGRA_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte) * 4},
+    {TextureDataFormat::Invalid, "", 0, 0, 0, 0}
 };
 
-TextureData::TextureData(QOpenGLWidget *const widget, const QSize &size, const ImageDataFormat _format, const GLubyte *const data) :
-    m_widget(widget), m_size(size), m_format(_format)
+TextureData::TextureData(QOpenGLWidget *const widget, const QSize &size, const TextureDataFormat _format, const GLubyte *const data) :
+    m_widget(widget), m_size(size), m_format(_format),
+    matrix([&](){
+        const float halfWidth = (float)size.width() / 2.f;
+        const float halfHeight = (float)size.height() / 2.f;
+        QMatrix4x4 temp;
+        temp.scale(1.f / (float)halfWidth, 1.f / (float)halfHeight);
+        temp.translate(-halfWidth, -halfHeight);
+        return temp;}())
 {
-    const ImageDataFormatDefinition *const format = &IMAGE_DATA_FORMATS[(int)_format];
+    const TextureDataFormatDefinition *const format = &IMAGE_DATA_FORMATS[(int)_format];
 
     ContextGrabber grab(m_widget);
     initializeOpenGLFunctions();
@@ -87,11 +94,11 @@ void TextureData::clear(const uint colour)
 }
 
 PaletteData::PaletteData(QOpenGLWidget *const widget, const GLuint length, const GLubyte *const data) :
-    TextureData(widget, QSize(length, 1), ImageDataFormat::RGBA, data)
+    TextureData(widget, QSize(length, 1), TextureDataFormat::RGBA, data)
 {
 }
 
-ImageData::ImageData(QOpenGLWidget *const widget, const QSize &size, const ImageDataFormat format, const GLubyte *const data) :
+ImageData::ImageData(QOpenGLWidget *const widget, const QSize &size, const TextureDataFormat format, const GLubyte *const data) :
     TextureData(widget, size, format, data)
 {
     ContextGrabber grab(m_widget);

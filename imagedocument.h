@@ -14,18 +14,18 @@ public:
         Secondary,
         Eraser,
     };
-    explicit ImageDocument(const QSize &size, ImageDataFormat format, QObject *parent = nullptr);
+    explicit ImageDocument(const QSize &size, TextureDataFormat format, QObject *parent = nullptr);
     explicit ImageDocument(const QString &fileName, const char *format = nullptr, QObject *parent = nullptr);
     ~ImageDocument();
 
-    ImageEditor *createEditor();
+    Editor *createEditor();
     static ImageDocument *newGui(QWidget *const parent = nullptr);
     static ImageDocument *openGui(QWidget *const parent = nullptr);
     void closeGui(QWidget *const parent = nullptr);
     bool saveGui(QWidget *const parent = nullptr);
     bool saveAsGui(QWidget *const parent = nullptr);
 
-    ImageDataFormat format() const { return m_imageData->format(); }
+    TextureDataFormat format() const { return m_imageData->format(); }
     ImageData *imageData() { return m_imageData; }
     PaletteData *paletteData() { return m_paletteData; }
 

@@ -6,6 +6,7 @@ uniform bool isIndexed;
 uniform uint index;
 
 in vec2 position;
+in vec2 texturePosition;
 
 void main(void)
 {

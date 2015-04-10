@@ -18,7 +18,7 @@ public:
     explicit NewDialog(QWidget *parent = nullptr);
     ~NewDialog();
     QSize imageSize() const;
-    ImageDataFormat mode() const;
+    TextureDataFormat mode() const;
     int palette() const;
 protected:
     virtual void closeEvent(QCloseEvent *event);

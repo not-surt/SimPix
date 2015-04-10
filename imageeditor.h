@@ -24,9 +24,8 @@ class ImageEditor : public QOpenGLWidget, public Editor, protected QOpenGLFuncti
     Q_ENUMS(image transform)
 
 public:
-    explicit ImageEditor(ImageDocument *image, QWidget *parent = nullptr);
+    explicit ImageEditor(ImageDocument &_document, QWidget *parent = nullptr);
     ~ImageEditor();
-    ImageDocument *image() const { return m_image; }
     Transform &transform() { return m_transform; }
     bool tiled() const { return m_tiled; }
     bool tileX() const { return m_tileX; }
@@ -109,7 +108,6 @@ protected:
     virtual void leaveEvent(QEvent * const event);
 
 private:
-    ImageDocument *const m_image;
     Transform m_transform;
     bool m_tiled, m_tileX, m_tileY;
     QPoint mouseGrabPos;

@@ -18,9 +18,9 @@
 void SubWindow::closeEvent(QCloseEvent *event)
 {
     ImageEditor *editor = static_cast<ImageEditor *>(widget());
-    ImageDocument *image = editor->image();
-    if (image->dirty()) {
-        QString fileName = image->fileName().isNull() ? "<i>unnamed</>" : QFileInfo(image->fileName()).fileName();
+    ImageDocument &image = static_cast<ImageDocument &>(editor->document);
+    if (image.fileInfo.dirty()) {
+        QString fileName = image.fileInfo.fileName().isNull() ? "<i>unnamed</>" : QFileInfo(image.fileInfo.fileName()).fileName();
         QMessageBox::StandardButton button = QMessageBox::question(this, QString(),
             QString(tr("The file \"<b>%1</b>\" has unsaved changes.<br/>"
                        "Do you want to save it before closing?")).arg(fileName),
@@ -30,7 +30,7 @@ void SubWindow::closeEvent(QCloseEvent *event)
             event->ignore();
         }
         if (button == QMessageBox::Save) {
-            if (!image->saveGui(this)) {
+            if (!image.saveGui(this)) {
                 event->ignore();
             }
         }
@@ -150,13 +150,11 @@ MainWindow::~MainWindow()
 void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
     if (m_oldSubWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(m_oldSubWindow->widget());
-        ImageDocument *image = editor->image();
+        ImageDocument &image = static_cast<ImageDocument &>(editor->document);
 
-        if (image) {
-            QObject::disconnect(image, &ImageDocument::dirtied, editor, SS_CAST(ImageEditor, update,));
-    //            QObject::disconnect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
-            ui->paletteWidget->setEditingContext(nullptr);
-        }
+        QObject::disconnect(&image.fileInfo, &FileInfo::dirtied, editor, SS_CAST(ImageEditor, update,));
+//            QObject::disconnect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
+        ui->paletteWidget->setEditingContext(nullptr);
 
 //        QObject::disconnect(ui->paletteWidget, SS_CAST(PaletteWidget, colourChanged,), editor, SS_CAST(ImageEditor, update,));
 //        QObject::disconnect(ui->transformWidget, &TransformWidget::transformChanged, &editor->transform(), &Transform::copy);
@@ -176,14 +174,12 @@ void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
     }
     if (subWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
-        ImageDocument *image = editor->image();
+        ImageDocument &image = static_cast<ImageDocument &>(editor->document);
 
-        if (image) {
-            QObject::connect(image, &ImageDocument::dirtied, editor, SS_CAST(ImageEditor, update,));
-    //            QObject::connect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
-            ui->paletteWidget->setEditingContext(&editor->editingContext());
-            setWindowFilePath(image->fileName());
-        }
+        QObject::connect(&image.fileInfo, &FileInfo::dirtied, editor, SS_CAST(ImageEditor, update,));
+//            QObject::connect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
+        ui->paletteWidget->setEditingContext(&editor->editingContext());
+        setWindowFilePath(image.fileInfo.fileName());
 
 //        QObject::connect(ui->paletteWidget, SS_CAST(PaletteWidget, colourChanged,), editor, SS_CAST(ImageEditor, update,));
 //        QObject::connect(ui->transformWidget, &TransformWidget::transformChanged, &editor->transform(), &Transform::copy);
@@ -279,7 +275,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 //    qDebug() << m_mdi->subWindowList();
     //if (!closeImage()) {
     if (m_mdi->subWindowList().length() > 0) {
-        event->ignore();
+//        event->ignore();
     }
     else {
         QSettings settings;
@@ -291,18 +287,18 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
 }
 
-ImageEditor *MainWindow::newEditor(ImageDocument *const image) {
+ImageEditor *MainWindow::newEditor(ImageDocument &image) {
     QMdiSubWindow *subWindow = new SubWindow;
     subWindow->setAttribute(Qt::WA_DeleteOnClose);
-    subWindow->setWindowTitle(image->shortName());
+    subWindow->setWindowTitle(image.fileInfo.shortName());
 
     const float scaleStep = 2;
     auto scaleToFit = [](float size, float available, float scaleStep) {
         return pow(scaleStep, floor(log(available / size) / log(scaleStep)));
     };
-    const float scale = std::min(scaleToFit(image->imageData()->size().width(), m_mdi->width(), scaleStep),
-                                 scaleToFit(image->imageData()->size().height(), m_mdi->height(), scaleStep));
-    subWindow->resize(image->imageData()->size() * scale);
+    const float scale = std::min(scaleToFit(image.imageData()->size().width(), m_mdi->width(), scaleStep),
+                                 scaleToFit(image.imageData()->size().height(), m_mdi->height(), scaleStep));
+    subWindow->resize(image.imageData()->size() * scale);
     m_mdi->addSubWindow(subWindow);
 
     ImageEditor *editor = new ImageEditor(image);
@@ -312,13 +308,33 @@ ImageEditor *MainWindow::newEditor(ImageDocument *const image) {
     return editor;
 }
 
+QMdiSubWindow *MainWindow::newEditorSubWindow(ImageEditor *const editor) {
+    ImageDocument &image = static_cast<ImageDocument &>(editor->document);
+    QMdiSubWindow *subWindow = new SubWindow;
+    subWindow->setAttribute(Qt::WA_DeleteOnClose);
+    subWindow->setWindowTitle(image.fileInfo.shortName());
+
+    const float scaleStep = 2;
+    auto scaleToFit = [](float size, float available, float scaleStep) {
+        return pow(scaleStep, floor(log(available / size) / log(scaleStep)));
+    };
+    const float scale = std::min(scaleToFit(image.imageData()->size().width(), m_mdi->width(), scaleStep),
+                                 scaleToFit(image.imageData()->size().height(), m_mdi->height(), scaleStep));
+    subWindow->resize(image.imageData()->size() * scale);
+    m_mdi->addSubWindow(subWindow);
+
+    subWindow->setWidget(editor);
+    editor->show();
+    return subWindow;
+}
+
 void MainWindow::newImage()
 {
     NewDialog *dialog = new NewDialog(this);
     if (dialog->exec()) {
         ImageDocument *image = new ImageDocument(dialog->imageSize(), dialog->mode());
         m_images.append(image);
-        ImageEditor *editor = newEditor(image);
+        ImageEditor *editor = newEditor(*image);
     }
 }
 
@@ -339,7 +355,7 @@ void MainWindow::openImage()
         }
         else {
             m_images.append(image);
-            ImageEditor *editor = newEditor(image);
+            ImageEditor *editor = newEditor(*image);
         }
     }
     if (failed.length() > 0) {
@@ -353,18 +369,18 @@ bool MainWindow::saveImage()
     QMdiSubWindow *subWindow = m_mdi->activeSubWindow();
     if (subWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
-        ImageDocument *image = editor->image();
+        ImageDocument &image = static_cast<ImageDocument &>(editor->document);
         QSettings settings;
         settings.beginGroup("file");
-        if (image->fileName().isNull()) {
+        if (image.fileInfo.fileName().isNull()) {
             return saveAsImage();
         }
-        if (image->save()) {
-            settings.setValue("lastSaved", image->fileName());
+        if (image.save()) {
+            settings.setValue("lastSaved", image.fileInfo.fileName());
             return true;
         }
         else {
-            QMessageBox::critical(this, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(image->fileName()).fileName()));
+            QMessageBox::critical(this, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(image.fileInfo.fileName()).fileName()));
         }
         settings.endGroup();
     }
@@ -376,12 +392,12 @@ bool MainWindow::saveAsImage()
     QMdiSubWindow *subWindow = m_mdi->activeSubWindow();
     if (subWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
-        ImageDocument *image = editor->image();
+        ImageDocument &image = static_cast<ImageDocument &>(editor->document);
         QSettings settings;
         settings.beginGroup("file");
         QString fileName;
-        if (!image->fileName().isNull()) {
-            fileName = image->fileName();
+        if (!image.fileInfo.fileName().isNull()) {
+            fileName = image.fileInfo.fileName();
         }
         else {
             QFileInfo fileInfo(settings.value("lastSaved", QDir::homePath()).toString());
@@ -389,7 +405,7 @@ bool MainWindow::saveAsImage()
         }
         fileName = QFileDialog::getSaveFileName(this, tr("Save Image"), fileName, APP->fileDialogFilterString);
         if (!fileName.isNull()) {
-            if (image->save(fileName)) {
+            if (image.save(fileName)) {
                 settings.setValue("lastSaved", fileName);
             }
             else {
@@ -406,9 +422,9 @@ bool MainWindow::closeImage()
     QMdiSubWindow *subWindow = m_mdi->activeSubWindow();
     if (subWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
-        ImageDocument *image = editor->image();
-        if (image->dirty()) {
-            QString fileName = image->fileName().isNull() ? "<i>unnamed</>" : QFileInfo(image->fileName()).fileName();
+        ImageDocument &image = static_cast<ImageDocument &>(editor->document);
+        if (image.fileInfo.dirty()) {
+            QString fileName = image.fileInfo.fileName().isNull() ? "<i>unnamed</>" : QFileInfo(image.fileInfo.fileName()).fileName();
             QMessageBox::StandardButton button = QMessageBox::question(this, QString(),
                 QString(tr("The file \"<b>%1</b>\" has unsaved changes.<br/>"
                            "Do you want to save it before closing?")).arg(fileName),

@@ -6,18 +6,18 @@
 #include <QDir>
 #include <QFileDialog>
 
-ImageDocument::ImageDocument(const QSize &size, ImageDataFormat format, QObject *parent) :
+ImageDocument::ImageDocument(const QSize &size, TextureDataFormat format, QObject *parent) :
     Document(QString(), parent), m_imageData(nullptr), m_paletteData(nullptr)
 {
     ContextGrabber grab(APP->shareWidget());
 
-    if (format == ImageDataFormat::Invalid) {
+    if (format == TextureDataFormat::Invalid) {
         qDebug() << "Invalid image format";
         return;
     }
 
     uint fillColour = 0;
-    if (format == ImageDataFormat::Indexed) {
+    if (format == TextureDataFormat::Indexed) {
         m_paletteData = new PaletteData(APP->shareWidget(), 2);
         m_paletteData->setColour(0, qRgba(0, 0, 0, 255));
         m_paletteData->setColour(1, qRgba(255, 255, 255, 255));
@@ -25,7 +25,7 @@ ImageDocument::ImageDocument(const QSize &size, ImageDataFormat format, QObject 
 //        m_contextColours[ContextColour::Primary] = 1;
 //        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = 0;
     }
-    else if (format == ImageDataFormat::RGBA) {
+    else if (format == TextureDataFormat::RGBA) {
         fillColour = qRgba(255, 0, 0, 255);
 //        m_contextColours[ContextColour::Primary] = qRgba(255, 255, 255, 255);
 //        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = qRgba(0, 0, 0, 0);
@@ -40,7 +40,7 @@ ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QO
 {
     ContextGrabber grab(APP->shareWidget());
 
-    QImage image(m_fileName, fileFormat);
+    QImage image(fileInfo.fileName(), fileFormat);
     if (!image.isNull()) {
         switch (image.format()) {
         case QImage::Format_Invalid:
@@ -57,16 +57,16 @@ ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QO
         }
     }
 
-    ImageDataFormat format;
+    TextureDataFormat format;
     switch (image.format()) {
     case QImage::Format_Indexed8:
-        format = ImageDataFormat::Indexed;
+        format = TextureDataFormat::Indexed;
         break;
     case QImage::Format_ARGB32:
-        format = ImageDataFormat::RGBA;
+        format = TextureDataFormat::RGBA;
         break;
     default:
-        format = ImageDataFormat::Invalid;
+        format = TextureDataFormat::Invalid;
         qDebug() << "Invalid image format";
         return;
     }
@@ -77,7 +77,7 @@ ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QO
     }
 
     switch (format) {
-    case ImageDataFormat::Indexed:
+    case TextureDataFormat::Indexed:
         if (m_paletteData && m_paletteData->length() > 0) {
 //            m_contextColours[ContextColour::Primary] = m_paletteData->colour(m_paletteData->length() - 1);
         }
@@ -86,7 +86,7 @@ ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QO
         }
 //        m_contextColours[ContextColour::Secondary] = 0;
         break;
-    case ImageDataFormat::RGBA:
+    case TextureDataFormat::RGBA:
 //        m_contextColours[ContextColour::Primary] = qRgba(255, 255, 255, 255);
 //        m_contextColours[ContextColour::Secondary] = qRgba(0, 0, 0, 0);
         break;
@@ -102,27 +102,9 @@ ImageDocument::~ImageDocument()
     delete m_paletteData;
 }
 
-ImageEditor *ImageDocument::createEditor() {
-    ImageEditor *editor = new ImageEditor(this);
-    editor->show();
+Editor *ImageDocument::createEditor() {
+    ImageEditor *editor = new ImageEditor(*this);
     return editor;
-}
-
-bool ImageDocument::saveGui(QWidget *const parent)
-{
-    QSettings settings;
-    settings.beginGroup("file");
-    if (m_fileName.isNull()) {
-        return saveAsGui();
-    }
-    if (save()) {
-        settings.setValue("lastSaved", m_fileName);
-        return true;
-    }
-    else {
-        QMessageBox::critical(parent, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(m_fileName).fileName()));
-    }
-    settings.endGroup();
 }
 
 ImageDocument *ImageDocument::newGui(QWidget *const parent)
@@ -143,6 +125,23 @@ ImageDocument *ImageDocument::openGui(QWidget *const parent)
     return image;
 }
 
+bool ImageDocument::saveGui(QWidget *const parent)
+{
+    QSettings settings;
+    settings.beginGroup("file");
+    if (fileInfo.fileName().isNull()) {
+        return saveAsGui();
+    }
+    if (save()) {
+        settings.setValue("lastSaved", fileInfo.fileName());
+        return true;
+    }
+    else {
+        QMessageBox::critical(parent, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(fileInfo.fileName()).fileName()));
+    }
+    settings.endGroup();
+}
+
 void ImageDocument::closeGui(QWidget *const parent)
 {
 }
@@ -152,8 +151,8 @@ bool ImageDocument::saveAsGui(QWidget *const parent)
     QSettings settings;
     settings.beginGroup("file");
     QString newFileName;
-    if (!m_fileName.isNull()) {
-        newFileName = m_fileName;
+    if (!fileInfo.fileName().isNull()) {
+        newFileName = fileInfo.fileName();
     }
     else {
         QFileInfo fileInfo(settings.value("lastSaved", QDir::homePath()).toString());
@@ -179,16 +178,14 @@ bool ImageDocument::doOpen(QString fileName)
 bool ImageDocument::doSave(QString fileName)
 {
 
-    bool saved = false;
-
     APP->shareWidget()->makeCurrent();
     uchar *data = m_imageData->readData();
     QImage::Format format;
     switch (m_imageData->format()) {
-    case ImageDataFormat::Indexed:
+    case TextureDataFormat::Indexed:
         format = QImage::Format_Indexed8;
         break;
-    case ImageDataFormat::RGBA:
+    case TextureDataFormat::RGBA:
         format = QImage::Format_ARGB32;
         break;
     default:
@@ -202,29 +199,27 @@ bool ImageDocument::doSave(QString fileName)
         qImage.setColorTable(QVector<QRgb>::fromStdVector(vector));
         delete palette;
     }
-    saved = qImage.save(fileName);
-    if (saved) {
-        m_dirty = false;
-        m_fileName = fileName;
-    }
     delete data;
+    return qImage.save(fileName);
 
-    return saved;
 }
 
 void drawPixel(TextureData &texture, const QPoint &point, const uint colour, const void *const data = nullptr)
 {
 
-    if (QRect(QPoint(0, 0), texture.size()).contains(point)) {
-        texture.setPixel(point, colour);
-    }
+//    if (QRect(QPoint(0, 0), texture.size()).contains(point)) {
+//        texture.setPixel(point, colour);
+//    }
 
     QOpenGLFunctions gl;
     gl.initializeOpenGLFunctions();
 
     gl.glBindFramebuffer(GL_FRAMEBUFFER, texture.framebuffer());
+    gl.glViewport(0, 0, texture.size().width(), texture.size().height());
+    gl.glEnable(GL_BLEND);
+    gl.glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
-    GLint program = 0;
+    GLint program = APP->program("ellipsebrush");
     gl.glUseProgram(program);
 
     GLuint vertexBuffer;
@@ -237,18 +232,29 @@ void drawPixel(TextureData &texture, const QPoint &point, const uint colour, con
         {-1.f, 1.f},
     };
     gl.glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-    gl.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-//    GLint positionAttrib = gl.glGetAttribLocation(program, "position");
-//    gl.glEnableVertexAttribArray(positionAttrib);
-//    gl.glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
-//    gl.glDisableVertexAttribArray(positionAttrib);
-//    gl.glBindBuffer(GL_ARRAY_BUFFER, 0);
+    gl.glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-//    gl.glDisableVertexAttribArray(positionAttrib);
+    QMatrix4x4 matrix = texture.matrix;
+    matrix.translate(point.x(), point.y());
+    const float size = 256;
+    matrix.scale(size, size);
+    GLint matrixUniform = gl.glGetUniformLocation(program, "matrix");
+    gl.glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, matrix.constData());
+
+    GLint positionAttrib = gl.glGetAttribLocation(program, "position");
+    gl.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    gl.glEnableVertexAttribArray(positionAttrib);
+    gl.glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    gl.glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    gl.glDisableVertexAttribArray(positionAttrib);
     gl.glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     gl.glUseProgram(0);
     gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    gl.glDeleteBuffers((GLsizei)1, &vertexBuffer);
 }
 
 void drawRectangularBrush(QImage &image, const QPoint &point, const uint colour, const void *const data)
@@ -311,7 +317,7 @@ void ImageDocument::point(const QPoint &point, EditingContext *const editingCont
 {
     PointCallback pointCallback = drawPixel;
     pointCallback(*m_imageData, point, editingContext->colourSlot(editingContext->activeColourSlot()), nullptr);
-    makeDirty();
+    fileInfo.makeDirty();
 }
 
 void ImageDocument::stroke(const QPoint &start, const QPoint &end, EditingContext *const editingContext)
@@ -320,16 +326,16 @@ void ImageDocument::stroke(const QPoint &start, const QPoint &end, EditingContex
     SegmentCallback segmentCallback = doLine;
     segmentCallback(*m_imageData, start, end, editingContext->colourSlot(editingContext->activeColourSlot()), pointCallback, nullptr, true);
 //    undoStack->push(new StrokeCommand(*m_image, a, b));
-    makeDirty();
+    fileInfo.makeDirty();
 }
 
 void ImageDocument::pick(const QPoint &point, EditingContext *const editingContext)
 {
     if (m_imageData->rect().contains(point)) {
-        if (format() == ImageDataFormat::Indexed) {
+        if (format() == TextureDataFormat::Indexed) {
             editingContext->setColourSlot(m_imageData->pixel(point), editingContext->activeColourSlot());
         }
-        else if (format() == ImageDataFormat::RGBA) {
+        else if (format() == TextureDataFormat::RGBA) {
             editingContext->setColourSlot(m_imageData->pixel(point), editingContext->activeColourSlot());
         }
     }
