@@ -6,9 +6,11 @@
 const float size = 8;
 flat in ivec4 colour;
 
+out vec4 fragment;
+
 void main(void)
 {
-    gl_FragColor = vec4(colour / 255.);
+    fragment = vec4(colour / 255.);
 //    gl_FragColor = int(floor(gl_FragCoord.x) + floor(gl_FragCoord.y)) % 2 == 0 ? vec4(1.0, 1.0, 1.0, 1.0) : vec4(0.0, 0.0, 0.0, 1.0);
 //    gl_FragColor = int(floor(gl_FragCoord.x) + floor(gl_FragCoord.y)) / 4 % 2 == 0 ? vec4(1.0, 1.0, 1.0, 1.0) : vec4(0.0, 0.0, 0.0, 1.0);
 //    float sinX = sin(gl_FragCoord.x * M_TAU / size);

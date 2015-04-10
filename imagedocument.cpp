@@ -211,14 +211,18 @@ void drawPixel(TextureData &texture, const QPoint &point, const uint colour, con
 //        texture.setPixel(point, colour);
 //    }
 
-    QOpenGLFunctions gl;
+    QOpenGLFunctions_3_3_Core gl;
     gl.initializeOpenGLFunctions();
 
+    gl.glEnable(GL_BLEND);
+//    gl.glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+//    gl.glBlendFuncSeparate(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO);
+    gl.glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+    gl.glBlendEquation(GL_FUNC_ADD);
     gl.glBindFramebuffer(GL_FRAMEBUFFER, texture.framebuffer());
     gl.glViewport(0, 0, texture.size().width(), texture.size().height());
-    gl.glEnable(GL_BLEND);
-    gl.glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
+//    GLint program = APP->program("rectanglebrush");
     GLint program = APP->program("ellipsebrush");
     gl.glUseProgram(program);
 
@@ -232,17 +236,20 @@ void drawPixel(TextureData &texture, const QPoint &point, const uint colour, con
         {-1.f, 1.f},
     };
     gl.glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-    gl.glBindBuffer(GL_ARRAY_BUFFER, 0);
+//    gl.glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    GLint colourUniform = gl.glGetUniformLocation(program, "colour");
+    gl.glUniform4ui(colourUniform, R(colour), G(colour), B(colour), A(colour));
 
     QMatrix4x4 matrix = texture.matrix;
     matrix.translate(point.x(), point.y());
-    const float size = 256;
+    const float size = 32;
     matrix.scale(size, size);
     GLint matrixUniform = gl.glGetUniformLocation(program, "matrix");
     gl.glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, matrix.constData());
 
     GLint positionAttrib = gl.glGetAttribLocation(program, "position");
-    gl.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+//    gl.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     gl.glEnableVertexAttribArray(positionAttrib);
     gl.glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
