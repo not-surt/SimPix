@@ -214,6 +214,23 @@ void drawPixel(TextureData &texture, const QPoint &point, const uint colour, con
     QOpenGLFunctions_3_3_Core gl;
     gl.initializeOpenGLFunctions();
 
+    QMatrix4x4 brushMatrix;
+    brushMatrix.translate(point.x(), point.y());
+    const float diameter = 64;
+    brushMatrix.scale(diameter / 2., diameter / 2.);
+
+    QRect tilingBounds(0, 0, 1, 1);
+    QRectF bounds(brushMatrix.map(QPointF(-1.f, -1.f)), QSizeF(0.f, 0.f));
+    expandRect(bounds, brushMatrix.map(QPointF(1.f, -1.f)));
+    expandRect(bounds, brushMatrix.map(QPointF(1.f, 1.f)));
+    expandRect(bounds, brushMatrix.map(QPointF(-1.f, 1.f)));
+    tilingBounds.setLeft((int)floor(bounds.left() / texture.size().width()));
+    tilingBounds.setRight((int)floor(bounds.right() / texture.size().width()));
+    tilingBounds.setTop((int)floor(bounds.top() / texture.size().height()));
+    tilingBounds.setBottom((int)floor(bounds.bottom() / texture.size().height()));
+    const int numberOfInstances = tilingBounds.width() * tilingBounds.height();
+    qDebug() << bounds << tilingBounds << numberOfInstances;
+
     gl.glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
     gl.glBlendEquation(GL_FUNC_ADD);
     gl.glEnable(GL_BLEND);
@@ -239,19 +256,26 @@ void drawPixel(TextureData &texture, const QPoint &point, const uint colour, con
     GLint colourUniform = gl.glGetUniformLocation(program, "colour");
     gl.glUniform4ui(colourUniform, R(colour), G(colour), B(colour), A(colour));
 
-    QMatrix4x4 matrix = texture.matrix;
-    matrix.translate(point.x(), point.y());
-    const float diameter = 64;
-    matrix.scale(diameter / 2., diameter / 2.);
     GLint matrixUniform = gl.glGetUniformLocation(program, "matrix");
+    QMatrix4x4 matrix = brushMatrix;
     gl.glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, matrix.constData());
+    GLint imageMatrixUniform = gl.glGetUniformLocation(program, "imageMatrix");
+    QMatrix4x4 imageMatrix = texture.matrix;
+    gl.glUniformMatrix4fv(imageMatrixUniform, 1, GL_FALSE, imageMatrix.constData());
+    GLint tilesStartUniform = gl.glGetUniformLocation(program, "tilesStart");
+    gl.glUniform2i(tilesStartUniform, tilingBounds.x(), tilingBounds.y());
+    GLint tilesSizeUniform = gl.glGetUniformLocation(program, "tilesSize");
+    gl.glUniform2i(tilesSizeUniform, tilingBounds.width(), tilingBounds.height());
+    GLint imageSizeUniform = gl.glGetUniformLocation(program, "imageSize");
+    gl.glUniform2i(imageSizeUniform, texture.size().width(), texture.size().height());
 
     GLint positionAttrib = gl.glGetAttribLocation(program, "position");
 //    gl.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     gl.glEnableVertexAttribArray(positionAttrib);
     gl.glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-    gl.glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+//    gl.glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    gl.glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, numberOfInstances);
 
     gl.glDisableVertexAttribArray(positionAttrib);
     gl.glBindBuffer(GL_ARRAY_BUFFER, 0);
