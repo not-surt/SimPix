@@ -29,13 +29,6 @@ public:
     ImageData *imageData() { return m_imageData; }
     PaletteData *paletteData() { return m_paletteData; }
 
-signals:
-
-public slots:
-    void point(const QPoint &position, EditingContext *const editingContext);
-    void stroke(const QPoint &start, const QPoint &end, EditingContext *const editingContext);
-    void pick(const QPoint &position, EditingContext *const editingContext);
-
 protected:
     bool doOpen(QString fileName);
     bool doSave(QString fileName);

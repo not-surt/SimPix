@@ -5,6 +5,13 @@
 #include <QDirIterator>
 #include <exception>
 
+const GLfloat Application::brushVertices[][2] = {
+    {-1.f, -1.f},
+    {1.f, -1.f},
+    {1.f, 1.f},
+    {-1.f, 1.f},
+};
+
 const QString Application::fileDialogFilterString = tr(
             "All Image Files (*.png *.gif *.bmp *.jpeg *.jpg);;"
             "PNG Image Files (*.png);;"
@@ -45,14 +52,22 @@ Application::Application(int &argc, char **argv) :
     m_window = new MainWindow;
 
     m_shareWidget = new QOpenGLWidget;
-    // Hack to initialize share widget
+    // Show to initialize share widget
     m_shareWidget->show();
+    m_shareWidget->hide(); // If hidden when close main window the SIGSEV!
     qDebug() << "Context valid:" << m_shareWidget->context()->isValid();
     qDebug() << "Version:" << "Major" << m_shareWidget->context()->format().majorVersion() << "Minor" << m_shareWidget->context()->format().minorVersion();
-    m_shareWidget->hide();
+    m_shareWidget->makeCurrent();
 
     {
         ContextGrabber grab(m_shareWidget);
+        initializeOpenGLFunctions();
+
+        glGenBuffers((GLsizei)1, &brushVertexBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, brushVertexBuffer);
+        glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), brushVertices, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
         QDirIterator iterator(":/shaders");
         while (iterator.hasNext()) {
             iterator.next();
@@ -73,6 +88,9 @@ Application::~Application()
 {
     {
         ContextGrabber grab(m_shareWidget);
+
+        glDeleteBuffers((GLsizei)1, &brushVertexBuffer);
+
         QHashIterator<QString, QOpenGLShader *> shader(m_shaders);
         while (shader.hasNext()) {
             delete *shader.next();
@@ -84,8 +102,9 @@ Application::~Application()
         }
     }
 
-    delete m_window;
-    delete m_shareWidget;
+    m_window->deleteLater();
+    m_shareWidget->deleteLater();
+
     delete swatchBackgroundPixmap;
 }
 

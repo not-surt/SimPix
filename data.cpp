@@ -13,7 +13,7 @@ const TextureDataFormatDefinition IMAGE_DATA_FORMATS[] = {
 };
 
 TextureData::TextureData(QOpenGLWidget *const widget, const QSize &size, const TextureDataFormat _format, const GLubyte *const data) :
-    m_widget(widget), m_size(size), m_format(_format),
+    OpenGLData(), m_widget(widget), m_size(size), m_format(_format),
     matrix([&](){
         const float halfWidth = (float)size.width() / 2.f;
         const float halfHeight = (float)size.height() / 2.f;
@@ -119,14 +119,4 @@ ImageData::~ImageData()
 {
     ContextGrabber grab(m_widget);
     glDeleteBuffers(1, &m_vertexBuffer);
-}
-
-GLuint ImageData::vertexBuffer() const
-{
-    return m_vertexBuffer;
-}
-
-const QRect &ImageData::rect()
-{
-    return QRect(QPoint(0, 0), m_size);
 }

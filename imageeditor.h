@@ -38,7 +38,7 @@ class ImageEditor : public QOpenGLWidget, public Editor, protected QOpenGLFuncti
     Q_ENUMS(image transform)
 
 public:
-    explicit ImageEditor(ImageDocument &_document, QWidget *parent = nullptr);
+    explicit ImageEditor(ImageDocument &p_document, QWidget *parent = nullptr);
     ~ImageEditor();
     Transform &transform() { return m_transform; }
     bool tiled() const { return m_tiled; }
@@ -52,6 +52,9 @@ public:
     bool limitTransform() const { return m_limitTransform; }
     void applyTransformLimits();    
     void updateTransform();
+    void point(const QPoint &position, EditingContext *const editingContext);
+    void stroke(const QPoint &start, const QPoint &end, EditingContext *const editingContext);
+    void pick(const QPoint &position, EditingContext *const editingContext);
 
 signals:
     void tiledChanged(const bool tiled);
@@ -120,6 +123,11 @@ protected:
     virtual void keyReleaseEvent(QKeyEvent * event);
     virtual void enterEvent(QEvent *const event);
     virtual void leaveEvent(QEvent * const event);
+    typedef void (ImageEditor::*PointCallback)(const QPoint &point, const uint colour);
+    typedef void (ImageEditor::*SegmentCallback)(const QPoint &point0, const QPoint &point1, const uint colour, PointCallback callback, const bool inclusive);
+    void drawBrush(const QPoint &point, const uint colour);
+    void doLine(const QPoint &point0, const QPoint &point1, const uint colour, PointCallback callback, const bool inclusive = true);
+    void drawLine(const QPoint &point0, const QPoint &point1, const uint colour);
 
 private:
     Transform m_transform;

@@ -44,7 +44,16 @@ union Pixel {
 #define R(uint) ((uint & 0x00ff0000) >> 16)
 #define A(uint) ((uint & 0xff000000) >> 24)
 
-class TextureData : public QOpenGLFunctions_3_3_Core
+class OpenGLData {
+public:
+    explicit OpenGLData()
+        : m_context(QOpenGLContext::currentContext()), m_surface(m_context ? m_context->surface() : nullptr) {}
+protected:
+    QOpenGLContext *const m_context;
+    QSurface *const m_surface;
+};
+
+class TextureData : public OpenGLData, public QOpenGLFunctions_3_3_Core
 {
 public:
     explicit TextureData(QOpenGLWidget *const widget, const QSize &size, const TextureDataFormat format, const GLubyte *const data = nullptr);
@@ -81,8 +90,8 @@ class ImageData : public TextureData
 public:
     explicit ImageData(QOpenGLWidget *const widget, const QSize &size, const TextureDataFormat format, const GLubyte *const data = nullptr);
     ~ImageData();
-    GLuint vertexBuffer() const;
-    const QRect &rect();
+    GLuint vertexBuffer() const { return m_vertexBuffer; }
+    const QRect &rect() { return QRect(QPoint(0, 0), m_size); }
 protected:
     GLuint m_vertexBuffer;
 };

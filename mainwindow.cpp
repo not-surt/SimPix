@@ -170,6 +170,7 @@ MainWindow::~MainWindow()
 void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
     if (m_oldSubWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(m_oldSubWindow->widget());
+        qDebug() << editor; // TODO: how null?
         ImageDocument &image = static_cast<ImageDocument &>(editor->document);
 
         QObject::disconnect(&image.fileInfo, &FileInfo::dirtied, editor, SS_CAST(ImageEditor, update,));

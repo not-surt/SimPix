@@ -28,6 +28,8 @@ public:
     GLuint program(const QString &name) { return m_programs[name]->programId(); }
     QOpenGLWidget *shareWidget() { return m_shareWidget; }
     Session *session() { return m_session; }
+    static const GLfloat brushVertices[][2];
+    GLuint brushVertexBuffer;
 
 private:
     GLuint processShader(const GLenum type, const QString &src);
