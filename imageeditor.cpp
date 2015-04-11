@@ -196,72 +196,96 @@ void ImageEditor::drawBrush(const QPoint &point, const uint colour)
 {
     ImageDocument &image = static_cast<ImageDocument &>(document);
 
-//    if (QRect(QPoint(0, 0), texture.size()).contains(point)) {
-//        texture.setPixel(point, colour);
-//    }
-
-    QMatrix4x4 brushMatrix;
-    brushMatrix.translate(point.x(), point.y());
-    const float diameter = 64;
-    brushMatrix.scale(diameter / 2., diameter / 2.);
-
-    QRect tilingBounds(0, 0, 1, 1);
-    QRectF bounds(brushMatrix.map(QPointF(-1.f, -1.f)), QSizeF(0.f, 0.f));
-    expandRect(bounds, brushMatrix.map(QPointF(1.f, -1.f)));
-    expandRect(bounds, brushMatrix.map(QPointF(1.f, 1.f)));
-    expandRect(bounds, brushMatrix.map(QPointF(-1.f, 1.f)));
-    tilingBounds.setLeft((int)floor(bounds.left() / image.imageData()->size().width()));
-    tilingBounds.setRight((int)floor(bounds.right() / image.imageData()->size().width()));
-    tilingBounds.setTop((int)floor(bounds.top() / image.imageData()->size().height()));
-    tilingBounds.setBottom((int)floor(bounds.bottom() / image.imageData()->size().height()));
-    const int numberOfInstances = tilingBounds.width() * tilingBounds.height();
-//    qDebug() << bounds << tilingBounds << numberOfInstances;
-
-    glBindFramebuffer(GL_FRAMEBUFFER, image.imageData()->framebuffer());
-    glViewport(0, 0, image.imageData()->size().width(), image.imageData()->size().height());
-
-//    GLint program = APP->program("brushrectangle");
-    GLint program = APP->program("brushellipse");
-    glUseProgram(program);
-
-    glBindBuffer(GL_ARRAY_BUFFER, APP->brushVertexBuffer);
-
-    bool isIndexed = image.imageData()->format() == TextureDataFormat::Indexed;
-    GLint isIndexedUniform = glGetUniformLocation(program, "isIndexed");
-    glUniform1ui(isIndexedUniform, isIndexed);
-    if (isIndexed) {
-        GLint indexUniform = glGetUniformLocation(program, "index");
-        glUniform1ui(indexUniform, colour);
+    int brushStyle = 0;
+    if (brushStyle == 0) {
+        QPoint outPoint = point;
+        if (m_tiled) {
+            if (m_tileX) {
+                outPoint.setX((int)round(wrap((float)outPoint.x(), 0.f, (float)image.imageData()->size().width())));
+            }
+            if (m_tileY) {
+                outPoint.setY((int)round(wrap((float)outPoint.y(), 0.f, (float)image.imageData()->size().height())));
+            }
+        }
+        image.imageData()->setPixel(outPoint, colour);
+        qDebug() << point << outPoint;
     }
     else {
-        GLint colourUniform = glGetUniformLocation(program, "colour");
-        glUniform4ui(colourUniform, R(colour), G(colour), B(colour), A(colour));
+        QMatrix4x4 brushMatrix;
+        brushMatrix.translate(point.x(), point.y());
+        const float diameter = 64;
+        brushMatrix.scale(diameter / 2., diameter / 2.);
+
+        QRect tilingBounds(0, 0, 1, 1);
+        if (m_tiled) {
+            QRectF bounds(brushMatrix.map(QPointF(-1.f, -1.f)), QSizeF(0.f, 0.f));
+            expandRect(bounds, brushMatrix.map(QPointF(1.f, -1.f)));
+            expandRect(bounds, brushMatrix.map(QPointF(1.f, 1.f)));
+            expandRect(bounds, brushMatrix.map(QPointF(-1.f, 1.f)));
+            if (m_tileX) {
+                tilingBounds.setLeft((int)floor(bounds.left() / image.imageData()->size().width()));
+                tilingBounds.setRight((int)floor(bounds.right() / image.imageData()->size().width()));
+            }
+            if (m_tileY) {
+                tilingBounds.setTop((int)floor(bounds.top() / image.imageData()->size().height()));
+                tilingBounds.setBottom((int)floor(bounds.bottom() / image.imageData()->size().height()));
+            }
+        }
+        const int numberOfInstances = tilingBounds.width() * tilingBounds.height();
+    //    qDebug() << bounds << tilingBounds << numberOfInstances;
+
+        glBindFramebuffer(GL_FRAMEBUFFER, image.imageData()->framebuffer());
+        glViewport(0, 0, image.imageData()->size().width(), image.imageData()->size().height());
+
+        QString programName;
+        if (brushStyle == 1) {
+            programName = "brushrectangle";
+        }
+        else if (brushStyle == 2) {
+            programName = "brushellipse";
+        }
+        GLint program = APP->program(programName);
+        glUseProgram(program);
+
+        glBindBuffer(GL_ARRAY_BUFFER, APP->brushVertexBuffer);
+
+        bool isIndexed = image.imageData()->format() == TextureDataFormat::Indexed;
+        GLint isIndexedUniform = glGetUniformLocation(program, "isIndexed");
+        glUniform1ui(isIndexedUniform, isIndexed);
+        if (isIndexed) {
+            GLint indexUniform = glGetUniformLocation(program, "index");
+            glUniform1ui(indexUniform, colour);
+        }
+        else {
+            GLint colourUniform = glGetUniformLocation(program, "colour");
+            glUniform4ui(colourUniform, R(colour), G(colour), B(colour), A(colour));
+        }
+
+        GLint matrixUniform = glGetUniformLocation(program, "matrix");
+        QMatrix4x4 matrix = brushMatrix;
+        glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, matrix.constData());
+        GLint imageMatrixUniform = glGetUniformLocation(program, "imageMatrix");
+        QMatrix4x4 imageMatrix = image.imageData()->matrix;
+        glUniformMatrix4fv(imageMatrixUniform, 1, GL_FALSE, imageMatrix.constData());
+        GLint tilesStartUniform = glGetUniformLocation(program, "tilesStart");
+        glUniform2i(tilesStartUniform, tilingBounds.x(), tilingBounds.y());
+        GLint tilesSizeUniform = glGetUniformLocation(program, "tilesSize");
+        glUniform2i(tilesSizeUniform, tilingBounds.width(), tilingBounds.height());
+        GLint imageSizeUniform = glGetUniformLocation(program, "imageSize");
+        glUniform2i(imageSizeUniform, image.imageData()->size().width(), image.imageData()->size().height());
+
+        GLint positionAttrib = glGetAttribLocation(program, "position");
+        glEnableVertexAttribArray(positionAttrib);
+        glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+        glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, numberOfInstances);
+
+        glDisableVertexAttribArray(positionAttrib);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        glUseProgram(0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
-
-    GLint matrixUniform = glGetUniformLocation(program, "matrix");
-    QMatrix4x4 matrix = brushMatrix;
-    glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, matrix.constData());
-    GLint imageMatrixUniform = glGetUniformLocation(program, "imageMatrix");
-    QMatrix4x4 imageMatrix = image.imageData()->matrix;
-    glUniformMatrix4fv(imageMatrixUniform, 1, GL_FALSE, imageMatrix.constData());
-    GLint tilesStartUniform = glGetUniformLocation(program, "tilesStart");
-    glUniform2i(tilesStartUniform, tilingBounds.x(), tilingBounds.y());
-    GLint tilesSizeUniform = glGetUniformLocation(program, "tilesSize");
-    glUniform2i(tilesSizeUniform, tilingBounds.width(), tilingBounds.height());
-    GLint imageSizeUniform = glGetUniformLocation(program, "imageSize");
-    glUniform2i(imageSizeUniform, image.imageData()->size().width(), image.imageData()->size().height());
-
-    GLint positionAttrib = glGetAttribLocation(program, "position");
-    glEnableVertexAttribArray(positionAttrib);
-    glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
-    glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, numberOfInstances);
-
-    glDisableVertexAttribArray(positionAttrib);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glUseProgram(0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void ImageEditor::doLine(const QPoint &point0, const QPoint &point1, const uint colour, PointCallback pointCallback, const bool inclusive)

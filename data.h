@@ -23,6 +23,7 @@ struct TextureDataFormatDefinition {
     GLint format;
     GLint glEnum;
     GLint size;
+    GLenum buffers[2];
 };
 
 extern const TextureDataFormatDefinition IMAGE_DATA_FORMATS[];

@@ -7,8 +7,8 @@
 #include "util.h"
 
 const TextureDataFormatDefinition IMAGE_DATA_FORMATS[] = {
-    {TextureDataFormat::Indexed, "Indexed", GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte)},
-    {TextureDataFormat::RGBA, "RGBA", GL_RGBA8UI, GL_BGRA_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte) * 4},
+    {TextureDataFormat::Indexed, "Indexed", GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte), {GL_COLOR_ATTACHMENT0, GL_NONE}},
+    {TextureDataFormat::RGBA, "RGBA", GL_RGBA8UI, GL_BGRA_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte) * 4, {GL_NONE, GL_COLOR_ATTACHMENT0}},
     {TextureDataFormat::Invalid, "", 0, 0, 0, 0}
 };
 
@@ -40,14 +40,7 @@ TextureData::TextureData(QOpenGLWidget *const widget, const QSize &size, const T
     glGenFramebuffers((GLsizei)1, &m_framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture, 0);
-    if (format->id == TextureDataFormat::Indexed) {
-        GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_NONE};
-        glDrawBuffers(2, buffers);
-    }
-    else {
-        GLenum buffers[] = {GL_NONE, GL_COLOR_ATTACHMENT0};
-        glDrawBuffers(2, buffers);
-    }
+    glDrawBuffers(2, format->buffers);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
