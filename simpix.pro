@@ -32,7 +32,8 @@ SOURCES += main.cpp\
     document.cpp \
     data.cpp \
     editor.cpp \
-    imagedocument.cpp
+    imagedocument.cpp \
+    widgets.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
@@ -54,7 +55,8 @@ HEADERS  += mainwindow.h \
     document.h \
     data.h \
     editor.h \
-    imagedocument.h
+    imagedocument.h \
+    widgets.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \
@@ -74,13 +76,13 @@ OTHER_FILES += \
     shaders/image.frag \
     shaders/frame.frag \
     shaders/checkerboard.frag \
-    shaders/ellipsebrush.frag \
-    shaders/rectanglebrush.frag \
     shaders/brush.vert \
     text/ABOUT \
     shaders/viewport.vert \
-    shaders/tiledcanvas.vert\
-    shaders/singlecanvas.vert
+    shaders/brushellipse.frag \
+    shaders/brushrectangle.frag \
+    shaders/canvassingle.vert \
+    shaders/canvastiled.vert
 
 RESOURCES += \
     simpix.qrc

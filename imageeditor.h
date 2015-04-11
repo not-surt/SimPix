@@ -11,6 +11,20 @@
 
 class ImageDocument;
 
+class Layer {};
+
+class LayerEditor {
+public:
+    TextureData *layer;
+    TextureData *editBuffer;
+    void setLayer(TextureData *const _layer) {
+        layer = _layer;
+        if (editBuffer) delete editBuffer;
+//        editBuffer = _layer->clone();
+//        editBuffer->clear();
+    }
+};
+
 class ImageEditor : public QOpenGLWidget, public Editor, protected QOpenGLFunctions_3_3_Core
 {
     Q_OBJECT

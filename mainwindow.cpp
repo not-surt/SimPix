@@ -14,6 +14,7 @@
 #include <QMdiSubWindow>
 #include <QWidgetAction>
 #include <QSpinBox>
+#include "widgets.h"
 
 void SubWindow::closeEvent(QCloseEvent *event)
 {
@@ -91,18 +92,37 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionDockTitles, &QAction::triggered, this, &MainWindow::showDockTitles);
     QObject::connect(ui->actionLockDocks, &QAction::triggered, this, &MainWindow::lockDocks);
 
+    QActionGroup *brushStyleGroup = new QActionGroup(this);
+    brushStyleGroup->addAction(ui->actionBrushStylePixel);
+    brushStyleGroup->addAction(ui->actionBrushStyleRectangle);
+    brushStyleGroup->addAction(ui->actionBrushStyleEllipse);
+    ModeToolButtonAction *actionBrushStyle = new ModeToolButtonAction();
+    actionBrushStyle->setMenu(ui->menuBrushStyle);
+    ui->toolBarBrush->insertAction(ui->toolBarBrush->actions()[0], actionBrushStyle);
+
+    QActionGroup *brushSpaceGroup = new QActionGroup(this);
+    brushSpaceGroup->addAction(ui->actionBrushSpaceScreen);
+    brushSpaceGroup->addAction(ui->actionBrushSpaceImage);
+    brushSpaceGroup->addAction(ui->actionBrushSpaceImageAspectCorrected);
+    brushSpaceGroup->addAction(ui->actionBrushSpaceGrid);
+    ModeToolButtonAction *actionBrushSpace = new ModeToolButtonAction();
+    actionBrushSpace->setMenu(ui->menuBrushSpace);
+    ui->toolBarBrush->insertAction(ui->toolBarBrush->actions()[1], actionBrushSpace);
+
     QMenu *menuMenu = new QMenu;
-    ui->actionMenuMenu->setMenu(menuMenu);
-    static_cast<QToolButton *>(ui->mainToolBar->widgetForAction(ui->actionMenuMenu))->setPopupMode(QToolButton::InstantPopup);
-    QListIterator<QMenu *> menu2(ui->menuBar->findChildren<QMenu *>());
+    QListIterator<QMenu *> menu2(ui->menuBar->findChildren<QMenu *>(QString(), Qt::FindDirectChildrenOnly));
     while (menu2.hasNext()) {
         menuMenu->addMenu(menu2.next());
     }
+    MenuToolButtonAction *menuToolButtonAction = new MenuToolButtonAction();
+    menuToolButtonAction->setMenu(menuMenu);
+    menuToolButtonAction->setText("Menu");
+    ui->toolBarMain->insertAction(ui->toolBarMain->actions()[0], menuToolButtonAction);
 
     QMenu *toolBarMenu = new QMenu;
     ui->actionToolbars->setMenu(toolBarMenu);
     ui->actionToolbarsMenu->setMenu(toolBarMenu);
-    static_cast<QToolButton *>(ui->layoutToolBar->widgetForAction(ui->actionToolbarsMenu))->setPopupMode(QToolButton::MenuButtonPopup);
+    static_cast<QToolButton *>(ui->toolBarLayout->widgetForAction(ui->actionToolbarsMenu))->setPopupMode(QToolButton::MenuButtonPopup);
     QListIterator<QToolBar *> toolbar(findChildren<QToolBar *>());
     while (toolbar.hasNext()) {
         toolBarMenu->addAction(toolbar.next()->toggleViewAction());
@@ -111,7 +131,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMenu *dockMenu = new QMenu;
     ui->actionDocks->setMenu(dockMenu);
     ui->actionDocksMenu->setMenu(dockMenu);
-    static_cast<QToolButton *>(ui->layoutToolBar->widgetForAction(ui->actionDocksMenu))->setPopupMode(QToolButton::MenuButtonPopup);
+    static_cast<QToolButton *>(ui->toolBarLayout->widgetForAction(ui->actionDocksMenu))->setPopupMode(QToolButton::MenuButtonPopup);
     QListIterator<QDockWidget *> dock(findChildren<QDockWidget *>());
     while (dock.hasNext()) {
         dockMenu->addAction(dock.next()->toggleViewAction());
@@ -127,7 +147,7 @@ MainWindow::MainWindow(QWidget *parent) :
     act->setDefaultWidget(edt);
     ui->menuFile->addAction(act);
 
-    ui->layoutToolBar->hide();
+    ui->toolBarLayout->hide();
     activateSubWindow(nullptr);
 
     QSettings settings;

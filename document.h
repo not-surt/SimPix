@@ -96,8 +96,8 @@ public:
         Image,
         Palette
     };
-    bool create(const DocumentType type) {}
-    bool open(QString fileName) {}
+    bool create(const DocumentType type) { Q_UNUSED(type); }
+    bool open(QString fileName) { Q_UNUSED(fileName); }
     QMap<QString, Document *(*)()> creators;
 private:
 };

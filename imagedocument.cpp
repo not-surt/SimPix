@@ -214,16 +214,14 @@ void drawPixel(TextureData &texture, const QPoint &point, const uint colour, con
     QOpenGLFunctions_3_3_Core gl;
     gl.initializeOpenGLFunctions();
 
-    gl.glEnable(GL_BLEND);
-//    gl.glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
-//    gl.glBlendFuncSeparate(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO);
     gl.glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
     gl.glBlendEquation(GL_FUNC_ADD);
+    gl.glEnable(GL_BLEND);
     gl.glBindFramebuffer(GL_FRAMEBUFFER, texture.framebuffer());
     gl.glViewport(0, 0, texture.size().width(), texture.size().height());
 
-//    GLint program = APP->program("rectanglebrush");
-    GLint program = APP->program("ellipsebrush");
+//    GLint program = APP->program("brushrectangle");
+    GLint program = APP->program("brushellipse");
     gl.glUseProgram(program);
 
     GLuint vertexBuffer;
@@ -243,8 +241,8 @@ void drawPixel(TextureData &texture, const QPoint &point, const uint colour, con
 
     QMatrix4x4 matrix = texture.matrix;
     matrix.translate(point.x(), point.y());
-    const float size = 32;
-    matrix.scale(size, size);
+    const float diameter = 64;
+    matrix.scale(diameter / 2., diameter / 2.);
     GLint matrixUniform = gl.glGetUniformLocation(program, "matrix");
     gl.glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, matrix.constData());
 
@@ -262,21 +260,6 @@ void drawPixel(TextureData &texture, const QPoint &point, const uint colour, con
     gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     gl.glDeleteBuffers((GLsizei)1, &vertexBuffer);
-}
-
-void drawRectangularBrush(QImage &image, const QPoint &point, const uint colour, const void *const data)
-{
-    const uint *const size = (const uint *)data;
-}
-
-void drawEllipticalBrush(TextureData &texture, const QPoint &point, const uint colour, const void *const data)
-{
-    const uint *const size = (const uint *)data;
-}
-
-void drawAngularBrush(TextureData &texture, const QPoint &point, const uint colour, const void *const data)
-{
-    const int *const size = (const int *)data;
 }
 
 void doLine(TextureData &texture, const QPoint &point0, const QPoint &point1, const uint colour, void (*callback)(TextureData &texture, const QPoint &point, const uint colour, const void *const data), const void *const data = nullptr, const bool inclusive = true)

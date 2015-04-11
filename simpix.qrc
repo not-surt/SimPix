@@ -1,16 +1,16 @@
 <RCC>
     <qresource prefix="/">
         <file>images/simpix-48x48.png</file>
-        <file>text/LICENSE</file>
+        <file>shaders/canvassingle.vert</file>
+        <file>shaders/canvastiled.vert</file>
         <file>shaders/image.frag</file>
-        <file>shaders/tiledcanvas.vert</file>
         <file>shaders/frame.frag</file>
+        <file>shaders/viewport.vert</file>
         <file>shaders/checkerboard.frag</file>
         <file>shaders/brush.vert</file>
-        <file>shaders/ellipsebrush.frag</file>
-        <file>shaders/rectanglebrush.frag</file>
+        <file>shaders/brushellipse.frag</file>
+        <file>shaders/brushrectangle.frag</file>
         <file>text/ABOUT</file>
-        <file>shaders/viewport.vert</file>
-        <file>shaders/singlecanvas.vert</file>
+        <file>text/LICENSE</file>
     </qresource>
 </RCC>

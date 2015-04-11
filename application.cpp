@@ -38,7 +38,7 @@ Application::Application(int &argc, char **argv) :
     // Why cause fail?
     QSurfaceFormat format;
 //    format.setRenderableType(QSurfaceFormat::OpenGL);
-    format.setVersion(4, 0);
+    format.setVersion(3, 3);
 //    format.setProfile(QSurfaceFormat::CoreProfile);
     QSurfaceFormat::setDefaultFormat(format);
 
@@ -47,6 +47,8 @@ Application::Application(int &argc, char **argv) :
     m_shareWidget = new QOpenGLWidget;
     // Hack to initialize share widget
     m_shareWidget->show();
+    qDebug() << "Context valid:" << m_shareWidget->context()->isValid();
+    qDebug() << "Version:" << "Major" << m_shareWidget->context()->format().majorVersion() << "Minor" << m_shareWidget->context()->format().minorVersion();
     m_shareWidget->hide();
 
     {
@@ -57,11 +59,11 @@ Application::Application(int &argc, char **argv) :
             QFileInfo info = iterator.fileInfo();
             addShader(info.fileName(), info.completeSuffix() == "vert" ? QOpenGLShader::Vertex : QOpenGLShader::Fragment, fileToString(info.filePath()));
         }
-        addProgram("image", {"tiledcanvas.vert", "image.frag"});
-        addProgram("frame", {"singlecanvas.vert", "frame.frag"});
+        addProgram("image", {"canvastiled.vert", "image.frag"});
+        addProgram("frame", {"canvassingle.vert", "frame.frag"});
         addProgram("checkerboard", {"viewport.vert", "checkerboard.frag"});
-        addProgram("ellipsebrush", {"brush.vert", "ellipsebrush.frag"});
-        addProgram("rectanglebrush", {"brush.vert", "rectanglebrush.frag"});
+        addProgram("brushellipse", {"brush.vert", "brushellipse.frag"});
+        addProgram("brushrectangle", {"brush.vert", "brushrectangle.frag"});
     }
 
     m_window->show();
