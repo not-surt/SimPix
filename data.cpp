@@ -40,10 +40,15 @@ TextureData::TextureData(QOpenGLWidget *const widget, const QSize &size, const T
     glGenFramebuffers((GLsizei)1, &m_framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture, 0);
+    if (format->id == TextureDataFormat::Indexed) {
+        GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_NONE};
+        glDrawBuffers(2, buffers);
+    }
+    else {
+        GLenum buffers[] = {GL_NONE, GL_COLOR_ATTACHMENT0};
+        glDrawBuffers(2, buffers);
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//    const GLenum BUFFERS[] = {GL_COLOR_ATTACHMENT0};
-//    glDrawBuffers(1, BUFFERS);
-//    glViewport(0, 0, size.width(), size.height());
 }
 
 TextureData::~TextureData()

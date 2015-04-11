@@ -42,11 +42,8 @@ Application::Application(int &argc, char **argv) :
 
     swatchBackgroundPixmap = generateBackgroundPixmap(16);
 
-    // Why cause fail?
     QSurfaceFormat format;
-//    format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setVersion(3, 3);
-//    format.setProfile(QSurfaceFormat::CoreProfile);
     QSurfaceFormat::setDefaultFormat(format);
 
     m_window = new MainWindow;
@@ -54,9 +51,9 @@ Application::Application(int &argc, char **argv) :
     m_shareWidget = new QOpenGLWidget;
     // Show to initialize share widget
     m_shareWidget->show();
-    m_shareWidget->hide(); // If hidden when close main window the SIGSEV!
+    m_shareWidget->hide();
     qDebug() << "Context valid:" << m_shareWidget->context()->isValid();
-    qDebug() << "Version:" << "Major" << m_shareWidget->context()->format().majorVersion() << "Minor" << m_shareWidget->context()->format().minorVersion();
+    qDebug() << "Version:" << "Major" << m_shareWidget->context()->format().majorVersion() << "Minor" << m_shareWidget->context()->format().minorVersion() << "Profile" << m_shareWidget->context()->format().profile();
     m_shareWidget->makeCurrent();
 
     {
@@ -89,17 +86,17 @@ Application::~Application()
     {
         ContextGrabber grab(m_shareWidget);
 
-        glDeleteBuffers((GLsizei)1, &brushVertexBuffer);
+        QHashIterator<QString, QOpenGLShaderProgram *> program(m_programs);
+        while (program.hasNext()) {
+            delete *program.next();
+        }
 
         QHashIterator<QString, QOpenGLShader *> shader(m_shaders);
         while (shader.hasNext()) {
             delete *shader.next();
         }
 
-        QHashIterator<QString, QOpenGLShaderProgram *> program(m_programs);
-        while (program.hasNext()) {
-            delete *program.next();
-        }
+        glDeleteBuffers((GLsizei)1, &brushVertexBuffer);
     }
 
     m_window->deleteLater();

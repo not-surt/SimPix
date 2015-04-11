@@ -226,8 +226,17 @@ void ImageEditor::drawBrush(const QPoint &point, const uint colour)
 
     glBindBuffer(GL_ARRAY_BUFFER, APP->brushVertexBuffer);
 
-    GLint colourUniform = glGetUniformLocation(program, "colour");
-    glUniform4ui(colourUniform, R(colour), G(colour), B(colour), A(colour));
+    bool isIndexed = image.imageData()->format() == TextureDataFormat::Indexed;
+    GLint isIndexedUniform = glGetUniformLocation(program, "isIndexed");
+    glUniform1ui(isIndexedUniform, isIndexed);
+    if (isIndexed) {
+        GLint indexUniform = glGetUniformLocation(program, "index");
+        glUniform1ui(indexUniform, colour);
+    }
+    else {
+        GLint colourUniform = glGetUniformLocation(program, "colour");
+        glUniform4ui(colourUniform, R(colour), G(colour), B(colour), A(colour));
+    }
 
     GLint matrixUniform = glGetUniformLocation(program, "matrix");
     QMatrix4x4 matrix = brushMatrix;
