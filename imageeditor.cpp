@@ -198,17 +198,17 @@ void ImageEditor::drawBrush(const QPoint &point, const uint colour)
 
     int brushStyle = 2;
     if (brushStyle == 0) {
-        QPoint outPoint = point;
+        QPoint wrapPoint = point;
         if (m_tiled) {
             if (m_tileX) {
-                outPoint.setX((int)round(wrap((float)outPoint.x(), 0.f, (float)image.imageData()->size().width())));
+                wrapPoint.setX((int)round(wrap((float)wrapPoint.x(), 0.f, (float)image.imageData()->size().width())));
             }
             if (m_tileY) {
-                outPoint.setY((int)round(wrap((float)outPoint.y(), 0.f, (float)image.imageData()->size().height())));
+                wrapPoint.setY((int)round(wrap((float)wrapPoint.y(), 0.f, (float)image.imageData()->size().height())));
             }
         }
-        image.imageData()->setPixel(outPoint, colour);
-        qDebug() << point << outPoint;
+        image.imageData()->setPixel(wrapPoint, colour);
+        qDebug() << point << wrapPoint;
     }
     else {
         QMatrix4x4 brushMatrix;
@@ -346,13 +346,25 @@ void ImageEditor::stroke(const QPoint &start, const QPoint &end, EditingContext 
 void ImageEditor::pick(const QPoint &point, EditingContext *const editingContext)
 {
     ImageDocument &image = static_cast<ImageDocument &>(document);
-    if (image.imageData()->rect().contains(point)) {
+    QPoint wrapPoint = point;
+    if (m_tiled) {
+        if (m_tileX) {
+            wrapPoint.setX((int)round(wrap((float)wrapPoint.x(), 0.f, (float)image.imageData()->size().width())));
+        }
+        if (m_tileY) {
+            wrapPoint.setY((int)round(wrap((float)wrapPoint.y(), 0.f, (float)image.imageData()->size().height())));
+        }
+    }
+    if (image.imageData()->rect().contains(wrapPoint)) {
         if (image.format() == TextureDataFormat::Indexed) {
-            editingContext->setColourSlot(image.imageData()->pixel(point), editingContext->activeColourSlot());
+            editingContext->setColourSlot(image.imageData()->pixel(wrapPoint), editingContext->activeColourSlot());
         }
         else if (image.format() == TextureDataFormat::RGBA) {
-            editingContext->setColourSlot(image.imageData()->pixel(point), editingContext->activeColourSlot());
+            editingContext->setColourSlot(image.imageData()->pixel(wrapPoint), editingContext->activeColourSlot());
         }
+    }
+    else {
+        editingContext->setColourSlot(editingContext->colourSlot(EditingContext::Background), editingContext->activeColourSlot());
     }
 }
 
