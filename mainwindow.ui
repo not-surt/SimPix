@@ -125,7 +125,7 @@
     </widget>
     <widget class="QMenu" name="menuBrushSpace">
      <property name="title">
-      <string>Brush Space</string>
+      <string>Brush &amp;Space</string>
      </property>
      <addaction name="actionBrushSpaceImage"/>
      <addaction name="actionBrushSpaceImageAspectCorrected"/>
@@ -290,9 +290,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionBrushPixelSnap"/>
-   <addaction name="actionBrushWidth"/>
-   <addaction name="actionBrushHeight"/>
   </widget>
   <action name="actionFileNew">
    <property name="icon">
@@ -927,27 +924,6 @@
     <string>Pixel Snap</string>
    </property>
   </action>
-  <action name="actionBrushWidth">
-   <property name="text">
-    <string>Brush Width</string>
-   </property>
-  </action>
-  <action name="actionBrushHeight">
-   <property name="text">
-    <string>Brush Height</string>
-   </property>
-   <property name="toolTip">
-    <string>Brush Height</string>
-   </property>
-  </action>
-  <action name="actionBrushAngle">
-   <property name="text">
-    <string>Brush Angle</string>
-   </property>
-   <property name="toolTip">
-    <string>Brush Angle</string>
-   </property>
-  </action>
   <action name="actionBrushStylePixel">
    <property name="checkable">
     <bool>true</bool>
@@ -1002,7 +978,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Screen Space</string>
+    <string>&amp;Screen Space</string>
    </property>
    <property name="toolTip">
     <string>Screen Space</string>
@@ -1016,7 +992,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Image Space</string>
+    <string>&amp;Image Space</string>
    </property>
    <property name="toolTip">
     <string>Image Space</string>
@@ -1027,7 +1003,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Image Space (Aspect Corrected)</string>
+    <string>Image Space (Aspect &amp;Corrected)</string>
    </property>
    <property name="toolTip">
     <string>Image Space (Aspect Corrected)</string>
@@ -1038,7 +1014,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Grid Space</string>
+    <string>&amp;Grid Space</string>
    </property>
    <property name="toolTip">
     <string>Grid Space</string>

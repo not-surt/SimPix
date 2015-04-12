@@ -2,6 +2,7 @@
 #define WIDGETS_H
 
 #include <QMenu>
+#include <QSpinBox>
 #include <QToolButton>
 #include <QWidgetAction>
 
@@ -76,6 +77,50 @@ protected:
         }
         button->setCurrentAction(action);
         return button;
+    }
+};
+
+class IntegerField : public QSpinBox
+{
+public:
+    explicit IntegerField(QWidget *const parent = nullptr)
+        : QSpinBox(parent) {
+    }
+};
+
+class IntegerFieldAction : public QWidgetAction
+{
+public:
+    explicit IntegerFieldAction(QWidget *const parent = nullptr)
+        : QWidgetAction(parent) {
+    }
+
+protected:
+    virtual QWidget *createWidget(QWidget *parent) {
+        IntegerField *field = new IntegerField(parent);
+        return field;
+    }
+};
+
+class FloatField : public QDoubleSpinBox
+{
+public:
+    explicit FloatField(QWidget *const parent = nullptr)
+        : QDoubleSpinBox(parent) {
+    }
+};
+
+class FloatFieldAction : public QWidgetAction
+{
+public:
+    explicit FloatFieldAction(QWidget *const parent = nullptr)
+        : QWidgetAction(parent) {
+    }
+
+protected:
+    virtual QWidget *createWidget(QWidget *parent) {
+        FloatField *field = new FloatField(parent);
+        return field;
     }
 };
 

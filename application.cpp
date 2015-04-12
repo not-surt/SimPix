@@ -44,16 +44,21 @@ Application::Application(int &argc, char **argv) :
 
     QSurfaceFormat format;
     format.setVersion(3, 3);
+//    format.setProfile(QSurfaceFormat::CoreProfile);
+    format.setProfile(QSurfaceFormat::CompatibilityProfile);
+    format.setRenderableType(QSurfaceFormat::OpenGL);
     QSurfaceFormat::setDefaultFormat(format);
+    qDebug() << "Default" << "Version:" << "Major" << QSurfaceFormat::defaultFormat().majorVersion() << "Minor" << QSurfaceFormat::defaultFormat().minorVersion() << "Profile" << QSurfaceFormat::defaultFormat().profile();
 
     m_window = new MainWindow;
 
     m_shareWidget = new QOpenGLWidget;
+//    m_shareWidget->setFormat(format); // For windows?
     // Show to initialize share widget
     m_shareWidget->show();
     m_shareWidget->hide();
     qDebug() << "Context valid:" << m_shareWidget->context()->isValid();
-    qDebug() << "Version:" << "Major" << m_shareWidget->context()->format().majorVersion() << "Minor" << m_shareWidget->context()->format().minorVersion() << "Profile" << m_shareWidget->context()->format().profile();
+    qDebug() << "Share" << "Version:" << "Major" << m_shareWidget->context()->format().majorVersion() << "Minor" << m_shareWidget->context()->format().minorVersion() << "Profile" << m_shareWidget->context()->format().profile();
     m_shareWidget->makeCurrent();
 
     {

@@ -22,6 +22,14 @@ protected:
     void closeEvent(QCloseEvent *event);
 };
 
+class MdiArea : public QMdiArea
+{
+public:
+    explicit MdiArea(QWidget *parent = nullptr) :
+        QMdiArea(parent) {}
+    QSize subWindowSizeOverhead() const;
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -46,17 +54,17 @@ public slots:
     void lockDocks(bool checked);
     void useTabs(bool checked);
     ImageEditor *newEditor(ImageDocument &image);
-    QMdiSubWindow *newEditorSubWindow(ImageEditor *const editor);
-    void activateSubWindow(QMdiSubWindow *const subWindow);
+    SubWindow *newEditorSubWindow(ImageEditor *const editor);
+    void activateSubWindow(SubWindow *const subWindow);
 
 protected:
     virtual void closeEvent(QCloseEvent *event);
 
 private:
     Ui::MainWindow *ui;
-    QMdiArea *m_mdi;
+    MdiArea *m_mdi;
     StatusMouseWidget *m_statusMouseWidget;
-    QMdiSubWindow *m_oldSubWindow;
+    SubWindow *m_oldSubWindow;
     QList<ImageDocument *> m_images;
     static const QString fileDialogFilterString;
 };

@@ -3,7 +3,6 @@
 
 #include <QPixmap>
 #include <QSurface>
-#include <QOpenGLFunctions>
 #include <QOpenGLContext>
 #include <QOpenGLWidget>
 

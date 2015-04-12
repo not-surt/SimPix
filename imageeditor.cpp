@@ -196,7 +196,7 @@ void ImageEditor::drawBrush(const QPoint &point, const uint colour)
 {
     ImageDocument &image = static_cast<ImageDocument &>(document);
 
-    int brushStyle = 0;
+    int brushStyle = 2;
     if (brushStyle == 0) {
         QPoint outPoint = point;
         if (m_tiled) {
@@ -213,7 +213,7 @@ void ImageEditor::drawBrush(const QPoint &point, const uint colour)
     else {
         QMatrix4x4 brushMatrix;
         brushMatrix.translate(point.x(), point.y());
-        const float diameter = 64;
+        const float diameter = 16;
         brushMatrix.scale(diameter / 2., diameter / 2.);
 
         QRect tilingBounds(0, 0, 1, 1);

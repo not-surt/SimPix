@@ -38,12 +38,22 @@ void SubWindow::closeEvent(QCloseEvent *event)
     }
 }
 
+QSize MdiArea::subWindowSizeOverhead() const
+{
+    QStyleOptionTitleBar optionTitleBar;
+    optionTitleBar.titleBarState = 1;
+    optionTitleBar.titleBarFlags = Qt::SubWindow;
+    const int titleBarHeight = style()->pixelMetric(QStyle::PM_TitleBarHeight, &optionTitleBar, nullptr);
+    const int frameWidth = style()->pixelMetric(QStyle::PM_MdiSubWindowFrameWidth, nullptr, nullptr);
+    return QSize(2 * frameWidth, titleBarHeight + frameWidth);
+}
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), m_mdi(nullptr),m_statusMouseWidget(nullptr), m_oldSubWindow(nullptr), m_images()
 {    
     ui->setupUi(this);
-    m_mdi = new QMdiArea;
+    m_mdi = new MdiArea;
     m_mdi->setTabsClosable(true);
     m_mdi->setTabsMovable(true);
     m_mdi->setActivationOrder(QMdiArea::CreationOrder);
@@ -63,7 +73,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     ui->menuBar->hide();
 
-    QObject::connect(m_mdi, &QMdiArea::subWindowActivated, this, &MainWindow::activateSubWindow);
+    QObject::connect(m_mdi, &MdiArea::subWindowActivated, [this](QMdiSubWindow *const subWindow) { this->activateSubWindow(static_cast<SubWindow *>(subWindow)); } );
 
     QObject::connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
     QObject::connect(ui->actionAboutQt, &QAction::triggered, this, &MainWindow::aboutQt);
@@ -79,10 +89,10 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionMenu, &QAction::triggered, this->menuBar(), &QToolBar::setVisible);
     QObject::connect(ui->actionStatusBar, &QAction::triggered, this->statusBar(), &QToolBar::setVisible);
     QObject::connect(ui->actionFullscreen, &QAction::triggered, this, &MainWindow::setFullscreen);
-    QObject::connect(ui->actionTileSubwindows, &QAction::triggered, m_mdi, &QMdiArea::tileSubWindows);
-    QObject::connect(ui->actionCascadeSubwindows, &QAction::triggered, m_mdi, &QMdiArea::cascadeSubWindows);
-    QObject::connect(ui->actionNextSubwindow, &QAction::triggered, m_mdi, &QMdiArea::activateNextSubWindow);
-    QObject::connect(ui->actionPreviousSubwindow, &QAction::triggered, m_mdi, &QMdiArea::activatePreviousSubWindow);
+    QObject::connect(ui->actionTileSubwindows, &QAction::triggered, m_mdi, &MdiArea::tileSubWindows);
+    QObject::connect(ui->actionCascadeSubwindows, &QAction::triggered, m_mdi, &MdiArea::cascadeSubWindows);
+    QObject::connect(ui->actionNextSubwindow, &QAction::triggered, m_mdi, &MdiArea::activateNextSubWindow);
+    QObject::connect(ui->actionPreviousSubwindow, &QAction::triggered, m_mdi, &MdiArea::activatePreviousSubWindow);
     QObject::connect(ui->actionUseTabs, &QAction::triggered, this, &MainWindow::useTabs);
     QObject::connect(ui->actionToolbarsMenu, &QAction::triggered, this, &MainWindow::showToolbars);
     QObject::connect(ui->actionAllToolbars, &QAction::triggered, this, &MainWindow::showToolbars);
@@ -92,14 +102,14 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionDockTitles, &QAction::triggered, this, &MainWindow::showDockTitles);
     QObject::connect(ui->actionLockDocks, &QAction::triggered, this, &MainWindow::lockDocks);
 
+    QToolBar *toolBarBrush = ui->toolBarBrush;
     QActionGroup *brushStyleGroup = new QActionGroup(this);
     brushStyleGroup->addAction(ui->actionBrushStylePixel);
     brushStyleGroup->addAction(ui->actionBrushStyleRectangle);
     brushStyleGroup->addAction(ui->actionBrushStyleEllipse);
     ModeToolButtonAction *actionBrushStyle = new ModeToolButtonAction();
     actionBrushStyle->setMenu(ui->menuBrushStyle);
-    ui->toolBarBrush->insertAction(ui->toolBarBrush->actions()[0], actionBrushStyle);
-
+    toolBarBrush->addAction(actionBrushStyle);
     QActionGroup *brushSpaceGroup = new QActionGroup(this);
     brushSpaceGroup->addAction(ui->actionBrushSpaceScreen);
     brushSpaceGroup->addAction(ui->actionBrushSpaceImage);
@@ -107,7 +117,12 @@ MainWindow::MainWindow(QWidget *parent) :
     brushSpaceGroup->addAction(ui->actionBrushSpaceGrid);
     ModeToolButtonAction *actionBrushSpace = new ModeToolButtonAction();
     actionBrushSpace->setMenu(ui->menuBrushSpace);
-    ui->toolBarBrush->insertAction(ui->toolBarBrush->actions()[1], actionBrushSpace);
+    toolBarBrush->addAction(actionBrushSpace);
+    toolBarBrush->addAction(ui->actionBrushPixelSnap);
+    IntegerFieldAction *actionBrushWidth = new IntegerFieldAction();
+    toolBarBrush->addAction(actionBrushWidth);
+    IntegerFieldAction *actionBrushHeight = new IntegerFieldAction();
+    toolBarBrush->addAction(actionBrushHeight);
 
     QMenu *menuMenu = new QMenu;
     QListIterator<QMenu *> menu2(ui->menuBar->findChildren<QMenu *>(QString(), Qt::FindDirectChildrenOnly));
@@ -167,7 +182,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::activateSubWindow(QMdiSubWindow *const subWindow) {
+void MainWindow::activateSubWindow(SubWindow *const subWindow) {
     if (m_oldSubWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(m_oldSubWindow->widget());
         qDebug() << editor; // TODO: how null?
@@ -309,42 +324,51 @@ void MainWindow::closeEvent(QCloseEvent *event)
 }
 
 ImageEditor *MainWindow::newEditor(ImageDocument &image) {
-    QMdiSubWindow *subWindow = new SubWindow;
-    subWindow->setAttribute(Qt::WA_DeleteOnClose);
-    subWindow->setWindowTitle(image.fileInfo.shortName());
+//    QMdiSubWindow *subWindow = new SubWindow;
+//    subWindow->setAttribute(Qt::WA_DeleteOnClose);
+//    subWindow->setWindowTitle(image.fileInfo.shortName());
 
-    const float scaleStep = 2;
-    auto scaleToFit = [](float size, float available, float scaleStep) {
-        return pow(scaleStep, floor(log(available / size) / log(scaleStep)));
-    };
-    const float scale = std::min(scaleToFit(image.imageData()->size().width(), m_mdi->width(), scaleStep),
-                                 scaleToFit(image.imageData()->size().height(), m_mdi->height(), scaleStep));
-    subWindow->resize(image.imageData()->size() * scale);
-    m_mdi->addSubWindow(subWindow);
+//    const float scaleStep = 2;
+//    auto scaleToFit = [](float size, float available, float scaleStep) {
+//        return pow(scaleStep, floor(log(available / size) / log(scaleStep)));
+//    };
+//    const float scale = std::min(scaleToFit(image.imageData()->size().width(), m_mdi->width(), scaleStep),
+//                                 scaleToFit(image.imageData()->size().height(), m_mdi->height(), scaleStep));
+//    subWindow->resize(image.imageData()->size() * scale);
+//    m_mdi->addSubWindow(subWindow);
+
+//    ImageEditor *editor = new ImageEditor(image);
+//    editor->transform().setZoom(scale);
+//    subWindow->setWidget(editor);
+//    editor->show();
+//    return editor;
 
     ImageEditor *editor = new ImageEditor(image);
-    editor->transform().setZoom(scale);
-    subWindow->setWidget(editor);
-    editor->show();
+    newEditorSubWindow(editor);
     return editor;
 }
 
-QMdiSubWindow *MainWindow::newEditorSubWindow(ImageEditor *const editor) {
+SubWindow *MainWindow::newEditorSubWindow(ImageEditor *const editor) {
     ImageDocument &image = static_cast<ImageDocument &>(editor->document);
-    QMdiSubWindow *subWindow = new SubWindow;
+    SubWindow *subWindow = new SubWindow;
     subWindow->setAttribute(Qt::WA_DeleteOnClose);
     subWindow->setWindowTitle(image.fileInfo.shortName());
 
+    QSize overhead = m_mdi->subWindowSizeOverhead();
+    QSize mdiAvailableSize = m_mdi->size() - overhead;
     const float scaleStep = 2;
     auto scaleToFit = [](float size, float available, float scaleStep) {
         return pow(scaleStep, floor(log(available / size) / log(scaleStep)));
     };
-    const float scale = std::min(scaleToFit(image.imageData()->size().width(), m_mdi->width(), scaleStep),
-                                 scaleToFit(image.imageData()->size().height(), m_mdi->height(), scaleStep));
-    subWindow->resize(image.imageData()->size() * scale);
+    const float scale = std::min(scaleToFit(image.imageData()->size().width(), mdiAvailableSize.width(), scaleStep),
+                                 scaleToFit(image.imageData()->size().height(), mdiAvailableSize.height(), scaleStep));
+    subWindow->resize(image.imageData()->size() * scale + overhead);
     m_mdi->addSubWindow(subWindow);
 
+    qDebug() << "Hello!" << overhead << m_mdi->size() << mdiAvailableSize << scale << QSize(image.imageData()->size().width() * scale, image.imageData()->size().height() * scale) << subWindow->size();
+
     subWindow->setWidget(editor);
+    editor->transform().setZoom(scale);
     editor->show();
     return subWindow;
 }
@@ -387,7 +411,7 @@ void MainWindow::openImage()
 
 bool MainWindow::saveImage()
 {
-    QMdiSubWindow *subWindow = m_mdi->activeSubWindow();
+    SubWindow *subWindow = static_cast<SubWindow *>(m_mdi->activeSubWindow());
     if (subWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
         ImageDocument &image = static_cast<ImageDocument &>(editor->document);
@@ -410,7 +434,7 @@ bool MainWindow::saveImage()
 
 bool MainWindow::saveAsImage()
 {
-    QMdiSubWindow *subWindow = m_mdi->activeSubWindow();
+    SubWindow *subWindow = static_cast<SubWindow *>(m_mdi->activeSubWindow());
     if (subWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
         ImageDocument &image = static_cast<ImageDocument &>(editor->document);
@@ -440,7 +464,7 @@ bool MainWindow::saveAsImage()
 
 bool MainWindow::closeImage()
 {
-    QMdiSubWindow *subWindow = m_mdi->activeSubWindow();
+    SubWindow *subWindow = static_cast<SubWindow *>(m_mdi->activeSubWindow());
     if (subWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
         ImageDocument &image = static_cast<ImageDocument &>(editor->document);
