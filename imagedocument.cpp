@@ -110,12 +110,6 @@ Editor *ImageDocument::createEditor() {
 ImageDocument *ImageDocument::newGui(QWidget *const parent)
 {
     ImageDocument *image = nullptr;
-//    NewDialog *dialog = new NewDialog(parent);
-//    if (dialog->exec()) {
-//        Image *image = new Image(dialog->imageSize(), dialog->mode());
-//        m_images.append(image);
-//        ImageEditor *editor = newEditor(image);
-//    }
     return image;
 }
 

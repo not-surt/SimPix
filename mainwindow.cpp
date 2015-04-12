@@ -184,65 +184,49 @@ MainWindow::~MainWindow()
 
 void MainWindow::activateSubWindow(SubWindow *const subWindow) {
     if (m_oldSubWindow) {
-        ImageEditor *editor = static_cast<ImageEditor *>(m_oldSubWindow->widget());
-        qDebug() << editor; // TODO: how null?
-        ImageDocument &image = static_cast<ImageDocument &>(editor->document);
-
-        QObject::disconnect(&image.fileInfo, &FileInfo::dirtied, editor, SS_CAST(ImageEditor, update,));
-//            QObject::disconnect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
+        QListIterator<QMetaObject::Connection> connectionsIterator(activeSubWindowConnections);
+        while (connectionsIterator.hasNext()) {
+            QMetaObject::Connection connection = (connectionsIterator.next());
+            qDebug() << connection;
+            QObject::disconnect(connection);
+        }
+        activeSubWindowConnections.clear();
         ui->paletteWidget->setEditingContext(nullptr);
-
-//        QObject::disconnect(ui->paletteWidget, SS_CAST(PaletteWidget, colourChanged,), editor, SS_CAST(ImageEditor, update,));
-//        QObject::disconnect(ui->transformWidget, &TransformWidget::transformChanged, &editor->transform(), &Transform::copy);
-//        QObject::disconnect(&editor->transform(), &Transform::changed, ui->transformWidget, &TransformWidget::setTransform);
-
-        QObject::disconnect(ui->actionTiled, &QAction::triggered, editor, &ImageEditor::setTiled);
-        QObject::disconnect(ui->actionTileX, &QAction::triggered, editor, &ImageEditor::setTileX);
-        ui->actionTileX->setChecked(editor->tileX());
-        QObject::disconnect(ui->actionTileY, &QAction::triggered, editor, &ImageEditor::setTileY);
-        ui->actionTileY->setChecked(editor->tileY());
-        QObject::disconnect(ui->actionShowBounds, &QAction::triggered, editor, &ImageEditor::setShowBounds);
-        QObject::disconnect(ui->actionShowAlpha, &QAction::triggered, editor, &ImageEditor::setShowAlpha);
-
-        QObject::disconnect(editor, &ImageEditor::mouseEntered, m_statusMouseWidget, &StatusMouseWidget::show);
-        QObject::disconnect(editor, &ImageEditor::mouseLeft, m_statusMouseWidget, &StatusMouseWidget::hide);
-        QObject::disconnect(editor, &ImageEditor::mousePixelChanged, m_statusMouseWidget, &StatusMouseWidget::setMouseInfo);
     }
     if (subWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
         ImageDocument &image = static_cast<ImageDocument &>(editor->document);
 
-        QObject::connect(&image.fileInfo, &FileInfo::dirtied, editor, SS_CAST(ImageEditor, update,));
+        activeSubWindowConnections.append(QObject::connect(&image.fileInfo, &FileInfo::dirtied, editor, SS_CAST(ImageEditor, update,)));
 //            QObject::connect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
         ui->paletteWidget->setEditingContext(&editor->editingContext());
         setWindowFilePath(image.fileInfo.fileName());
 
-//        QObject::connect(ui->paletteWidget, SS_CAST(PaletteWidget, colourChanged,), editor, SS_CAST(ImageEditor, update,));
-//        QObject::connect(ui->transformWidget, &TransformWidget::transformChanged, &editor->transform(), &Transform::copy);
-//        QObject::connect(&editor->transform(), &Transform::changed, ui->transformWidget, &TransformWidget::setTransform);
+        activeSubWindowConnections.append(QObject::connect(ui->transformWidget, &TransformWidget::transformChanged, &editor->transform(), &Transform::copy));
+        activeSubWindowConnections.append(QObject::connect(&editor->transform(), &Transform::changed, ui->transformWidget, &TransformWidget::setTransform));
 
-        QObject::connect(ui->actionTiled, &QAction::triggered, editor, &ImageEditor::setTiled);
-        ui->actionTiled->setChecked(editor->tiled());
-        QObject::connect(ui->actionTileX, &QAction::triggered, editor, &ImageEditor::setTileX);
-        ui->actionTileX->setChecked(editor->tileX());
-        QObject::connect(ui->actionTileY, &QAction::triggered, editor, &ImageEditor::setTileY);
-        ui->actionTileY->setChecked(editor->tileY());
-        QObject::connect(ui->actionShowBounds, &QAction::triggered, editor, &ImageEditor::setShowBounds);
+        activeSubWindowConnections.append(QObject::connect(ui->actionWrap, &QAction::triggered, editor, &ImageEditor::setTiled));
+        ui->actionWrap->setChecked(editor->tiled());
+        activeSubWindowConnections.append(QObject::connect(ui->actionWrapX, &QAction::triggered, editor, &ImageEditor::setTileX));
+        ui->actionWrapX->setChecked(editor->tileX());
+        activeSubWindowConnections.append(QObject::connect(ui->actionWrapY, &QAction::triggered, editor, &ImageEditor::setTileY));
+        ui->actionWrapY->setChecked(editor->tileY());
+        activeSubWindowConnections.append(QObject::connect(ui->actionShowBounds, &QAction::triggered, editor, &ImageEditor::setShowBounds));
         ui->actionShowBounds->setChecked(editor->showBounds());
-        QObject::connect(ui->actionShowAlpha, &QAction::triggered, editor, &ImageEditor::setShowAlpha);
+        activeSubWindowConnections.append(QObject::connect(ui->actionShowAlpha, &QAction::triggered, editor, &ImageEditor::setShowAlpha));
         ui->actionShowAlpha->setChecked(editor->showAlpha());
 
-        QObject::connect(editor, &ImageEditor::mouseEntered, m_statusMouseWidget, &StatusMouseWidget::show);
-        QObject::connect(editor, &ImageEditor::mouseLeft, m_statusMouseWidget, &StatusMouseWidget::hide);
-        QObject::connect(editor, &ImageEditor::mousePixelChanged, m_statusMouseWidget, &StatusMouseWidget::setMouseInfo);
+        activeSubWindowConnections.append(QObject::connect(editor, &ImageEditor::mouseEntered, m_statusMouseWidget, &StatusMouseWidget::show));
+        activeSubWindowConnections.append(QObject::connect(editor, &ImageEditor::mouseLeft, m_statusMouseWidget, &StatusMouseWidget::hide));
+        activeSubWindowConnections.append(QObject::connect(editor, &ImageEditor::mousePixelChanged, m_statusMouseWidget, &StatusMouseWidget::setMouseInfo));
     }
     else {
         ui->paletteWidget->setEditingContext(nullptr);
         setWindowFilePath(QString());
     }
-    ui->actionTiled->setEnabled(subWindow);
-    ui->actionTileX->setEnabled(subWindow);
-    ui->actionTileY->setEnabled(subWindow);
+    ui->actionWrap->setEnabled(subWindow);
+    ui->actionWrapX->setEnabled(subWindow);
+    ui->actionWrapY->setEnabled(subWindow);
     ui->actionShowBounds->setEnabled(subWindow);
     ui->actionShowAlpha->setEnabled(subWindow);
     m_oldSubWindow = subWindow;
@@ -323,31 +307,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
 }
 
-ImageEditor *MainWindow::newEditor(ImageDocument &image) {
-//    QMdiSubWindow *subWindow = new SubWindow;
-//    subWindow->setAttribute(Qt::WA_DeleteOnClose);
-//    subWindow->setWindowTitle(image.fileInfo.shortName());
-
-//    const float scaleStep = 2;
-//    auto scaleToFit = [](float size, float available, float scaleStep) {
-//        return pow(scaleStep, floor(log(available / size) / log(scaleStep)));
-//    };
-//    const float scale = std::min(scaleToFit(image.imageData()->size().width(), m_mdi->width(), scaleStep),
-//                                 scaleToFit(image.imageData()->size().height(), m_mdi->height(), scaleStep));
-//    subWindow->resize(image.imageData()->size() * scale);
-//    m_mdi->addSubWindow(subWindow);
-
-//    ImageEditor *editor = new ImageEditor(image);
-//    editor->transform().setZoom(scale);
-//    subWindow->setWidget(editor);
-//    editor->show();
-//    return editor;
-
-    ImageEditor *editor = new ImageEditor(image);
-    newEditorSubWindow(editor);
-    return editor;
-}
-
 SubWindow *MainWindow::newEditorSubWindow(ImageEditor *const editor) {
     ImageDocument &image = static_cast<ImageDocument &>(editor->document);
     SubWindow *subWindow = new SubWindow;
@@ -379,7 +338,8 @@ void MainWindow::newImage()
     if (dialog->exec()) {
         ImageDocument *image = new ImageDocument(dialog->imageSize(), dialog->mode());
         m_images.append(image);
-        ImageEditor *editor = newEditor(*image);
+        ImageEditor *editor = static_cast<ImageEditor *>(image->createEditor());
+        newEditorSubWindow(editor);
     }
 }
 
@@ -400,7 +360,8 @@ void MainWindow::openImage()
         }
         else {
             m_images.append(image);
-            ImageEditor *editor = newEditor(*image);
+            ImageEditor *editor = static_cast<ImageEditor *>(image->createEditor());
+            newEditorSubWindow(editor);
         }
     }
     if (failed.length() > 0) {

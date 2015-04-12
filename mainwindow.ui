@@ -94,9 +94,9 @@
     <property name="title">
      <string>E&amp;ditor</string>
     </property>
-    <addaction name="actionTiled"/>
-    <addaction name="actionTileX"/>
-    <addaction name="actionTileY"/>
+    <addaction name="actionWrap"/>
+    <addaction name="actionWrapX"/>
+    <addaction name="actionWrapY"/>
     <addaction name="separator"/>
     <addaction name="actionShowAlpha"/>
     <addaction name="actionShowBounds"/>
@@ -253,9 +253,9 @@
    <attribute name="toolBarBreak">
     <bool>true</bool>
    </attribute>
-   <addaction name="actionTiled"/>
-   <addaction name="actionTileX"/>
-   <addaction name="actionTileY"/>
+   <addaction name="actionWrap"/>
+   <addaction name="actionWrapX"/>
+   <addaction name="actionWrapY"/>
    <addaction name="separator"/>
    <addaction name="actionShowAlpha"/>
    <addaction name="actionShowBounds"/>
@@ -560,12 +560,12 @@
     <string>&amp;License</string>
    </property>
   </action>
-  <action name="actionTiled">
+  <action name="actionWrap">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Tiled</string>
+    <string>&amp;Wrap</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+T</string>
@@ -822,7 +822,7 @@
     <string>Lock Toolbars</string>
    </property>
   </action>
-  <action name="actionTileX">
+  <action name="actionWrapX">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -830,16 +830,16 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Tile &amp;X</string>
+    <string>Wrap &amp;X</string>
    </property>
    <property name="toolTip">
-    <string>Tile X</string>
+    <string>Wrap X</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+X</string>
    </property>
   </action>
-  <action name="actionTileY">
+  <action name="actionWrapY">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -847,10 +847,10 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Tile &amp;Y</string>
+    <string>Wrap &amp;Y</string>
    </property>
    <property name="toolTip">
-    <string>Tile Y</string>
+    <string>Wrap Y</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Y</string>

@@ -53,7 +53,6 @@ public slots:
     void showDockTitles(bool checked);
     void lockDocks(bool checked);
     void useTabs(bool checked);
-    ImageEditor *newEditor(ImageDocument &image);
     SubWindow *newEditorSubWindow(ImageEditor *const editor);
     void activateSubWindow(SubWindow *const subWindow);
 
@@ -67,6 +66,7 @@ private:
     SubWindow *m_oldSubWindow;
     QList<ImageDocument *> m_images;
     static const QString fileDialogFilterString;
+    QList<QMetaObject::Connection> activeSubWindowConnections;
 };
 
 #endif // MAINWINDOW_H
