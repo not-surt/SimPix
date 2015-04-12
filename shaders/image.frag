@@ -2,6 +2,7 @@
 
 uniform usampler2D textureUnit;
 uniform bool isIndexed;
+uniform bool antialias;
 uniform bool hasPalette;
 uniform usampler2D paletteTextureUnit;
 
@@ -15,7 +16,7 @@ void main(void)
     const float edgeOffset = 0;
     vec2 offset = fwidth(texturePosition);
     ivec2 texelPosition = ivec2(floor(texturePosition + (offset / 2) + edgeOffset));
-    ivec2 samples = ivec2(4, 4);
+    ivec2 samples = antialias ? ivec2(4, 4) : ivec2(1, 1);
 //    if (length(offset) < sqrt(2)) samples = ivec2(1, 1);
     vec4 colour = vec4(0, 0, 0, 0);
     for (int y = 0; y < samples.y; y++) {

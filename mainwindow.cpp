@@ -199,7 +199,7 @@ void MainWindow::activateSubWindow(SubWindow *const subWindow) {
         ImageDocument &image = static_cast<ImageDocument &>(editor->document);
 
         activeSubWindowConnections.append(QObject::connect(&image.fileInfo, &FileInfo::dirtied, editor, SS_CAST(ImageEditor, update,)));
-        activeSubWindowConnections.append(QObject::connect(&editor->editingContext(), &EditingContext::changed, [this](EditingContext *const context) { ui->colourContextWidget->setColourSlot(context->colourSlot(EditingContext::Primary)); }));
+        activeSubWindowConnections.append(QObject::connect(&editor->editingContext(), &EditingContext::changed, [this](EditingContext *const context) { ui->colourContextWidget->setColourSlot(EditingContext::ColourSlot(context->colourSlot(EditingContext::ColourSlotId::Primary))); }));
         ui->paletteWidget->setEditingContext(&editor->editingContext());
         setWindowFilePath(image.fileInfo.fileName());
 
@@ -216,6 +216,8 @@ void MainWindow::activateSubWindow(SubWindow *const subWindow) {
         ui->actionShowBounds->setChecked(editor->showBounds());
         activeSubWindowConnections.append(QObject::connect(ui->actionShowAlpha, &QAction::triggered, editor, &ImageEditor::setShowAlpha));
         ui->actionShowAlpha->setChecked(editor->showAlpha());
+        activeSubWindowConnections.append(QObject::connect(ui->actionAntialias, &QAction::triggered, editor, &ImageEditor::setAntialias));
+        ui->actionAntialias->setChecked(editor->antialias());
 
         activeSubWindowConnections.append(QObject::connect(editor, &ImageEditor::mouseEntered, m_statusMouseWidget, &StatusMouseWidget::show));
         activeSubWindowConnections.append(QObject::connect(editor, &ImageEditor::mouseLeft, m_statusMouseWidget, &StatusMouseWidget::hide));
@@ -230,6 +232,7 @@ void MainWindow::activateSubWindow(SubWindow *const subWindow) {
     ui->actionWrapY->setEnabled(subWindow);
     ui->actionShowBounds->setEnabled(subWindow);
     ui->actionShowAlpha->setEnabled(subWindow);
+    ui->actionAntialias->setEnabled(subWindow);
     m_oldSubWindow = subWindow;
 }
 

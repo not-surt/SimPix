@@ -55,7 +55,7 @@ void PaletteWidget::setColour(QModelIndex index)
     if (ui->paletteView->editingContext()) {
 //        const QColor colour = index.data().value<QColor>();
 //        ui->paletteView->image()->setContextColour(colour.rgba(), ui->paletteView->image()->activeContextColour());
-        ui->paletteView->editingContext()->setColourSlot(index.row(), ui->paletteView->editingContext()->activeColourSlot());
+        ui->paletteView->editingContext()->setColourSlot(EditingContext::ColourSlot(index.row()), ui->paletteView->editingContext()->activeColourSlot());
     }
 }
 

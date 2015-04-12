@@ -17,10 +17,10 @@ public:
     ~ColourContextWidget();
 
 public slots:
-    void setColourSlot(const uint colour, const EditingContext::ColourSlot slot = EditingContext::Primary);
+    void setColourSlot(const EditingContext::ColourSlot colour, const EditingContext::ColourSlotId slot = EditingContext::ColourSlotId::Primary);
 
 signals:
-    void contextColourChanged(const uint colour, const EditingContext::ColourSlot slot = EditingContext::Primary);
+    void contextColourChanged(const EditingContext::ColourSlot colour, const EditingContext::ColourSlotId slot = EditingContext::ColourSlotId::Primary);
 
 private:
     Ui::ColourContextWidget *ui;

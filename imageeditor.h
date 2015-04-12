@@ -46,6 +46,7 @@ public:
     bool tileY() const { return m_tileY; }
     bool showBounds() const { return m_showBounds; }
     bool showAlpha() const { return m_showAlpha; }
+    bool antialias() const { return m_antialias; }
     QRect rect() const { return QRect(0, 0, width(), height()); }
     GLuint vertexBuffer() const { return m_vertexBuffer; }
     EditingContext &editingContext() { return m_editingContext; }
@@ -62,6 +63,7 @@ signals:
     void tileYChanged(const bool tileY);
     void showBoundsChanged(const bool showBounds);
     void showAlphaChanged(bool showAlpha);
+    void antialiasChanged(bool antialias);
     void mousePixelChanged(const QPoint &position, const QColor colour, const int index);
     void mouseEntered();
     void mouseLeft();
@@ -103,6 +105,13 @@ public slots:
             emit showAlphaChanged(showAlpha);
         }
     }
+    void setAntialias(bool antialias) {
+        if (m_antialias != antialias) {
+            m_antialias = antialias;
+            update();
+            emit antialiasChanged(antialias);
+        }
+    }
     void setLimitTransform(bool arg) {
         if (m_limitTransform != arg) {
             m_limitTransform = arg;
@@ -138,6 +147,7 @@ private:
     QPointF mouseLastImagePos;
     bool panKeyDown;
     bool m_showBounds;
+    bool m_antialias;
     bool m_showAlpha;
     QMatrix4x4 worldToClip;
     QMatrix4x4 viewToWorld;

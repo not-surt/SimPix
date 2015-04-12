@@ -13,22 +13,22 @@ ColourContextWidget::~ColourContextWidget()
     delete ui;
 }
 
-void ColourContextWidget::setColourSlot(const uint colour, const EditingContext::ColourSlot slot)
+void ColourContextWidget::setColourSlot(const EditingContext::ColourSlot colour, const EditingContext::ColourSlotId slot)
 {
     ColourSwatch *swatch = nullptr;
     switch (slot) {
     default:
-    case EditingContext::Primary:
+    case EditingContext::ColourSlotId::Primary:
         swatch = ui->primaryColourSwatch;
         break;
-    case EditingContext::Secondary:
+    case EditingContext::ColourSlotId::Secondary:
         swatch = ui->secondaryColourSwatch;
         break;
-    case EditingContext::Background:
+    case EditingContext::ColourSlotId::Background:
         swatch = ui->backgroundColourSwatch;
         break;
     }
     if (swatch) {
-        swatch->setColour(QColor(qRed(colour), qGreen(colour), qBlue(colour), qAlpha(colour)));
+        swatch->setColour(QColor(qRed(colour.rgba), qGreen(colour.rgba), qBlue(colour.rgba), qAlpha(colour.rgba)));
     }
 }

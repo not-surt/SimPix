@@ -133,6 +133,8 @@ void ImageEditor::paintGL()
 
     GLint textureUnitUniform = glGetUniformLocation(program, "textureUnit");
     glUniform1i(textureUnitUniform, textureUnit);
+    GLint antialiasUniform = glGetUniformLocation(program, "antialias");
+    glUniform1i(antialiasUniform, m_antialias);
     GLint isIndexedUniform = glGetUniformLocation(program, "isIndexed");
     glUniform1i(isIndexedUniform, (image.imageData()->format() == TextureDataFormat::Indexed));
     GLint hasPaletteUniform = glGetUniformLocation(program, "hasPalette");
@@ -329,7 +331,7 @@ void ImageEditor::point(const QPoint &point, EditingContext *const editingContex
 {
     ImageDocument &image = static_cast<ImageDocument &>(document);
     PointCallback pointCallback = &ImageEditor::drawBrush;
-    (this->*pointCallback)(point, editingContext->colourSlot(editingContext->activeColourSlot()));
+    (this->*pointCallback)(point, editingContext->colourSlot(editingContext->activeColourSlot()).rgba);
     image.fileInfo.makeDirty();
 }
 
@@ -338,7 +340,7 @@ void ImageEditor::stroke(const QPoint &start, const QPoint &end, EditingContext 
     ImageDocument &image = static_cast<ImageDocument &>(document);
     PointCallback pointCallback = &ImageEditor::drawBrush;
     SegmentCallback segmentCallback = &ImageEditor::doLine;
-    (this->*segmentCallback)(start, end, editingContext->colourSlot(editingContext->activeColourSlot()), pointCallback, true);
+    (this->*segmentCallback)(start, end, editingContext->colourSlot(editingContext->activeColourSlot()).rgba, pointCallback, true);
 //    undoStack->push(new StrokeCommand(*m_image, a, b));
     image.fileInfo.makeDirty();
 }
@@ -357,14 +359,14 @@ void ImageEditor::pick(const QPoint &point, EditingContext *const editingContext
     }
     if (image.imageData()->rect().contains(wrapPoint)) {
         if (image.format() == TextureDataFormat::Indexed) {
-            editingContext->setColourSlot(image.imageData()->pixel(wrapPoint), editingContext->activeColourSlot());
+            editingContext->setColourSlot(EditingContext::ColourSlot(image.imageData()->pixel(wrapPoint)), editingContext->activeColourSlot());
         }
         else if (image.format() == TextureDataFormat::RGBA) {
-            editingContext->setColourSlot(image.imageData()->pixel(wrapPoint), editingContext->activeColourSlot());
+            editingContext->setColourSlot(EditingContext::ColourSlot(image.imageData()->pixel(wrapPoint)), editingContext->activeColourSlot());
         }
     }
     else {
-        editingContext->setColourSlot(editingContext->colourSlot(EditingContext::Background), editingContext->activeColourSlot());
+        editingContext->setColourSlot(editingContext->colourSlot(EditingContext::ColourSlotId::Background), editingContext->activeColourSlot());
     }
 }
 
@@ -555,7 +557,8 @@ void ImageEditor::applyTransformLimits()
     ImageDocument &image = static_cast<ImageDocument &>(document);
     float panX = (m_tiled && m_tileX) ? wrap((float)m_transform.pan().x(), (float)-image.imageData()->size().width(), 0.f) : clamp((float)m_transform.pan().x(), (float)-image.imageData()->size().width(), 0.f);
     float panY = (m_tiled && m_tileY) ? wrap((float)m_transform.pan().y(), (float)-image.imageData()->size().height(), 0.f) : clamp((float)m_transform.pan().y(), (float)-image.imageData()->size().height(), 0.f);
-    m_transform.setPan(QPointF(panX, panY));
+//    m_transform.setPan(QPointF(panX, panY));
+    m_transform.setPan(QPointF(round(panX * m_transform.zoom()) / m_transform.zoom(), round(panY * m_transform.zoom()) / m_transform.zoom()));
     m_transform.setZoom(clamp(m_transform.zoom(), 1.f/16.f, 256.f));
     m_transform.setPixelSize(QPointF(clamp((float)m_transform.pixelSize().x(), 1.f/16.f, 16.f), clamp((float)m_transform.pixelSize().y(), 1.f/16.f, 16.f)));
     m_transform.setRotation(wrap(m_transform.rotation(), 0.f, 360.f));

@@ -258,6 +258,7 @@
    <addaction name="actionWrapY"/>
    <addaction name="separator"/>
    <addaction name="actionShowAlpha"/>
+   <addaction name="actionAntialias"/>
    <addaction name="actionShowBounds"/>
   </widget>
   <widget class="QToolBar" name="toolBarMode">
@@ -1018,6 +1019,17 @@
    </property>
    <property name="toolTip">
     <string>Grid Space</string>
+   </property>
+  </action>
+  <action name="actionAntialias">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Antialias</string>
    </property>
   </action>
  </widget>
