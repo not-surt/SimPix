@@ -9,11 +9,6 @@ class ImageDocument : public Document
 {
     Q_OBJECT
 public:
-    enum ContextColour {
-        Primary,
-        Secondary,
-        Eraser,
-    };
     explicit ImageDocument(const QSize &size, TextureDataFormat format, QObject *parent = nullptr);
     explicit ImageDocument(const QString &fileName, const char *format = nullptr, QObject *parent = nullptr);
     ~ImageDocument();

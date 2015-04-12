@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>157</width>
+    <width>319</width>
     <height>56</height>
    </rect>
   </property>
@@ -42,7 +42,7 @@
     </widget>
    </item>
    <item row="0" column="5">
-    <widget class="ColourSwatch" name="eraserColourSwatch">
+    <widget class="ColourSwatch" name="backgroundColourSwatch">
      <property name="text">
       <string>PushButton</string>
      </property>

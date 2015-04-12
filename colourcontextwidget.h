@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include "document.h"
-#include "imagedocument.h"
+#include "editingcontext.h"
 
 namespace Ui {
 class ColourContextWidget;
@@ -17,10 +17,10 @@ public:
     ~ColourContextWidget();
 
 public slots:
-    void setContextColour(const uint colour, const int context = ImageDocument::Primary);
+    void setColourSlot(const uint colour, const EditingContext::ColourSlot slot = EditingContext::Primary);
 
 signals:
-    void contextColourChanged(const uint colour, const int context = ImageDocument::Primary);
+    void contextColourChanged(const uint colour, const EditingContext::ColourSlot slot = EditingContext::Primary);
 
 private:
     Ui::ColourContextWidget *ui;

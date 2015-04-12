@@ -5,6 +5,7 @@
 #include "colourswatch.h"
 #include "application.h"
 #include "imageeditor.h"
+#include "imagedocument.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -198,7 +199,7 @@ void MainWindow::activateSubWindow(SubWindow *const subWindow) {
         ImageDocument &image = static_cast<ImageDocument &>(editor->document);
 
         activeSubWindowConnections.append(QObject::connect(&image.fileInfo, &FileInfo::dirtied, editor, SS_CAST(ImageEditor, update,)));
-//            QObject::connect(m_editor->editingContext(), SIGNAL(changed(EditingContext *)), ui->colourContextWidget, SLOT(setContextColour(const uint, const int)));
+        activeSubWindowConnections.append(QObject::connect(&editor->editingContext(), &EditingContext::changed, [this](EditingContext *const context) { ui->colourContextWidget->setColourSlot(context->colourSlot(EditingContext::Primary)); }));
         ui->paletteWidget->setEditingContext(&editor->editingContext());
         setWindowFilePath(image.fileInfo.fileName());
 

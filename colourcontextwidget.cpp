@@ -13,19 +13,19 @@ ColourContextWidget::~ColourContextWidget()
     delete ui;
 }
 
-void ColourContextWidget::setContextColour(const uint colour, const int context)
+void ColourContextWidget::setColourSlot(const uint colour, const EditingContext::ColourSlot slot)
 {
     ColourSwatch *swatch = nullptr;
-    switch (context) {
+    switch (slot) {
     default:
-    case ImageDocument::Primary:
+    case EditingContext::Primary:
         swatch = ui->primaryColourSwatch;
         break;
-    case ImageDocument::Secondary:
+    case EditingContext::Secondary:
         swatch = ui->secondaryColourSwatch;
         break;
-    case ImageDocument::Eraser:
-        swatch = ui->eraserColourSwatch;
+    case EditingContext::Background:
+        swatch = ui->backgroundColourSwatch;
         break;
     }
     if (swatch) {
