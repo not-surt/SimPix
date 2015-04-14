@@ -125,6 +125,15 @@ MainWindow::MainWindow(QWidget *parent) :
     IntegerFieldAction *actionBrushHeight = new IntegerFieldAction();
     toolBarBrush->addAction(actionBrushHeight);
 
+    QToolBar *toolBarColour = ui->toolBarColour;
+    ColourSwatchAction *actionPrimaryColour = new ColourSwatchAction();
+    toolBarColour->addAction(actionPrimaryColour);
+    ColourSwatchAction *actionSecondaryColour = new ColourSwatchAction();
+    toolBarColour->addAction(actionSecondaryColour);
+    ColourSwatchAction *actionBackgroundColour = new ColourSwatchAction();
+    toolBarColour->addAction(actionBackgroundColour);
+    toolBarColour->addAction(actionBrushHeight);
+
     QMenu *menuMenu = new QMenu;
     QListIterator<QMenu *> menu2(ui->menuBar->findChildren<QMenu *>(QString(), Qt::FindDirectChildrenOnly));
     while (menu2.hasNext()) {
@@ -157,11 +166,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_statusMouseWidget->hide();
     statusBar()->addWidget(m_statusMouseWidget);
     statusBar()->setSizeGripEnabled(true);
-
-    QWidgetAction *act = new QWidgetAction(ui->menuFile);
-    QSpinBox* edt = new QSpinBox();
-    act->setDefaultWidget(edt);
-    ui->menuFile->addAction(act);
 
     ui->toolBarLayout->hide();
     activateSubWindow(nullptr);
@@ -323,12 +327,12 @@ SubWindow *MainWindow::newEditorSubWindow(ImageEditor *const editor) {
     auto scaleToFit = [](float size, float available, float scaleStep) {
         return pow(scaleStep, floor(log(available / size) / log(scaleStep)));
     };
-    const float scale = std::min(scaleToFit(image.imageData()->size().width(), mdiAvailableSize.width(), scaleStep),
-                                 scaleToFit(image.imageData()->size().height(), mdiAvailableSize.height(), scaleStep));
-    subWindow->resize(image.imageData()->size() * scale + overhead);
+    const float scale = std::min(scaleToFit(image.imageData()->size.width(), mdiAvailableSize.width(), scaleStep),
+                                 scaleToFit(image.imageData()->size.height(), mdiAvailableSize.height(), scaleStep));
+    subWindow->resize(image.imageData()->size * scale + overhead);
     m_mdi->addSubWindow(subWindow);
 
-    qDebug() << "Hello!" << overhead << m_mdi->size() << mdiAvailableSize << scale << QSize(image.imageData()->size().width() * scale, image.imageData()->size().height() * scale) << subWindow->size();
+    qDebug() << "Hello!" << overhead << m_mdi->size() << mdiAvailableSize << scale << image.imageData()->size * scale << subWindow->size();
 
     subWindow->setWidget(editor);
     editor->transform().setZoom(scale);

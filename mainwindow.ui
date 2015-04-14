@@ -283,7 +283,18 @@
   </widget>
   <widget class="QToolBar" name="toolBarBrush">
    <property name="windowTitle">
-    <string>toolBar</string>
+    <string>Brush</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QToolBar" name="toolBarColour">
+   <property name="windowTitle">
+    <string>Colour</string>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>

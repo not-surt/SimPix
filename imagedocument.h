@@ -20,7 +20,7 @@ public:
     bool saveGui(QWidget *const parent = nullptr);
     bool saveAsGui(QWidget *const parent = nullptr);
 
-    TextureDataFormat format() const { return m_imageData->format(); }
+    TextureDataFormat format() const { return m_imageData->format; }
     ImageData *imageData() { return m_imageData; }
     PaletteData *paletteData() { return m_paletteData; }
 

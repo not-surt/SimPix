@@ -5,6 +5,19 @@
 #include <QSpinBox>
 #include <QToolButton>
 #include <QWidgetAction>
+#include "colourswatch.h"
+
+class ActionWidget : public QWidget
+{
+public:
+    explicit ActionWidget(QWidget *const parent = nullptr)
+        : QWidget(parent) {
+    }
+    void setAction(QAction *const action) { m_action = action; }
+    QAction *action() { return m_action; }
+protected:
+    QAction *m_action;
+};
 
 class MenuToolButton : public QToolButton
 {
@@ -121,6 +134,20 @@ protected:
     virtual QWidget *createWidget(QWidget *parent) {
         FloatField *field = new FloatField(parent);
         return field;
+    }
+};
+
+class ColourSwatchAction : public QWidgetAction
+{
+public:
+    explicit ColourSwatchAction(QWidget *const parent = nullptr)
+        : QWidgetAction(parent) {
+    }
+
+protected:
+    virtual QWidget *createWidget(QWidget *parent) {
+        ColourSwatch *swatch = new ColourSwatch(parent);
+        return swatch;
     }
 };
 

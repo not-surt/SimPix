@@ -40,61 +40,59 @@ union Pixel {
     } components;
 };
 
+#define INDEX(uint) (uint & 0x000000ff)
 #define B(uint) (uint & 0x000000ff)
 #define G(uint) ((uint & 0x0000ff00) >> 8)
 #define R(uint) ((uint & 0x00ff0000) >> 16)
 #define A(uint) ((uint & 0xff000000) >> 24)
 
-class OpenGLData {
+class OpenGLData : public QOpenGLFunctions_3_3_Core {
 public:
+    QOpenGLContext *const context;
+    QSurface *const surface;
+
     explicit OpenGLData()
-        : m_context(QOpenGLContext::currentContext()), m_surface(m_context ? m_context->surface() : nullptr) {}
-protected:
-    QOpenGLContext *const m_context;
-    QSurface *const m_surface;
+        : context(QOpenGLContext::currentContext()), surface(context ? context->surface() : nullptr)
+    {
+        initializeOpenGLFunctions();
+    }
 };
 
-class TextureData : public OpenGLData, public QOpenGLFunctions_3_3_Core
+class TextureData : public OpenGLData
 {
 public:
-    explicit TextureData(QOpenGLWidget *const widget, const QSize &size, const TextureDataFormat format, const GLubyte *const data = nullptr);
+    const QSize size;
+    const TextureDataFormat format;
+    const QMatrix4x4 projectionMatrix;
+    const GLuint texture;
+    const GLuint framebuffer;
+
+    explicit TextureData(const QSize &size, const TextureDataFormat format, const GLubyte *const data = nullptr);
     ~TextureData();
     uint pixel(const QPoint &position);
     void setPixel(const QPoint &position, const uint colour);
-    QSize size() const { return m_size; }
-    TextureDataFormat format() const { return m_format; }
-    GLuint texture() const { return m_texture; }
-    GLuint framebuffer() const { return m_framebuffer; }
     GLubyte *readData(GLubyte *const data = nullptr);
     void writeData(const GLubyte *const data);
     void clear(const uint colour);
-    const QMatrix4x4 matrix;
-protected:
-    QOpenGLWidget *m_widget;
-    QSize m_size;
-    TextureDataFormat m_format;
-    GLuint m_texture;
-    GLuint m_framebuffer;
 };
 
 class PaletteData : public TextureData
 {
 public:
-    explicit PaletteData(QOpenGLWidget *const widget, const GLuint length, const GLubyte *const data = nullptr);
+    explicit PaletteData(const GLuint length, const GLubyte *const data = nullptr);
     uint colour(const uint index) { return pixel(QPoint(index, 0)); }
     void setColour(const uint index, uint colour) { setPixel(QPoint(index, 0), colour); }
-    GLuint length() const { return m_size.width(); }
+    GLuint length() const { return size.width(); }
 };
 
 class ImageData : public TextureData
 {
 public:
-    explicit ImageData(QOpenGLWidget *const widget, const QSize &size, const TextureDataFormat format, const GLubyte *const data = nullptr);
+    const QRect rect;
+    const GLuint vertexBuffer;
+
+    explicit ImageData(const QSize &size, const TextureDataFormat format, const GLubyte *const data = nullptr);
     ~ImageData();
-    GLuint vertexBuffer() const { return m_vertexBuffer; }
-    const QRect &rect() { return QRect(QPoint(0, 0), m_size); }
-protected:
-    GLuint m_vertexBuffer;
 };
 
 class ImageLayerCel

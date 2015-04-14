@@ -9,7 +9,7 @@
 ImageDocument::ImageDocument(const QSize &size, TextureDataFormat format, QObject *parent) :
     Document(QString(), parent), m_imageData(nullptr), m_paletteData(nullptr)
 {
-    ContextGrabber grab(APP->shareWidget());
+    GLContextGrabber grab(APP->shareWidget());
 
     if (format == TextureDataFormat::Invalid) {
         qDebug() << "Invalid image format";
@@ -18,7 +18,7 @@ ImageDocument::ImageDocument(const QSize &size, TextureDataFormat format, QObjec
 
     uint fillColour = 0;
     if (format == TextureDataFormat::Indexed) {
-        m_paletteData = new PaletteData(APP->shareWidget(), 2);
+        m_paletteData = new PaletteData(2);
         m_paletteData->setColour(0, qRgba(0, 0, 0, 255));
         m_paletteData->setColour(1, qRgba(255, 255, 255, 255));
         fillColour = 1;
@@ -31,14 +31,14 @@ ImageDocument::ImageDocument(const QSize &size, TextureDataFormat format, QObjec
 //        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = qRgba(0, 0, 0, 0);
     }
 
-    m_imageData = new ImageData(APP->shareWidget(), size, format);
+    m_imageData = new ImageData(size, format);
     m_imageData->clear(fillColour);
 }
 
 ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QObject *parent) :
     Document(fileName, parent), m_imageData(nullptr), m_paletteData(nullptr)
 {
-    ContextGrabber grab(APP->shareWidget());
+    GLContextGrabber grab(APP->shareWidget());
 
     QImage image(fileInfo.fileName(), fileFormat);
     if (!image.isNull()) {
@@ -73,7 +73,7 @@ ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QO
 
     m_paletteData = nullptr;
     if (!image.colorTable().isEmpty()) {
-        m_paletteData = new PaletteData(APP->shareWidget(), image.colorTable().size(), (GLubyte *)image.colorTable().constData());
+        m_paletteData = new PaletteData(image.colorTable().size(), (GLubyte *)image.colorTable().constData());
     }
 
     switch (format) {
@@ -92,12 +92,12 @@ ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QO
         break;
     }
 
-    m_imageData = new ImageData(APP->shareWidget(), image.size(), format, image.constBits());
+    m_imageData = new ImageData(image.size(), format, image.constBits());
 }
 
 ImageDocument::~ImageDocument()
 {
-    ContextGrabber grab(APP->shareWidget());
+    GLContextGrabber grab(APP->shareWidget());
     delete m_imageData;
     delete m_paletteData;
 }
@@ -175,7 +175,7 @@ bool ImageDocument::doSave(QString fileName)
     APP->shareWidget()->makeCurrent();
     uchar *data = m_imageData->readData();
     QImage::Format format;
-    switch (m_imageData->format()) {
+    switch (m_imageData->format) {
     case TextureDataFormat::Indexed:
         format = QImage::Format_Indexed8;
         break;
@@ -186,7 +186,7 @@ bool ImageDocument::doSave(QString fileName)
         delete data;
         return false;
     }
-    QImage qImage = QImage(data, m_imageData->size().width(), m_imageData->size().height(), format);
+    QImage qImage = QImage(data, m_imageData->size.width(), m_imageData->size.height(), format);
     if (m_paletteData && (format == QImage::Format_Indexed8)) {
         uchar *palette = m_paletteData->readData();
         std::vector<QRgb> vector((QRgb *)palette, ((QRgb *)palette) + m_paletteData->length());

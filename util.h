@@ -77,20 +77,20 @@ private:
     const bool m_oldBlockSignalsState;
 };
 
-class ContextGrabber
+class GLContextGrabber
 {
 public:
-    explicit ContextGrabber(QOpenGLContext *const context, QSurface *const surface) :
-        ContextGrabber(context)
+    explicit GLContextGrabber(QOpenGLContext *const context, QSurface *const surface) :
+        GLContextGrabber(context)
     {
         context->makeCurrent(surface);
     }
-    explicit ContextGrabber(QOpenGLWidget *const widget/* Why break? = APP->shareWidget()*/) :
-        ContextGrabber(widget->context())
+    explicit GLContextGrabber(QOpenGLWidget *const widget/* Why break? = APP->shareWidget()*/) :
+        GLContextGrabber(widget->context())
     {
         widget->makeCurrent();
     }
-    ~ContextGrabber()
+    ~GLContextGrabber()
     {
         m_context->doneCurrent();
         if (m_oldContext) {
@@ -99,7 +99,7 @@ public:
     }
 
 private:
-    explicit ContextGrabber(QOpenGLContext *const context) :
+    explicit GLContextGrabber(QOpenGLContext *const context) :
         m_context(context), m_oldContext(QOpenGLContext::currentContext()), m_oldSurface(m_oldContext ? m_oldContext->surface() : 0) {}
     QOpenGLContext *const m_context;
     QOpenGLContext *const m_oldContext;

@@ -62,7 +62,7 @@ Application::Application(int &argc, char **argv) :
     m_shareWidget->makeCurrent();
 
     {
-        ContextGrabber grab(m_shareWidget);
+        GLContextGrabber grab(m_shareWidget);
         initializeOpenGLFunctions();
 
         glGenBuffers((GLsizei)1, &brushVertexBuffer);
@@ -89,7 +89,7 @@ Application::Application(int &argc, char **argv) :
 Application::~Application()
 {
     {
-        ContextGrabber grab(m_shareWidget);
+        GLContextGrabber grab(m_shareWidget);
 
         QHashIterator<QString, QOpenGLShaderProgram *> program(m_programs);
         while (program.hasNext()) {
