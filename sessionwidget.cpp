@@ -2,7 +2,7 @@
 #include "ui_sessionwidget.h"
 
 SessionWidget::SessionWidget(QWidget *parent) :
-    QWidget(parent), ui(new Ui::SessionWidget)
+    QMainWindow(parent), ui(new Ui::SessionWidget)
 {
     ui->setupUi(this);
 }
@@ -14,5 +14,5 @@ SessionWidget::~SessionWidget()
 
 void SessionWidget::setStringList(const QStringList &list)
 {
-    static_cast<QStringListModel *>(ui->listView->model())->setStringList(list);
+    static_cast<QStringListModel *>(ui->sessionView->model())->setStringList(list);
 }

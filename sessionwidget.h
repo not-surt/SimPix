@@ -3,7 +3,7 @@
 
 #include <QListView>
 #include <QStringListModel>
-#include <QWidget>
+#include <QMainWindow>
 
 class SessionModel : public QStringListModel
 {
@@ -27,7 +27,7 @@ namespace Ui {
 class SessionWidget;
 }
 
-class SessionWidget : public QWidget
+class SessionWidget : public QMainWindow
 {
     Q_OBJECT
 public:

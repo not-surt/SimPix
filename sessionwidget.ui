@@ -1,29 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>SessionWidget</class>
- <widget class="QWidget" name="SessionWidget">
+ <widget class="QMainWindow" name="SessionWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>136</width>
+    <width>183</width>
     <height>160</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>MainWindow</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="SessionView" name="listView"/>
-   </item>
-  </layout>
+  <widget class="SessionView" name="sessionView"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>BottomToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionNewDocument"/>
+   <addaction name="actionOpenDocument"/>
+   <addaction name="actionCloseDocument"/>
+  </widget>
+  <action name="actionOpenDocument">
+   <property name="icon">
+    <iconset theme="document-open"/>
+   </property>
+   <property name="text">
+    <string>Open Document</string>
+   </property>
+  </action>
+  <action name="actionNewDocument">
+   <property name="icon">
+    <iconset theme="document-new"/>
+   </property>
+   <property name="text">
+    <string>New Document</string>
+   </property>
+  </action>
+  <action name="actionCloseDocument">
+   <property name="icon">
+    <iconset theme="document-close"/>
+   </property>
+   <property name="text">
+    <string>Close Document</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
    <class>SessionView</class>
-   <extends>QListView</extends>
+   <extends>QWidget</extends>
    <header>sessionwidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

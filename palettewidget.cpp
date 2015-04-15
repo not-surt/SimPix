@@ -149,7 +149,7 @@ void PaletteView::mouseMoveEvent(QMouseEvent *event)
 }
 
 PaletteWidget::PaletteWidget(QWidget *parent) :
-    QWidget(parent), ui(new Ui::PaletteWidget)
+    QMainWindow(parent), ui(new Ui::PaletteWidget)
 {
     ui->setupUi(this);
 }

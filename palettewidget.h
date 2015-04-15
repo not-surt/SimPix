@@ -7,7 +7,7 @@
 #include <QListView>
 #include <QStyledItemDelegate>
 #include "editingcontext.h"
-#include <QWidget>
+#include <QMainWindow>
 #include <QColor>
 #include "editingcontext.h"
 
@@ -65,7 +65,7 @@ namespace Ui {
 class PaletteWidget;
 }
 
-class PaletteWidget : public QWidget
+class PaletteWidget : public QMainWindow
 {
     Q_OBJECT
 public:
