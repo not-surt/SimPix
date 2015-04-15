@@ -16,9 +16,6 @@ SOURCES += main.cpp\
     newdialog.cpp \
     colourselector.cpp \
     transformwidget.cpp \
-    palettemodel.cpp \
-    palettewidget.cpp \
-    paletteview.cpp \
     transform.cpp \
     colourcontextwidget.cpp \
     colourswatch.cpp \
@@ -33,15 +30,15 @@ SOURCES += main.cpp\
     data.cpp \
     editor.cpp \
     imagedocument.cpp \
-    widgets.cpp
+    widgets.cpp \
+    actions.cpp \
+    sessionwidget.cpp \
+    palettewidget.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
     colourselector.h \
     transformwidget.h \
-    palettemodel.h \
-    palettewidget.h \
-    paletteview.h \
     transform.h \
     colourcontextwidget.h \
     colourswatchdelegate.h \
@@ -56,7 +53,10 @@ HEADERS  += mainwindow.h \
     data.h \
     editor.h \
     imagedocument.h \
-    widgets.h
+    widgets.h \
+    actions.h \
+    sessionwidget.h \
+    palettewidget.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \
@@ -64,7 +64,8 @@ FORMS    += mainwindow.ui \
     transformwidget.ui \
     palettewidget.ui \
     colourcontextwidget.ui \
-    statusmousewidget.ui
+    statusmousewidget.ui \
+    sessionwidget.ui
 
 CONFIG += c++11
 

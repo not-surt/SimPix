@@ -303,6 +303,15 @@
     <bool>false</bool>
    </attribute>
   </widget>
+  <widget class="QDockWidget" name="dockWidgetSession">
+   <property name="windowTitle">
+    <string>Session</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="SessionWidget" name="sessionWidget"/>
+  </widget>
   <action name="actionFileNew">
    <property name="icon">
     <iconset theme="document-new">
@@ -1068,6 +1077,12 @@
    <class>ColourContextWidget</class>
    <extends>QWidget</extends>
    <header>colourcontextwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SessionWidget</class>
+   <extends>QWidget</extends>
+   <header>sessionwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

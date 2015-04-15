@@ -1,10 +1,65 @@
 #ifndef PALETTEWIDGET_H
 #define PALETTEWIDGET_H
 
+#include <QAbstractListModel>
+#include "editingcontext.h"
+#include <QDebug>
+#include <QListView>
+#include <QStyledItemDelegate>
+#include "editingcontext.h"
 #include <QWidget>
 #include <QColor>
-#include <ui_palettewidget.h>
 #include "editingcontext.h"
+
+class PaletteModel : public QAbstractListModel
+{
+    Q_OBJECT
+public:
+    explicit PaletteModel(QObject *parent = nullptr);
+
+    // QAbstractItemModel interface
+    virtual int rowCount(const QModelIndex &parent=QModelIndex()) const;
+    virtual QVariant data(const QModelIndex &index, int role=Qt::DisplayRole) const;
+    virtual QVariant headerData(int section, Qt::Orientation orientation, int role=Qt::DisplayRole) const;
+
+    EditingContext *editingContext() const;
+
+signals:
+
+public slots:
+    void setEditingContext(EditingContext *editingContext);
+
+
+private:
+    EditingContext *m_editingContext;
+
+
+    // QAbstractItemModel interface
+public:
+    virtual bool setData(const QModelIndex &index, const QVariant &value, int role);
+    virtual Qt::ItemFlags flags(const QModelIndex &index) const;
+};
+
+class PaletteView : public QListView
+{
+    Q_OBJECT
+public:
+    explicit PaletteView(QWidget *parent = nullptr);
+    EditingContext *editingContext() const;
+
+signals:
+
+public slots:
+    void setEditingContext(EditingContext *editingContext);
+
+
+    // QWidget interface
+protected:
+    virtual void mousePressEvent(QMouseEvent *event);
+    virtual void mouseReleaseEvent(QMouseEvent *event);
+    virtual void mouseDoubleClickEvent(QMouseEvent *event);
+    virtual void mouseMoveEvent(QMouseEvent *event);
+};
 
 namespace Ui {
 class PaletteWidget;

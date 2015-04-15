@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>187</width>
-    <height>109</height>
+    <width>220</width>
+    <height>124</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -139,7 +139,7 @@
   <customwidget>
    <class>PaletteView</class>
    <extends>QListView</extends>
-   <header>paletteview.h</header>
+   <header>palettewidget.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

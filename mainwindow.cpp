@@ -16,6 +16,7 @@
 #include <QWidgetAction>
 #include <QSpinBox>
 #include "widgets.h"
+#include "actions.h"
 
 void SubWindow::closeEvent(QCloseEvent *event)
 {
@@ -44,8 +45,8 @@ QSize MdiArea::subWindowSizeOverhead() const
     QStyleOptionTitleBar optionTitleBar;
     optionTitleBar.titleBarState = 1;
     optionTitleBar.titleBarFlags = Qt::SubWindow;
-    const int titleBarHeight = style()->pixelMetric(QStyle::PM_TitleBarHeight, &optionTitleBar, nullptr);
-    const int frameWidth = style()->pixelMetric(QStyle::PM_MdiSubWindowFrameWidth, nullptr, nullptr);
+    const int titleBarHeight = QApplication::style()->pixelMetric(QStyle::PM_TitleBarHeight, &optionTitleBar, nullptr);
+    const int frameWidth = QApplication::style()->pixelMetric(QStyle::PM_MdiSubWindowFrameWidth, nullptr, nullptr);
     return QSize(2 * frameWidth, titleBarHeight + frameWidth);
 }
 
@@ -73,6 +74,10 @@ MainWindow::MainWindow(QWidget *parent) :
 //        }
     }
     ui->menuBar->hide();
+
+    QHash<QString, QActionGroup *> actionGroups;
+    QHash<QString, QAction *> actions;
+    actions["actionAbout"] = new QAction(this);
 
     QObject::connect(m_mdi, &MdiArea::subWindowActivated, [this](QMdiSubWindow *const subWindow) { this->activateSubWindow(static_cast<SubWindow *>(subWindow)); } );
 
@@ -104,22 +109,27 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionLockDocks, &QAction::triggered, this, &MainWindow::lockDocks);
 
     QToolBar *toolBarBrush = ui->toolBarBrush;
-    QActionGroup *brushStyleGroup = new QActionGroup(this);
-    brushStyleGroup->addAction(ui->actionBrushStylePixel);
-    brushStyleGroup->addAction(ui->actionBrushStyleRectangle);
-    brushStyleGroup->addAction(ui->actionBrushStyleEllipse);
-    ModeToolButtonAction *actionBrushStyle = new ModeToolButtonAction();
+    ModeActionGroup<EditingContext::BrushStyle> *brushStyleGroup = new ModeActionGroup<EditingContext::BrushStyle>(this);
+    brushStyleGroup->addAction(ui->actionBrushStylePixel, EditingContext::BrushStyle::Pixel);
+    brushStyleGroup->addAction(ui->actionBrushStyleRectangle, EditingContext::BrushStyle::Rectangle);
+    brushStyleGroup->addAction(ui->actionBrushStyleEllipse, EditingContext::BrushStyle::Ellipse);
+    ModeToolButtonAction<EditingContext::BrushStyle> *actionBrushStyle = new ModeToolButtonAction<EditingContext::BrushStyle>(*brushStyleGroup);
     actionBrushStyle->setMenu(ui->menuBrushStyle);
     toolBarBrush->addAction(actionBrushStyle);
-    QActionGroup *brushSpaceGroup = new QActionGroup(this);
-    brushSpaceGroup->addAction(ui->actionBrushSpaceScreen);
-    brushSpaceGroup->addAction(ui->actionBrushSpaceImage);
-    brushSpaceGroup->addAction(ui->actionBrushSpaceImageAspectCorrected);
-    brushSpaceGroup->addAction(ui->actionBrushSpaceGrid);
-    ModeToolButtonAction *actionBrushSpace = new ModeToolButtonAction();
+    QObject::connect(brushStyleGroup, &QActionGroup::triggered, [brushStyleGroup](QAction *const action) { EditingContext::BrushStyle brushStyle = brushStyleGroup->mode(action); qDebug() << int(brushStyle); });
+
+    ModeActionGroup<EditingContext::BrushSpace> *brushSpaceGroup = new ModeActionGroup<EditingContext::BrushSpace>(this);
+    brushSpaceGroup->addAction(ui->actionBrushSpaceImage, EditingContext::BrushSpace::Image);
+    brushSpaceGroup->addAction(ui->actionBrushSpaceImageAspectCorrected, EditingContext::BrushSpace::ImageAspectCorrected);
+    brushSpaceGroup->addAction(ui->actionBrushSpaceScreen, EditingContext::BrushSpace::Screen);
+    brushSpaceGroup->addAction(ui->actionBrushSpaceGrid, EditingContext::BrushSpace::Grid);
+    ModeToolButtonAction<EditingContext::BrushSpace> *actionBrushSpace = new ModeToolButtonAction<EditingContext::BrushSpace>(*brushSpaceGroup);
     actionBrushSpace->setMenu(ui->menuBrushSpace);
     toolBarBrush->addAction(actionBrushSpace);
+    QObject::connect(brushSpaceGroup, &QActionGroup::triggered, [brushSpaceGroup](QAction *const action) { EditingContext::BrushSpace brushSpace = brushSpaceGroup->mode(action); qDebug() << int(brushSpace); });
+
     toolBarBrush->addAction(ui->actionBrushPixelSnap);
+
     IntegerFieldAction *actionBrushWidth = new IntegerFieldAction();
     toolBarBrush->addAction(actionBrushWidth);
     IntegerFieldAction *actionBrushHeight = new IntegerFieldAction();
@@ -368,6 +378,8 @@ void MainWindow::openImage()
         }
         else {
             m_images.append(image);
+            files.append(fileName);
+            static_cast<SessionWidget *>(ui->dockWidgetSession->widget())->setStringList(files);
             ImageEditor *editor = static_cast<ImageEditor *>(image->createEditor());
             newEditorSubWindow(editor);
         }

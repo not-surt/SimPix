@@ -31,7 +31,7 @@ public:
 class MenuToolButtonAction : public QWidgetAction
 {
 public:
-    explicit MenuToolButtonAction(QWidget *const parent = nullptr)
+    explicit MenuToolButtonAction(QObject *const parent = nullptr)
         : QWidgetAction(parent) {
     }
 
@@ -44,11 +44,42 @@ protected:
     }
 };
 
+template <typename Enum>
+class ModeActionGroup : public QActionGroup
+{
+public:
+    explicit ModeActionGroup(QObject *const parent = nullptr)
+        : QActionGroup(parent) {
+    }
+    QAction *addAction(QAction *const action, const Enum &mode) {
+        QActionGroup::addAction(action);
+        m_actionModes[action] = mode;
+        return action;
+    }
+    void removeAction(QAction *const action) {
+        m_actionModes.remove(action);
+        QActionGroup::removeAction(action);
+    }
+    Enum &mode(QAction *const action = checkedAction()) {
+        return m_actionModes[action];
+    }
+    void setMode(const Enum &mode) {
+        QList<QAction *> actions = m_actionModes.keys(mode);
+        if(actions.length() > 0) {
+            actions[0]->setChecked(true);
+        }
+    }
+
+protected:
+    QHash<QAction *, Enum> m_actionModes;
+};
+
+template <typename Enum>
 class ModeMenuToolButton : public MenuToolButton
 {
 public:
-    explicit ModeMenuToolButton(QWidget *const parent = nullptr)
-        : MenuToolButton(parent) {
+    explicit ModeMenuToolButton(ModeActionGroup<Enum> &group, QWidget *const parent = nullptr)
+        : MenuToolButton(parent), m_group(group) {
     }
     void setCurrentAction(QAction *const action) {
         setDefaultAction(action);
@@ -64,18 +95,24 @@ public:
             QObject::connect(_menu, &QMenu::triggered, this, &ModeMenuToolButton::setCurrentAction);
         }
     }
+
+protected:
+    ModeActionGroup<Enum> &m_group;
 };
 
+template <typename Enum>
 class ModeToolButtonAction : public QWidgetAction
 {
 public:
-    explicit ModeToolButtonAction(QWidget *const parent = nullptr)
-        : QWidgetAction(parent) {
+    explicit ModeToolButtonAction(ModeActionGroup<Enum> &group, QObject *const parent = nullptr)
+        : QWidgetAction(parent), m_group(group) {
     }
 
 protected:
+    ModeActionGroup<Enum> &m_group;
+
     virtual QWidget *createWidget(QWidget *parent) {
-        ModeMenuToolButton *button = new ModeMenuToolButton(parent);
+        ModeMenuToolButton<Enum> *button = new ModeMenuToolButton<Enum>(m_group, parent);
         button->setMenu(menu());
         QList<QAction *> actions = menu()->actions();
         QAction *action = nullptr;
@@ -104,7 +141,7 @@ public:
 class IntegerFieldAction : public QWidgetAction
 {
 public:
-    explicit IntegerFieldAction(QWidget *const parent = nullptr)
+    explicit IntegerFieldAction(QObject *const parent = nullptr)
         : QWidgetAction(parent) {
     }
 
@@ -126,7 +163,7 @@ public:
 class FloatFieldAction : public QWidgetAction
 {
 public:
-    explicit FloatFieldAction(QWidget *const parent = nullptr)
+    explicit FloatFieldAction(QObject *const parent = nullptr)
         : QWidgetAction(parent) {
     }
 
@@ -140,7 +177,7 @@ protected:
 class ColourSwatchAction : public QWidgetAction
 {
 public:
-    explicit ColourSwatchAction(QWidget *const parent = nullptr)
+    explicit ColourSwatchAction(QObject *const parent = nullptr)
         : QWidgetAction(parent) {
     }
 

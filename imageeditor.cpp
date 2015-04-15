@@ -214,11 +214,11 @@ void ImageEditor::drawBrush(const QPoint &point, const uint colour)
     }
     else {
         int brushSpace = 0;
-        QMatrix4x4 imageMatrix = image.imageData()->projectionMatrix;
+        QMatrix4x4 projectionMatrix = image.imageData()->projectionMatrix;
         QMatrix4x4 brushMatrix;
         brushMatrix.translate(point.x(), point.y());
-        const float diameter = 16;
-        brushMatrix.scale(diameter / 2., diameter / 4.);
+//        const float diameter = 256;
+//        brushMatrix.scale(diameter / 2., diameter / 4.);
         if (brushSpace == 0) {
             brushMatrix = brushMatrix;
         }
@@ -226,7 +226,10 @@ void ImageEditor::drawBrush(const QPoint &point, const uint colour)
 
         }
         else if (brushSpace == 2) {
-            brushMatrix = (m_transform.inverseMatrix() * viewToWorld) * brushMatrix.inverted();
+            QMatrix4x4 scaleRotMatrix;
+            const float diameter = 16;
+            scaleRotMatrix.scale(diameter / 2., diameter / 4.);
+            brushMatrix = brushMatrix * viewToWorld * scaleRotMatrix * viewToWorld.inverted();
         }
         else if (brushSpace == 3) {
 
@@ -280,8 +283,8 @@ void ImageEditor::drawBrush(const QPoint &point, const uint colour)
         GLint matrixUniform = glGetUniformLocation(program, "matrix");
         QMatrix4x4 matrix = brushMatrix;
         glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, matrix.constData());
-        GLint imageMatrixUniform = glGetUniformLocation(program, "imageMatrix");
-        glUniformMatrix4fv(imageMatrixUniform, 1, GL_FALSE, imageMatrix.constData());
+        GLint projectionMatrixUniform = glGetUniformLocation(program, "projectionMatrix");
+        glUniformMatrix4fv(projectionMatrixUniform, 1, GL_FALSE, projectionMatrix.constData());
         GLint tilesStartUniform = glGetUniformLocation(program, "tilesStart");
         glUniform2i(tilesStartUniform, tilingBounds.x(), tilingBounds.y());
         GLint tilesSizeUniform = glGetUniformLocation(program, "tilesSize");
@@ -344,7 +347,14 @@ void ImageEditor::point(const QPoint &point, EditingContext *const editingContex
 {
     ImageDocument &image = static_cast<ImageDocument &>(document);
     PointCallback pointCallback = &ImageEditor::drawBrush;
-    (this->*pointCallback)(point, editingContext->colourSlot(editingContext->activeColourSlot()).rgba);
+    uint colour;
+    if (image.paletteData()) {
+        colour = editingContext->colourSlot(editingContext->activeColourSlot()).index;
+    }
+    else {
+        colour = editingContext->colourSlot(editingContext->activeColourSlot()).rgba;
+    }
+    (this->*pointCallback)(point, colour);
     image.fileInfo.makeDirty();
 }
 
@@ -353,7 +363,14 @@ void ImageEditor::stroke(const QPoint &start, const QPoint &end, EditingContext 
     ImageDocument &image = static_cast<ImageDocument &>(document);
     PointCallback pointCallback = &ImageEditor::drawBrush;
     SegmentCallback segmentCallback = &ImageEditor::doLine;
-    (this->*segmentCallback)(start, end, editingContext->colourSlot(editingContext->activeColourSlot()).rgba, pointCallback, true);
+    uint colour;
+    if (image.paletteData()) {
+        colour = editingContext->colourSlot(editingContext->activeColourSlot()).index;
+    }
+    else {
+        colour = editingContext->colourSlot(editingContext->activeColourSlot()).rgba;
+    }
+    (this->*segmentCallback)(start, end, colour, pointCallback, true);
 //    undoStack->push(new StrokeCommand(*m_image, a, b));
     image.fileInfo.makeDirty();
 }
@@ -370,17 +387,25 @@ void ImageEditor::pick(const QPoint &point, EditingContext *const editingContext
             wrapPoint.setY((int)round(wrap((float)wrapPoint.y(), 0.f, (float)image.imageData()->size.height())));
         }
     }
+    EditingContext::ColourSlot colour;
     if (image.imageData()->rect.contains(wrapPoint)) {
         if (image.format() == TextureDataFormat::Indexed) {
-            editingContext->setColourSlot(EditingContext::ColourSlot(image.imageData()->pixel(wrapPoint)), editingContext->activeColourSlot());
+            colour.index = image.imageData()->pixel(wrapPoint);
+            if (image.paletteData()) {
+                colour.rgba = image.paletteData()->colour(colour.index);
+            }
+            else {
+                colour.rgba = qRgba(colour.index, colour.index, colour.index, 255);
+            }
         }
         else if (image.format() == TextureDataFormat::RGBA) {
-            editingContext->setColourSlot(EditingContext::ColourSlot(image.imageData()->pixel(wrapPoint)), editingContext->activeColourSlot());
+            colour.rgba = image.imageData()->pixel(wrapPoint);
         }
     }
     else {
-        editingContext->setColourSlot(editingContext->colourSlot(EditingContext::ColourSlotId::Background), editingContext->activeColourSlot());
+        colour = editingContext->colourSlot(EditingContext::ColourSlotId::Background);
     }
+    editingContext->setColourSlot(colour, editingContext->activeColourSlot());
 }
 
 void ImageEditor::mousePressEvent(QMouseEvent *event)
