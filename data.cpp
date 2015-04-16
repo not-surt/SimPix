@@ -6,13 +6,13 @@
 #include "application.h"
 #include "util.h"
 
-const TextureDataFormatDefinition IMAGE_DATA_FORMATS[] = {
-    {TextureDataFormat::Indexed, "Indexed", GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte), {GL_COLOR_ATTACHMENT0, GL_NONE}},
-    {TextureDataFormat::RGBA, "RGBA", GL_RGBA8UI, GL_BGRA_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte) * 4, {GL_NONE, GL_COLOR_ATTACHMENT0}},
-    {TextureDataFormat::Invalid, "", 0, 0, 0, 0}
+const TextureDataFormat TEXTURE_DATA_FORMATS[] = {
+    {TextureDataFormat::Id::Indexed, "Indexed", GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte), {GL_COLOR_ATTACHMENT0, GL_NONE}},
+    {TextureDataFormat::Id::RGBA, "RGBA", GL_RGBA8UI, GL_BGRA_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte) * 4, {GL_NONE, GL_COLOR_ATTACHMENT0}},
+    {TextureDataFormat::Id::Invalid, "", 0, 0, 0, 0}
 };
 
-TextureData::TextureData(const QSize &size, const TextureDataFormat _format, const GLubyte *const data) :
+TextureData::TextureData(const QSize &size, const TextureDataFormat::Id _format, const GLubyte *const data) :
     OpenGLData(), size(size), format(_format),
     projectionMatrix([&]() {
         const float halfWidth = (float)size.width() / 2.f;
@@ -22,7 +22,7 @@ TextureData::TextureData(const QSize &size, const TextureDataFormat _format, con
         temp.translate(-halfWidth, -halfHeight);
         return temp;} ()),
     texture([&](){
-        const TextureDataFormatDefinition *const format = &IMAGE_DATA_FORMATS[(int)_format];
+        const TextureDataFormat *const format = &TEXTURE_DATA_FORMATS[(int)_format];
         GLuint texture;
         glGenTextures((GLsizei)1, &texture);
         glBindTexture(GL_TEXTURE_2D, texture);
@@ -35,7 +35,7 @@ TextureData::TextureData(const QSize &size, const TextureDataFormat _format, con
         glTexImage2D(GL_TEXTURE_2D, 0, format->internalFormat, size.width(), size.height(), 0, format->format, format->glEnum, data);
         return texture; }()),
     framebuffer([&](){
-        const TextureDataFormatDefinition *const format = &IMAGE_DATA_FORMATS[(int)_format];
+        const TextureDataFormat *const format = &TEXTURE_DATA_FORMATS[(int)_format];
         GLuint framebuffer;
         glGenFramebuffers((GLsizei)1, &framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -58,28 +58,28 @@ uint TextureData::pixel(const QPoint &position)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     uint colour = 0;
-    glReadPixels(position.x(), position.y(), 1, 1, IMAGE_DATA_FORMATS[(int)format].format, IMAGE_DATA_FORMATS[(int)format].glEnum, &colour);
+    glReadPixels(position.x(), position.y(), 1, 1, TEXTURE_DATA_FORMATS[(int)format].format, TEXTURE_DATA_FORMATS[(int)format].glEnum, &colour);
     return colour;
 }
 
 void TextureData::setPixel(const QPoint &position, const uint colour)
 {
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, position.x(), position.y(), 1, 1, IMAGE_DATA_FORMATS[(int)format].format, IMAGE_DATA_FORMATS[(int)format].glEnum, &colour);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, position.x(), position.y(), 1, 1, TEXTURE_DATA_FORMATS[(int)format].format, TEXTURE_DATA_FORMATS[(int)format].glEnum, &colour);
 }
 
 GLubyte *TextureData::readData(GLubyte *const _data)
 {
-    uchar *data = (_data != nullptr) ? _data : new uchar[size.width() * size.height() * IMAGE_DATA_FORMATS[(int)format].size];
+    uchar *data = (_data != nullptr) ? _data : new uchar[size.width() * size.height() * TEXTURE_DATA_FORMATS[(int)format].size];
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    glReadPixels(0, 0, size.width(), size.height(), IMAGE_DATA_FORMATS[(int)format].format, IMAGE_DATA_FORMATS[(int)format].glEnum, data);
+    glReadPixels(0, 0, size.width(), size.height(), TEXTURE_DATA_FORMATS[(int)format].format, TEXTURE_DATA_FORMATS[(int)format].glEnum, data);
     return data;
 }
 
 void TextureData::writeData(const GLubyte *const data)
 {
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size.width(), size.height(), IMAGE_DATA_FORMATS[(int)format].format, IMAGE_DATA_FORMATS[(int)format].glEnum, data);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size.width(), size.height(), TEXTURE_DATA_FORMATS[(int)format].format, TEXTURE_DATA_FORMATS[(int)format].glEnum, data);
 }
 
 void TextureData::clear(const uint colour)
@@ -95,11 +95,11 @@ void TextureData::clear(const uint colour)
 }
 
 PaletteData::PaletteData(const GLuint length, const GLubyte *const data) :
-    TextureData(QSize(length, 1), TextureDataFormat::RGBA, data)
+    TextureData(QSize(length, 1), TextureDataFormat::Id::RGBA, data)
 {
 }
 
-ImageData::ImageData(const QSize &size, const TextureDataFormat format, const GLubyte *const data) :
+ImageData::ImageData(const QSize &size, const TextureDataFormat::Id format, const GLubyte *const data) :
     TextureData(size, format, data), rect(QPoint(0, 0), size),
     vertexBuffer([&](){
         GLuint vertexBuffer;

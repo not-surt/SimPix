@@ -2,6 +2,7 @@
 #define STATUSMOUSEWIDGET_H
 
 #include <QWidget>
+#include "data.h"
 
 namespace Ui {
 class StatusMouseWidget;
@@ -16,7 +17,7 @@ public:
     ~StatusMouseWidget();
 
 public slots:
-    void setMouseInfo(const QPoint &position, const QColor colour, const int index = -1);
+    void setMouseInfo(const QPoint &position, const Colour &colour);
 
 private:
     Ui::StatusMouseWidget *ui;

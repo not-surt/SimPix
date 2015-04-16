@@ -20,7 +20,7 @@ const QString Application::fileDialogFilterString = tr(
             "JPEG Image Files (*.jpeg *.jpg)");
 
 Application::Application(int &argc, char **argv) :
-    QApplication(argc, argv), m_shaders(), m_programs(), m_window(nullptr), m_shareWidget(nullptr)
+    QApplication(argc, argv), m_shaders(), m_programs(), m_window(nullptr), m_shareWidget(nullptr), m_session(new Session)
 {
     setWindowIcon(QIcon(":/images/simpix-48x48.png"));
 

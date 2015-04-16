@@ -18,6 +18,7 @@ public:
     bool save(QString fileName = QString());
 
     FileInfo fileInfo;
+    QList<QWidget *> windows;
     QList<Document *> documents;
     QList<Editor *> editors;
 

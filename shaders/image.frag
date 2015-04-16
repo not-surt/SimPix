@@ -15,13 +15,15 @@ void main(void)
 //    const float edgeOffset = 0.00390625;
     const float edgeOffset = 0;
     vec2 offset = fwidth(texturePosition);
-    ivec2 texelPosition = ivec2(floor(texturePosition + (offset / 2) + edgeOffset));
+//    ivec2 texelPosition = ivec2(floor(texturePosition + (offset / 2) + edgeOffset));
+    ivec2 texelPosition = ivec2(floor(texturePosition));
     ivec2 samples = antialias ? ivec2(4, 4) : ivec2(1, 1);
 //    if (length(offset) < sqrt(2)) samples = ivec2(1, 1);
     vec4 colour = vec4(0, 0, 0, 0);
     for (int y = 0; y < samples.y; y++) {
         for (int x = 0; x < samples.x; x++) {
-            ivec2 texelPosition = ivec2(floor(mod(texturePosition + ((offset / vec2(samples)) * vec2(x + 0.5, y + 0.5)), textureSize(textureUnit, 0))));
+//            ivec2 texelPosition = ivec2(floor(mod(texturePosition + ((offset / vec2(samples)) * vec2(x + 0.5, y + 0.5)), textureSize(textureUnit, 0))));
+            ivec2 texelPosition = ivec2(floor(texturePosition/* + (offset / 2)*/));
             vec4 texel;
             if (isIndexed) {
                 uint index = texelFetch(textureUnit, texelPosition, 0).r;

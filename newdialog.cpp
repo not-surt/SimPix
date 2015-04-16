@@ -51,8 +51,8 @@ NewDialog::NewDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->modeComboBox->addItem("Indexed", (int)TextureDataFormat::Indexed);
-    ui->modeComboBox->addItem("RGBA", (int)TextureDataFormat::RGBA);
+    ui->modeComboBox->addItem("Indexed", (int)TextureDataFormat::Id::Indexed);
+    ui->modeComboBox->addItem("RGBA", (int)TextureDataFormat::Id::RGBA);
 //    for (int i = 0; IMAGE_DATA_FORMATS[i].id != ImageDataFormat::Invalid; ++i) {
 //        ui->modeComboBox->addItem(IMAGE_DATA_FORMATS[i].NAME, (int)IMAGE_DATA_FORMATS[i].id);
 //    }
@@ -102,9 +102,9 @@ QSize NewDialog::imageSize() const
     return QSize(ui->widthSpinBox->value(), ui->heightSpinBox->value());
 }
 
-TextureDataFormat NewDialog::mode() const
+TextureDataFormat::Id NewDialog::mode() const
 {
-    return static_cast<TextureDataFormat>(ui->modeComboBox->currentData().toInt());
+    return static_cast<TextureDataFormat::Id>(ui->modeComboBox->currentData().toInt());
 }
 
 int NewDialog::palette() const

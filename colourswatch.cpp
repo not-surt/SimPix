@@ -6,16 +6,16 @@
 #include "util.h"
 
 ColourSwatch::ColourSwatch(QWidget *parent) :
-    QAbstractButton(parent), m_colour(QColor(0, 0, 0, 0))
+    QAbstractButton(parent), m_colour()
 {
 }
 
-void ColourSwatch::setColour(const QColor &arg)
+void ColourSwatch::setColour(const Colour &colour)
 {
-    if (m_colour != arg) {
-        m_colour = arg;
+    if (m_colour != colour) {
+        m_colour = colour;
         update();
-        emit colourChanged(arg);
+        emit colourChanged(colour);
     }
 }
 
@@ -26,7 +26,7 @@ QSize ColourSwatch::sizeHint() const
     return QSize(size, size);
 }
 
-const QColor &ColourSwatch::colour() const
+const Colour &ColourSwatch::colour() const
 {
     return m_colour;
 }
@@ -34,7 +34,7 @@ const QColor &ColourSwatch::colour() const
 void ColourSwatch::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
-    drawColourSwatch(&painter, rect(), m_colour);
+    drawColourSwatch(&painter, rect(), QColor(m_colour.components.r, m_colour.components.g, m_colour.components.b, m_colour.components.a));
 
     if (hasFocus()) {
         QStyleOptionFocusRect option;

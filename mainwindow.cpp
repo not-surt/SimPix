@@ -118,15 +118,15 @@ MainWindow::MainWindow(QWidget *parent) :
     toolBarBrush->addAction(actionBrushStyle);
     QObject::connect(brushStyleGroup, &QActionGroup::triggered, [brushStyleGroup](QAction *const action) { EditingContext::BrushStyle brushStyle = brushStyleGroup->mode(action); qDebug() << int(brushStyle); });
 
-    ModeActionGroup<EditingContext::BrushSpace> *brushSpaceGroup = new ModeActionGroup<EditingContext::BrushSpace>(this);
-    brushSpaceGroup->addAction(ui->actionBrushSpaceImage, EditingContext::BrushSpace::Image);
-    brushSpaceGroup->addAction(ui->actionBrushSpaceImageAspectCorrected, EditingContext::BrushSpace::ImageAspectCorrected);
-    brushSpaceGroup->addAction(ui->actionBrushSpaceScreen, EditingContext::BrushSpace::Screen);
-    brushSpaceGroup->addAction(ui->actionBrushSpaceGrid, EditingContext::BrushSpace::Grid);
-    ModeToolButtonAction<EditingContext::BrushSpace> *actionBrushSpace = new ModeToolButtonAction<EditingContext::BrushSpace>(*brushSpaceGroup);
-    actionBrushSpace->setMenu(ui->menuBrushSpace);
-    toolBarBrush->addAction(actionBrushSpace);
-    QObject::connect(brushSpaceGroup, &QActionGroup::triggered, [brushSpaceGroup](QAction *const action) { EditingContext::BrushSpace brushSpace = brushSpaceGroup->mode(action); qDebug() << int(brushSpace); });
+    ModeActionGroup<EditingContext::ToolSpace> *toolSpaceGroup = new ModeActionGroup<EditingContext::ToolSpace>(this);
+    toolSpaceGroup->addAction(ui->actionToolSpaceImage, EditingContext::ToolSpace::Image);
+    toolSpaceGroup->addAction(ui->actionToolSpaceImageAspectCorrected, EditingContext::ToolSpace::ImageAspectCorrected);
+    toolSpaceGroup->addAction(ui->actionToolSpaceScreen, EditingContext::ToolSpace::Screen);
+    toolSpaceGroup->addAction(ui->actionToolSpaceGrid, EditingContext::ToolSpace::Grid);
+    ModeToolButtonAction<EditingContext::ToolSpace> *actionToolSpace = new ModeToolButtonAction<EditingContext::ToolSpace>(*toolSpaceGroup);
+    actionToolSpace->setMenu(ui->menuToolSpace);
+    toolBarBrush->addAction(actionToolSpace);
+    QObject::connect(toolSpaceGroup, &QActionGroup::triggered, [toolSpaceGroup](QAction *const action) { EditingContext::ToolSpace toolSpace = toolSpaceGroup->mode(action); qDebug() << int(toolSpace); });
 
     toolBarBrush->addAction(ui->actionBrushPixelSnap);
 
@@ -213,7 +213,7 @@ void MainWindow::activateSubWindow(SubWindow *const subWindow) {
         ImageDocument &image = static_cast<ImageDocument &>(editor->document);
 
         activeSubWindowConnections.append(QObject::connect(&image.fileInfo, &FileInfo::dirtied, editor, SS_CAST(ImageEditor, update,)));
-        activeSubWindowConnections.append(QObject::connect(&editor->editingContext(), &EditingContext::changed, [this](EditingContext *const context) { ui->colourContextWidget->setColourSlot(EditingContext::ColourSlot(context->colourSlot(EditingContext::ColourSlotId::Primary))); }));
+        activeSubWindowConnections.append(QObject::connect(&editor->editingContext(), &EditingContext::changed, [this](EditingContext *const context) { ui->colourContextWidget->setColourSlot(context->colourSlot(EditingContext::ColourSlot::Primary)); }));
         ui->paletteWidget->setEditingContext(&editor->editingContext());
         setWindowFilePath(image.fileInfo.fileName());
 

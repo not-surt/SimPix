@@ -1,5 +1,6 @@
 #include "statusmousewidget.h"
 #include "ui_statusmousewidget.h"
+#include <QDebug>
 
 StatusMouseWidget::StatusMouseWidget(QWidget *parent) :
     QWidget(parent),
@@ -14,25 +15,20 @@ StatusMouseWidget::~StatusMouseWidget()
     delete ui;
 }
 
-void StatusMouseWidget::setMouseInfo(const QPoint &position, const QColor colour, const int index)
+void StatusMouseWidget::setMouseInfo(const QPoint &position, const Colour &colour)
 {
     ui->mouseLabel->setText(QString("<b>X:</b>%1, <b>Y:</b>%2").arg(position.x()).arg(position.y()));
-    if (colour.isValid()) {
-        ui->colourSwatch->setColour(colour);
-        ui->colourSwatch->show();
-        QString text = QString("<b>R:</b>%1, <b>G:</b>%2, <b>B:</b>%3, <b>A:</b>%4")
-                .arg(colour.red())
-                .arg(colour.green())
-                .arg(colour.blue())
-                .arg(colour.alpha());
-        if (index >= 0) {
-            text += QString(", <b>Index:</b>%1").arg(index);
-        }
-        ui->colourLabel->setText(text);
-        ui->colourLabel->show();
+    ui->colourSwatch->setColour(colour);
+    ui->colourSwatch->show();
+    qDebug() << "ststus" << colour.bytes;
+    QString text = QString("<b>R:</b>%1, <b>G:</b>%2, <b>B:</b>%3, <b>A:</b>%4")
+            .arg(colour.components.r)
+            .arg(colour.components.g)
+            .arg(colour.components.b)
+            .arg(colour.components.a);
+    if (colour.index >= 0) {
+        text += QString(", <b>Index:</b>%1").arg(colour.index);
     }
-    else {
-        ui->colourSwatch->hide();
-        ui->colourLabel->hide();
-    }
+    ui->colourLabel->setText(text);
+    ui->colourLabel->show();
 }

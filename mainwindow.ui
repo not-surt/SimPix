@@ -123,20 +123,20 @@
      <addaction name="actionBrushStyleRectangle"/>
      <addaction name="actionBrushStyleEllipse"/>
     </widget>
-    <widget class="QMenu" name="menuBrushSpace">
+    <widget class="QMenu" name="menuToolSpace">
      <property name="title">
       <string>Brush &amp;Space</string>
      </property>
-     <addaction name="actionBrushSpaceImage"/>
-     <addaction name="actionBrushSpaceImageAspectCorrected"/>
-     <addaction name="actionBrushSpaceScreen"/>
-     <addaction name="actionBrushSpaceGrid"/>
+     <addaction name="actionToolSpaceImage"/>
+     <addaction name="actionToolSpaceImageAspectCorrected"/>
+     <addaction name="actionToolSpaceScreen"/>
+     <addaction name="actionToolSpaceGrid"/>
     </widget>
     <addaction name="actionContextUseGlobal"/>
     <addaction name="actionContextCopyToGlobal"/>
     <addaction name="separator"/>
     <addaction name="menuBrushStyle"/>
-    <addaction name="menuBrushSpace"/>
+    <addaction name="menuToolSpace"/>
    </widget>
    <addaction name="menuProgram"/>
    <addaction name="menuSession"/>
@@ -994,7 +994,7 @@
     <string>&amp;Copy to Global</string>
    </property>
   </action>
-  <action name="actionBrushSpaceScreen">
+  <action name="actionToolSpaceScreen">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -1005,7 +1005,7 @@
     <string>Screen Space</string>
    </property>
   </action>
-  <action name="actionBrushSpaceImage">
+  <action name="actionToolSpaceImage">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -1019,7 +1019,7 @@
     <string>Image Space</string>
    </property>
   </action>
-  <action name="actionBrushSpaceImageAspectCorrected">
+  <action name="actionToolSpaceImageAspectCorrected">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -1030,7 +1030,7 @@
     <string>Image Space (Aspect Corrected)</string>
    </property>
   </action>
-  <action name="actionBrushSpaceGrid">
+  <action name="actionToolSpaceGrid">
    <property name="checkable">
     <bool>true</bool>
    </property>

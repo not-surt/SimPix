@@ -14,5 +14,5 @@ SessionWidget::~SessionWidget()
 
 void SessionWidget::setStringList(const QStringList &list)
 {
-    static_cast<QStringListModel *>(ui->sessionView->model())->setStringList(list);
+    static_cast<SessionModel *>(ui->sessionView->model())->setList(list);
 }

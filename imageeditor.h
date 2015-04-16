@@ -64,7 +64,7 @@ signals:
     void showBoundsChanged(const bool showBounds);
     void showAlphaChanged(bool showAlpha);
     void antialiasChanged(bool antialias);
-    void mousePixelChanged(const QPoint &position, const QColor colour, const int index);
+    void mousePixelChanged(const QPoint &position, const Colour &colour);
     void mouseEntered();
     void mouseLeft();
     void limitTransformChanged(bool arg);

@@ -2,15 +2,50 @@
 #define SESSIONWIDGET_H
 
 #include <QListView>
-#include <QStringListModel>
+#include <QAbstractListModel>
 #include <QMainWindow>
 
-class SessionModel : public QStringListModel
+class SessionModel : public QAbstractListModel
 {
     Q_OBJECT
 public:
     explicit SessionModel(QObject *parent = 0)
-        : QStringListModel(parent) {}
+        : QAbstractListModel(parent) {}
+    int rowCount(const QModelIndex &parent) const {
+        return list.length();
+    }
+    QVariant data(const QModelIndex &index, int role) const {
+        if (!index.isValid()) {
+            return QVariant();
+        }
+        else if (index.row() < 0 || index.row() >= list.length()) {
+            return QVariant();
+        }
+        else if (role == Qt::DisplayRole) {
+            return list[index.row()];
+        }
+        else {
+            return QVariant();
+        }
+    }
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const {
+        if (role != Qt::DisplayRole) {
+            return QVariant();
+        }
+
+        if (orientation == Qt::Horizontal) {
+            return QString("Column %1").arg(section);
+        }
+        else {
+            return QString("Row %1").arg(section);
+        }
+    }
+    void setList(const QStringList &p_list) {
+        list = p_list;
+        emit layoutChanged();
+    }
+
+    QStringList list;
 };
 
 class SessionView : public QListView

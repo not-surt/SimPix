@@ -2,29 +2,28 @@
 #define COLOURSWATCH_H
 
 #include <QAbstractButton>
-#include <QColor>
+#include "data.h"
 
 class ColourSwatch : public QAbstractButton
 {
     Q_OBJECT
-    Q_PROPERTY(QColor colour READ colour WRITE setColour NOTIFY colourChanged)
 
 public:
     explicit ColourSwatch(QWidget *parent = nullptr);
     virtual QSize sizeHint() const;
-    const QColor &colour() const;
+    const Colour &colour() const;
 
 signals:
-    void colourChanged(const QColor &arg);
+    void colourChanged(const Colour &colour);
 
 public slots:
-    void setColour(const QColor &arg);
+    void setColour(const Colour &colour);
 
 protected:
     virtual void paintEvent(QPaintEvent *);
 
 private:
-    QColor m_colour;
+    Colour m_colour;
 };
 
 #endif // COLOURSWATCH_H

@@ -6,18 +6,18 @@
 #include <QDir>
 #include <QFileDialog>
 
-ImageDocument::ImageDocument(const QSize &size, TextureDataFormat format, QObject *parent) :
+ImageDocument::ImageDocument(const QSize &size, TextureDataFormat::Id format, QObject *parent) :
     Document(QString(), parent), m_imageData(nullptr), m_paletteData(nullptr)
 {
     GLContextGrabber grab(APP->shareWidget());
 
-    if (format == TextureDataFormat::Invalid) {
+    if (format == TextureDataFormat::Id::Invalid) {
         qDebug() << "Invalid image format";
         return;
     }
 
     uint fillColour = 0;
-    if (format == TextureDataFormat::Indexed) {
+    if (format == TextureDataFormat::Id::Indexed) {
         m_paletteData = new PaletteData(2);
         m_paletteData->setColour(0, qRgba(0, 0, 0, 255));
         m_paletteData->setColour(1, qRgba(255, 255, 255, 255));
@@ -25,7 +25,7 @@ ImageDocument::ImageDocument(const QSize &size, TextureDataFormat format, QObjec
 //        m_contextColours[ContextColour::Primary] = 1;
 //        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = 0;
     }
-    else if (format == TextureDataFormat::RGBA) {
+    else if (format == TextureDataFormat::Id::RGBA) {
         fillColour = qRgba(255, 0, 0, 255);
 //        m_contextColours[ContextColour::Primary] = qRgba(255, 255, 255, 255);
 //        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = qRgba(0, 0, 0, 0);
@@ -57,16 +57,16 @@ ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QO
         }
     }
 
-    TextureDataFormat format;
+    TextureDataFormat::Id format;
     switch (image.format()) {
     case QImage::Format_Indexed8:
-        format = TextureDataFormat::Indexed;
+        format = TextureDataFormat::Id::Indexed;
         break;
     case QImage::Format_ARGB32:
-        format = TextureDataFormat::RGBA;
+        format = TextureDataFormat::Id::RGBA;
         break;
     default:
-        format = TextureDataFormat::Invalid;
+        format = TextureDataFormat::Id::Invalid;
         qDebug() << "Invalid image format";
         return;
     }
@@ -77,7 +77,7 @@ ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QO
     }
 
     switch (format) {
-    case TextureDataFormat::Indexed:
+    case TextureDataFormat::Id::Indexed:
         if (m_paletteData && m_paletteData->length() > 0) {
 //            m_contextColours[ContextColour::Primary] = m_paletteData->colour(m_paletteData->length() - 1);
         }
@@ -86,7 +86,7 @@ ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QO
         }
 //        m_contextColours[ContextColour::Secondary] = 0;
         break;
-    case TextureDataFormat::RGBA:
+    case TextureDataFormat::Id::RGBA:
 //        m_contextColours[ContextColour::Primary] = qRgba(255, 255, 255, 255);
 //        m_contextColours[ContextColour::Secondary] = qRgba(0, 0, 0, 0);
         break;
@@ -176,10 +176,10 @@ bool ImageDocument::doSave(QString fileName)
     uchar *data = m_imageData->readData();
     QImage::Format format;
     switch (m_imageData->format) {
-    case TextureDataFormat::Indexed:
+    case TextureDataFormat::Id::Indexed:
         format = QImage::Format_Indexed8;
         break;
-    case TextureDataFormat::RGBA:
+    case TextureDataFormat::Id::RGBA:
         format = QImage::Format_ARGB32;
         break;
     default:

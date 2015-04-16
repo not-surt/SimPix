@@ -2,18 +2,16 @@
 #define EDITINGCONTEXT_H
 
 #include <QObject>
-
-class ImageData;
-class PaletteData;
+#include "data.h"
 
 class EditingContext : public QObject
 {
     Q_OBJECT
-    Q_ENUMS(ColourSlotId)
+    Q_ENUMS(ColourSlot)
     Q_ENUMS(BrushStyle)
-    Q_ENUMS(BrushSpace)
+    Q_ENUMS(ToolSpace)
 public:
-    enum class ColourSlotId {
+    enum class ColourSlot {
         Primary,
         Secondary,
         Background,
@@ -23,29 +21,20 @@ public:
         Rectangle,
         Ellipse,
     };
-    enum class BrushSpace {
+    enum class ToolSpace {
         Image,
         ImageAspectCorrected,
         Screen,
         Grid,
     };
-    struct ColourSlot {
-        explicit ColourSlot(const uint p_rgba = 0, const int p_index = -1)
-            : rgba(p_rgba), index(p_index){}
-        inline bool operator==(const ColourSlot &rhs) { return this->rgba == rhs.rgba && this->index == rhs.index; }
-        inline bool operator!=(const ColourSlot &rhs) { return !this->operator==(rhs); }
-
-        uint rgba;
-        short index;
-    };
 
     explicit EditingContext(QObject *parent = nullptr) :
-        QObject(parent), m_image(nullptr), m_palette(nullptr), m_colourSlots{}, m_activeColourSlot(ColourSlotId::Primary) {}
+        QObject(parent), m_image(nullptr), m_palette(nullptr), m_colourSlots{}, m_activeColourSlot(ColourSlot::Primary) {}
     ImageData *image() const { return m_image; }
     PaletteData *palette() const { return m_palette; }
-    ColourSlot colourSlot(const ColourSlotId slot) const { return m_colourSlots[static_cast<int>(slot)]; }
+    Colour colourSlot(const ColourSlot &slot) const { return m_colourSlots[static_cast<int>(slot)]; }
 //    ColourSlot colourSlot(const int slot) const { return m_colourSlots[slot]; }
-    ColourSlotId activeColourSlot() const { return m_activeColourSlot; }
+    ColourSlot activeColourSlot() const { return m_activeColourSlot; }
 
 signals:
     void changed(EditingContext *);
@@ -63,13 +52,13 @@ public slots:
             emit changed(this);
         }
     }
-    void setColourSlot(const ColourSlot colour, const ColourSlotId slot = ColourSlotId::Primary) {
+    void setColourSlot(const Colour &colour, const ColourSlot slot = ColourSlot::Primary) {
         if (m_colourSlots[static_cast<int>(slot)] != colour) {
             m_colourSlots[static_cast<int>(slot)] = colour;
             emit changed(this);
         }
     }
-    void setActiveColourSlot(const ColourSlotId colourSlot) {
+    void setActiveColourSlot(const ColourSlot colourSlot) {
         if (m_activeColourSlot != colourSlot) {
             m_activeColourSlot = colourSlot;
             emit changed(this);
@@ -80,8 +69,8 @@ protected:
     static const int COLOUR_SLOT_COUNT = 3;
     ImageData *m_image;
     PaletteData *m_palette;
-    ColourSlot m_colourSlots[COLOUR_SLOT_COUNT];
-    ColourSlotId m_activeColourSlot;
+    Colour m_colourSlots[COLOUR_SLOT_COUNT];
+    ColourSlot m_activeColourSlot;
 
 };
 

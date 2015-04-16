@@ -193,7 +193,7 @@ void PaletteWidget::editColour(QModelIndex index)
 void PaletteWidget::setColour(QModelIndex index)
 {
     if (ui->paletteView->editingContext()) {
-        EditingContext::ColourSlot colour;
+        Colour colour;
         colour.index = index.row();
         if (ui->paletteView->editingContext()->palette()) {
             QColor color = index.model()->data(index, Qt::DisplayRole).value<QColor>();
