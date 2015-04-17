@@ -8,6 +8,10 @@
 ColourSwatch::ColourSwatch(QWidget *parent) :
     QAbstractButton(parent), m_colour()
 {
+    setFocusPolicy(Qt::StrongFocus);
+//    focusFrame = new QFocusFrame(this);
+//    focusFrame->setStyle(this->style());
+//    focusFrame->setWidget(this);
 }
 
 void ColourSwatch::setColour(const Colour &colour)

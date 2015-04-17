@@ -29,7 +29,6 @@ int PaletteModel::rowCount(const QModelIndex &parent) const
 
 QVariant PaletteModel::data(const QModelIndex &index, int role) const
 {
-//    qDebug() << "1:" << m_editingContext;
     if (!index.isValid()) {
         return QVariant();
     }
@@ -39,7 +38,6 @@ QVariant PaletteModel::data(const QModelIndex &index, int role) const
     }
 
     if (role == Qt::DisplayRole) {
-//        qDebug() << "2:" << m_editingContext << m_editingContext->palette();
         GLContextGrabber grab(APP->shareWidget());
         Rgba colour  = m_editingContext->palette()->colour(index.row());
         return QColor(colour.r, colour.g, colour.b, colour.a);

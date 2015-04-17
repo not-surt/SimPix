@@ -1,6 +1,5 @@
 #include "application.h"
 #include "mainwindow.h"
-#include <QDebug>
 #include "util.h"
 #include <QDirIterator>
 #include <exception>

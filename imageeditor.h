@@ -56,6 +56,8 @@ public:
     void point(const QPoint &position, EditingContext *const editingContext);
     void stroke(const QPoint &start, const QPoint &end, EditingContext *const editingContext);
     void pick(const QPoint &position, EditingContext *const editingContext);
+    QPointF wrapPoint(const QPointF &point);
+    QPointF snapPoint(const QPointF &point);
 
 signals:
     void tiledChanged(const bool tiled);
@@ -137,15 +139,18 @@ protected:
     void drawBrush(const QPoint &point, const Colour &colour);
     void doLine(const QPoint &point0, const QPoint &point1, const Colour &colour, PointCallback callback, const bool inclusive = true);
     void drawLine(const QPoint &point0, const QPoint &point1, const Colour &colour);
+    bool inGrab() { return grabCount > 0; }
+    void grabPush();
+    void grabPop();
 
 private:
     Transform m_transform;
     bool m_tiled, m_tileX, m_tileY;
-    QPoint mouseGrabPos;
-    QPointF mouseGrabImagePos;
+    QPoint grabPos;
+    QPointF grabImagePos;
     QPoint mouseLastPos;
     QPointF mouseLastImagePos;
-    bool panKeyDown;
+    int grabCount;
     bool m_showBounds;
     bool m_antialias;
     bool m_showAlpha;
@@ -155,6 +160,7 @@ private:
     QList<ImageData *>::iterator m_currentLayer;
     EditingContext m_editingContext;
     bool m_limitTransform;
+    bool transformAroundCursor;
 };
 
 #endif // IMAGEEDITOR_H

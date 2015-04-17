@@ -202,7 +202,6 @@ void MainWindow::activateSubWindow(SubWindow *const subWindow) {
         QListIterator<QMetaObject::Connection> connectionsIterator(activeSubWindowConnections);
         while (connectionsIterator.hasNext()) {
             QMetaObject::Connection connection = (connectionsIterator.next());
-            qDebug() << connection;
             QObject::disconnect(connection);
         }
         activeSubWindowConnections.clear();
@@ -308,9 +307,7 @@ void MainWindow::lockToolbars(bool checked)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-//    qDebug() << m_mdi->subWindowList();
     m_mdi->closeAllSubWindows();
-//    qDebug() << m_mdi->subWindowList();
     //if (!closeImage()) {
     if (m_mdi->subWindowList().length() > 0) {
 //        event->ignore();
@@ -341,8 +338,6 @@ SubWindow *MainWindow::newEditorSubWindow(ImageEditor *const editor) {
                                  scaleToFit(image.imageData()->size.height(), mdiAvailableSize.height(), scaleStep));
     subWindow->resize(image.imageData()->size * scale + overhead);
     m_mdi->addSubWindow(subWindow);
-
-    qDebug() << "Hello!" << overhead << m_mdi->size() << mdiAvailableSize << scale << image.imageData()->size * scale << subWindow->size();
 
     subWindow->setWidget(editor);
     editor->transform().setZoom(scale);

@@ -2,6 +2,7 @@
 #define COLOURSWATCH_H
 
 #include <QAbstractButton>
+#include <QFocusFrame>
 #include "data.h"
 
 class ColourSwatch : public QAbstractButton
@@ -24,6 +25,7 @@ protected:
 
 private:
     Colour m_colour;
+    QFocusFrame *focusFrame;
 };
 
 #endif // COLOURSWATCH_H

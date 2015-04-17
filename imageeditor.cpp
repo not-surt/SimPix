@@ -10,10 +10,11 @@
 #include "imagedocument.h"
 
 ImageEditor::ImageEditor(ImageDocument &p_document, QWidget *parent) :
-    QOpenGLWidget(parent), Editor(p_document), m_transform(), m_tiled(false), m_tileX(true), m_tileY(true), panKeyDown(false), m_showAlpha(true), m_showBounds(false), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true), viewToWorld(), worldToClip()
+    QOpenGLWidget(parent), Editor(p_document), m_transform(), m_tiled(false), m_tileX(true), m_tileY(true), grabCount(0), m_showAlpha(true), m_showBounds(false), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true), viewToWorld(), worldToClip(), transformAroundCursor(true)
 {
     ImageDocument &image = static_cast<ImageDocument &>(document);
     setMouseTracking(true);
+    setFocusPolicy(Qt::StrongFocus);
 
 //    m_transform.setPan(-QPointF(floor((float)image.imageData()->size.width() / 2.f), floor((float)image.imageData()->size.height() / 2.f)));
     updateTransform();
@@ -49,18 +50,15 @@ void ImageEditor::resizeGL(int w, int h)
         {halfWidth + xOffset, halfHeight + yOffset},
         {-halfWidth + xOffset, halfHeight + yOffset},
     };
-    qDebug() << -halfWidth + xOffset << halfWidth + xOffset;
     glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     worldToClip.setToIdentity();
     worldToClip.scale(1.f / halfWidth, -1.f / halfHeight);
     worldToClip.translate(-xOffset, -yOffset);
-//    qDebug() << "worldToClip" << worldToClip.map(QPointF(-halfWidth, -halfHeight)) << worldToClip.map(QPointF(halfWidth, halfHeight));
 
     viewToWorld.setToIdentity();
     viewToWorld.translate(-halfWidth + xOffset, -halfHeight + yOffset);
-//    qDebug() << "viewToWorld" << viewToWorld.map(QPointF(0, 0)) << viewToWorld.map(QPointF(w, h));
 }
 
 void ImageEditor::paintGL()
@@ -200,17 +198,9 @@ void ImageEditor::drawBrush(const QPoint &point, const Colour &colour)
 
     int brushStyle = 2;
     if (brushStyle == 0) {
-        QPoint wrapPoint = point;
-        if (m_tiled) {
-            if (m_tileX) {
-                wrapPoint.setX((int)round(wrap((float)wrapPoint.x(), 0.f, (float)image.imageData()->size.width())));
-            }
-            if (m_tileY) {
-                wrapPoint.setY((int)round(wrap((float)wrapPoint.y(), 0.f, (float)image.imageData()->size.height())));
-            }
-        }
-        image.setPixel(wrapPoint, colour);
-        qDebug() << point << wrapPoint;
+        QPoint wrappedPoint = wrapPoint(point).toPoint();
+        image.setPixel(wrappedPoint, colour);
+        qDebug() << point << wrappedPoint;
     }
     else {
         int toolSpace = 0;
@@ -343,6 +333,24 @@ void ImageEditor::drawLine(const QPoint &point0, const QPoint &point1, const Col
     doLine(point0, point1, colour, &ImageEditor::drawBrush);
 }
 
+void ImageEditor::grabPush()
+{
+    if (grabCount == 0) {
+        QApplication::setOverrideCursor(Qt::ClosedHandCursor);
+        grabPos = mouseLastPos;
+        grabImagePos = mouseLastImagePos;
+    }
+    grabCount++;
+}
+
+void ImageEditor::grabPop()
+{
+    grabCount--;
+    if (grabCount == 0) {
+        QApplication::restoreOverrideCursor();
+    }
+}
+
 void ImageEditor::point(const QPoint &point, EditingContext *const editingContext)
 {
     ImageDocument &image = static_cast<ImageDocument &>(document);
@@ -366,18 +374,10 @@ void ImageEditor::stroke(const QPoint &start, const QPoint &end, EditingContext 
 void ImageEditor::pick(const QPoint &point, EditingContext *const editingContext)
 {
     ImageDocument &image = static_cast<ImageDocument &>(document);
-    QPoint wrapPoint = point;
-    if (m_tiled) {
-        if (m_tileX) {
-            wrapPoint.setX((int)round(wrap((float)wrapPoint.x(), 0.f, (float)image.imageData()->size.width())));
-        }
-        if (m_tileY) {
-            wrapPoint.setY((int)round(wrap((float)wrapPoint.y(), 0.f, (float)image.imageData()->size.height())));
-        }
-    }
+    QPoint wrappedPoint = wrapPoint(point).toPoint();
     Colour colour;
-    if (image.imageData()->rect.contains(wrapPoint)) {
-        colour = image.pixel(wrapPoint);
+    if (image.imageData()->rect.contains(wrappedPoint)) {
+        colour = image.pixel(wrappedPoint);
     }
     else {
         colour = editingContext->colourSlot(EditingContext::ColourSlot::Background);
@@ -385,19 +385,37 @@ void ImageEditor::pick(const QPoint &point, EditingContext *const editingContext
     editingContext->setColourSlot(colour, editingContext->activeColourSlot());
 }
 
+QPointF ImageEditor::wrapPoint(const QPointF &point)
+{
+    ImageDocument &image = static_cast<ImageDocument &>(document);
+    QPointF wrappedPoint(point);
+    if (m_tiled) {
+        if (m_tileX) {
+            wrappedPoint.setX((int)round(wrap((float)wrappedPoint.x(), 0.f, (float)image.imageData()->size.width())));
+        }
+        if (m_tileY) {
+            wrappedPoint.setY((int)round(wrap((float)wrappedPoint.y(), 0.f, (float)image.imageData()->size.height())));
+        }
+    }
+    return wrappedPoint;
+}
+
+QPointF ImageEditor::snapPoint(const QPointF &point)
+{
+
+}
+
 void ImageEditor::mousePressEvent(QMouseEvent *event)
 {
     QMatrix4x4 matrix = m_transform.inverseMatrix() * viewToWorld;
     mouseLastPos = event->pos();
     mouseLastImagePos = matrix.map(QPointF(event->pos()));
-    if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
+    if (event->button() == Qt::LeftButton) {
         QApplication::setOverrideCursor(Qt::CrossCursor);
         event->accept();
     }
-    else if (event->button() == Qt::MiddleButton || (event->button() == Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
-        QApplication::setOverrideCursor(Qt::ClosedHandCursor);
-        mouseGrabPos = event->pos();
-        mouseGrabImagePos = matrix.map(QPointF(event->pos()));
+    else if (event->button() == Qt::MiddleButton) {
+        grabPush();
         event->accept();
     }
     else if (event->button() == Qt::RightButton) {
@@ -417,39 +435,29 @@ void ImageEditor::mouseMoveEvent(QMouseEvent *event)
     const QPointF mouseImagePos = matrix.map(QPointF(event->pos()));
     const QPoint lastPixel = QPoint(floor(mouseLastImagePos.x()), floor(mouseLastImagePos.y()));
     const QPoint pixel = QPoint(floor(mouseImagePos.x()), floor(mouseImagePos.y()));
-    QPoint wrapPoint = pixel;
-    if (m_tiled) {
-        if (m_tileX) {
-            wrapPoint.setX((int)round(wrap((float)wrapPoint.x(), 0.f, (float)image.imageData()->size.width())));
-        }
-        if (m_tileY) {
-            wrapPoint.setY((int)round(wrap((float)wrapPoint.y(), 0.f, (float)image.imageData()->size.height())));
-        }
-    }
+    QPoint wrappedPoint = wrapPoint(pixel).toPoint();
     if (rect().contains(event->pos())) {
         Colour colour;
 //        if (pixel != lastPixel && image.imageData()->rect.contains(pixel)) {
         if (pixel != lastPixel) {
             GLContextGrabber grab(APP->shareWidget());
-            colour = image.pixel(wrapPoint);
-            emit mousePixelChanged(wrapPoint, colour);
+            colour = image.pixel(wrappedPoint);
+            emit mousePixelChanged(wrappedPoint, colour);
         }
     }
-    if (!panKeyDown && event->buttons() & Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
+    if (inGrab()) {
+        m_transform.setPan(m_transform.pan() - grabImagePos + mouseImagePos);
+        updateTransform();
+        event->accept();
+    }
+    else if (event->buttons() & Qt::LeftButton) {
         GLContextGrabber grab(APP->shareWidget());
         stroke(lastPixel, pixel, &m_editingContext);
-        mouseLastPos = event->pos();
-        mouseLastImagePos = mouseImagePos;
         event->accept();
     }
     else if (event->buttons() & Qt::RightButton) {
         GLContextGrabber grab(APP->shareWidget());
-        pick(pixel, &editingContext());
-        event->accept();
-    }
-    else if (panKeyDown || event->buttons() & Qt::MiddleButton || (event->buttons() & Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
-        m_transform.setPan(m_transform.pan() - mouseGrabImagePos + mouseImagePos);
-        updateTransform();
+        pick(pixel, &m_editingContext);
         event->accept();
     }
     else {
@@ -464,15 +472,15 @@ void ImageEditor::mouseReleaseEvent(QMouseEvent *event)
     ImageDocument &image = static_cast<ImageDocument &>(document);
     QMatrix4x4 matrix = m_transform.inverseMatrix() * viewToWorld;
     QPointF mouseImagePos = matrix.map(QPointF(event->pos()));
-    if (event->button() == Qt::LeftButton && !(event->modifiers() & Qt::CTRL)) {
+    if (event->button() == Qt::LeftButton) {
         GLContextGrabber grab(APP->shareWidget());
         const QPoint pixel = QPoint(floor(mouseImagePos.x()), floor(mouseImagePos.y()));
         point(pixel, &m_editingContext);
         QApplication::restoreOverrideCursor();
         event->accept();
     }
-    else if (event->button() == Qt::MiddleButton || (event->button() == Qt::LeftButton && event->modifiers() & Qt::CTRL)) {
-        QApplication::restoreOverrideCursor();
+    else if (event->button() == Qt::MiddleButton) {
+        grabPop();
         event->accept();
     }
     else if (event->button() == Qt::RightButton) {
@@ -490,41 +498,40 @@ void ImageEditor::mouseReleaseEvent(QMouseEvent *event)
 
 void ImageEditor::wheelEvent(QWheelEvent *event)
 {
-    const bool transformAroundCursor = true;
+    int zoomDelta = event->angleDelta().y();
+    int rotateDelta = -event->angleDelta().x();
     if (event->modifiers() & Qt::SHIFT) {
-        const float angle = event->angleDelta().y() > 0 ? 15 : (event->angleDelta().y() < 0 ? -15 : 0);
-        m_transform.setRotation(m_transform.rotation() + angle);
-        if (transformAroundCursor) {
-            const QPointF mouseImagePos = m_transform.inverseMatrix().map(QPointF(event->pos()));
-            const QPointF mouseDelta = mouseImagePos - m_transform.pan();
-        }
-        updateTransform();
-        event->accept();
+        std::swap(zoomDelta, rotateDelta);
     }
-    else {
-        auto zoomToNearestIndex = [](const float zoom, const bool halfSteps = true, const float zoomStep = 2) {
-            const float exponent = round(log(zoom) / log(zoomStep));
-            const float halfStep = pow(zoomStep, exponent - 1);
-            const float remainder = zoom - zoomStep * halfStep;
-            const float rounding = round(remainder / halfStep);
-            return (int)(exponent * 2 + rounding);
-        };
-        int index = zoomToNearestIndex(m_transform.zoom()) + (event->angleDelta().y() > 0 ? 1 : 0) + (event->angleDelta().y() < 0 ? -1 : 0);
 
-        auto indexToZoom = [](const int index, const bool halfSteps = true, const float zoomStep = 2) {
-            const float exponent = floor((float)index / (float)2);
-            const float halfStep = pow(zoomStep, exponent - 1);
-            return zoomStep * halfStep + (index - (2 * exponent) == 1 ? halfStep : 0);
-        };
-        m_transform.setZoom(indexToZoom(index));
-
-        if (transformAroundCursor) {
-            const QPointF mouseImagePos = m_transform.inverseMatrix().map(QPointF(event->pos()));
-
-        }
-        updateTransform();
-        event->accept();
+//    const float angle = (rotateDelta > 0 ? 15 : 0) + (rotateDelta < 0 ? -15 : 0);
+    const float angle = rotateDelta / 8.;
+    m_transform.setRotation(m_transform.rotation() + angle);
+    if (transformAroundCursor) {
+        const QPointF mouseImagePos = m_transform.inverseMatrix().map(QPointF(event->pos()));
+        const QPointF mouseDelta = mouseImagePos - m_transform.pan();
     }
+
+    auto zoomToNearestIndex = [](const float zoom, const bool halfSteps = true, const float zoomStep = 2) {
+        const float exponent = round(log(zoom) / log(zoomStep));
+        const float halfStep = pow(zoomStep, exponent - 1);
+        const float remainder = zoom - zoomStep * halfStep;
+        const float rounding = round(remainder / halfStep);
+        return (int)(exponent * 2 + rounding);
+    };
+    int index = zoomToNearestIndex(m_transform.zoom()) + (zoomDelta > 0 ? 1 : 0) + (zoomDelta < 0 ? -1 : 0);
+    auto indexToZoom = [](const int index, const bool halfSteps = true, const float zoomStep = 2) {
+        const float exponent = floor((float)index / (float)2);
+        const float halfStep = pow(zoomStep, exponent - 1);
+        return zoomStep * halfStep + (index - (2 * exponent) == 1 ? halfStep : 0);
+    };
+    m_transform.setZoom(indexToZoom(index));
+    if (transformAroundCursor) {
+        const QPointF mouseImagePos = m_transform.inverseMatrix().map(QPointF(event->pos()));
+    }
+
+    updateTransform();
+    event->accept();
 }
 
 void ImageEditor::tabletEvent(QTabletEvent *event)
@@ -540,10 +547,8 @@ void ImageEditor::tabletEvent(QTabletEvent *event)
 void ImageEditor::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Space && !event->isAutoRepeat()) {
-        panKeyDown = true;
-        mouseLastPos = mapFromGlobal(QCursor::pos());
-//        grabMouse();
-        QApplication::setOverrideCursor(Qt::ClosedHandCursor);
+        grabPush();
+        grabMouse();
         event->accept();
     }
     else {
@@ -554,9 +559,8 @@ void ImageEditor::keyPressEvent(QKeyEvent *event)
 void ImageEditor::keyReleaseEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Space && !event->isAutoRepeat()) {
-        panKeyDown = false;
-//        releaseMouse();
-        QApplication::restoreOverrideCursor();
+        releaseMouse();
+        grabPop();
         event->accept();
     }
     else {
