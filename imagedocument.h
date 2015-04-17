@@ -9,9 +9,11 @@ class ImageDocument : public Document
 {
     Q_OBJECT
 public:
-    explicit ImageDocument(const QSize &size, TextureDataFormat::Id format, QObject *parent = nullptr);
+    explicit ImageDocument(const QSize &size, TextureData::Format::Id format, QObject *parent = nullptr);
     explicit ImageDocument(const QString &fileName, const char *format = nullptr, QObject *parent = nullptr);
     ~ImageDocument();
+    Colour pixel(const QPoint &position);
+    void setPixel(const QPoint &position, const Colour &colour);
 
     Editor *createEditor();
     static ImageDocument *newGui(QWidget *const parent = nullptr);
@@ -20,7 +22,7 @@ public:
     bool saveGui(QWidget *const parent = nullptr);
     bool saveAsGui(QWidget *const parent = nullptr);
 
-    TextureDataFormat::Id format() const { return m_imageData->format; }
+    TextureData::Format::Id format() const { return m_imageData->format; }
     ImageData *imageData() { return m_imageData; }
     PaletteData *paletteData() { return m_paletteData; }
 

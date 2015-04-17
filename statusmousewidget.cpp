@@ -22,10 +22,10 @@ void StatusMouseWidget::setMouseInfo(const QPoint &position, const Colour &colou
     ui->colourSwatch->show();
     qDebug() << "ststus" << colour.bytes;
     QString text = QString("<b>R:</b>%1, <b>G:</b>%2, <b>B:</b>%3, <b>A:</b>%4")
-            .arg(colour.components.r)
-            .arg(colour.components.g)
-            .arg(colour.components.b)
-            .arg(colour.components.a);
+            .arg(colour.r)
+            .arg(colour.g)
+            .arg(colour.b)
+            .arg(colour.a);
     if (colour.index >= 0) {
         text += QString(", <b>Index:</b>%1").arg(colour.index);
     }

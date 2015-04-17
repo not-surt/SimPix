@@ -354,7 +354,7 @@ void MainWindow::newImage()
 {
     NewDialog *dialog = new NewDialog(this);
     if (dialog->exec()) {
-        ImageDocument *image = new ImageDocument(dialog->imageSize(), dialog->mode());
+        ImageDocument *image = new ImageDocument(dialog->imageSize(), dialog->format());
         m_images.append(image);
         ImageEditor *editor = static_cast<ImageEditor *>(image->createEditor());
         newEditorSubWindow(editor);

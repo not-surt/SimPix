@@ -6,33 +6,28 @@
 #include <QDir>
 #include <QFileDialog>
 
-ImageDocument::ImageDocument(const QSize &size, TextureDataFormat::Id format, QObject *parent) :
+ImageDocument::ImageDocument(const QSize &size, TextureData::Format::Id format, QObject *parent) :
     Document(QString(), parent), m_imageData(nullptr), m_paletteData(nullptr)
 {
     GLContextGrabber grab(APP->shareWidget());
 
-    if (format == TextureDataFormat::Id::Invalid) {
-        qDebug() << "Invalid image format";
-        return;
-    }
-
     uint fillColour = 0;
-    if (format == TextureDataFormat::Id::Indexed) {
+    if (format == TextureData::Format::Indexed) {
         m_paletteData = new PaletteData(2);
-        m_paletteData->setColour(0, qRgba(0, 0, 0, 255));
-        m_paletteData->setColour(1, qRgba(255, 255, 255, 255));
+//        m_paletteData->setColour(0, qRgba(0, 0, 0, 255));
+//        m_paletteData->setColour(1, qRgba(255, 255, 255, 255));
         fillColour = 1;
 //        m_contextColours[ContextColour::Primary] = 1;
 //        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = 0;
     }
-    else if (format == TextureDataFormat::Id::RGBA) {
+    else if (format == TextureData::Format::RGBA) {
         fillColour = qRgba(255, 0, 0, 255);
 //        m_contextColours[ContextColour::Primary] = qRgba(255, 255, 255, 255);
 //        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = qRgba(0, 0, 0, 0);
     }
 
     m_imageData = new ImageData(size, format);
-    m_imageData->clear(fillColour);
+//    m_imageData->clear(fillColour);
 }
 
 ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QObject *parent) :
@@ -57,18 +52,14 @@ ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QO
         }
     }
 
-    TextureDataFormat::Id format;
+    TextureData::Format::Id format;
     switch (image.format()) {
     case QImage::Format_Indexed8:
-        format = TextureDataFormat::Id::Indexed;
+        format = TextureData::Format::Indexed;
         break;
     case QImage::Format_ARGB32:
-        format = TextureDataFormat::Id::RGBA;
+        format = TextureData::Format::RGBA;
         break;
-    default:
-        format = TextureDataFormat::Id::Invalid;
-        qDebug() << "Invalid image format";
-        return;
     }
 
     m_paletteData = nullptr;
@@ -77,7 +68,7 @@ ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QO
     }
 
     switch (format) {
-    case TextureDataFormat::Id::Indexed:
+    case TextureData::Format::Indexed:
         if (m_paletteData && m_paletteData->length() > 0) {
 //            m_contextColours[ContextColour::Primary] = m_paletteData->colour(m_paletteData->length() - 1);
         }
@@ -86,7 +77,7 @@ ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QO
         }
 //        m_contextColours[ContextColour::Secondary] = 0;
         break;
-    case TextureDataFormat::Id::RGBA:
+    case TextureData::Format::RGBA:
 //        m_contextColours[ContextColour::Primary] = qRgba(255, 255, 255, 255);
 //        m_contextColours[ContextColour::Secondary] = qRgba(0, 0, 0, 0);
         break;
@@ -100,6 +91,36 @@ ImageDocument::~ImageDocument()
     GLContextGrabber grab(APP->shareWidget());
     delete m_imageData;
     delete m_paletteData;
+}
+
+Colour ImageDocument::pixel(const QPoint &position)
+{
+    GLubyte index = -1;
+    Rgba rgba;
+    if (m_imageData->format == TextureData::Format::Indexed) {
+        m_imageData->readPixel(position, &index);
+        if (m_paletteData) {
+            rgba = m_paletteData->colour(index);
+        }
+        else {
+            rgba = Rgba(index, index, index, 255);
+        }
+    }
+    else if (m_imageData->format == TextureData::Format::RGBA) {
+        m_imageData->readPixel(position, rgba.bytes);
+    }
+    return Colour(rgba, index);
+}
+
+void ImageDocument::setPixel(const QPoint &position, const Colour &colour)
+{
+    if (m_imageData->format == TextureData::Format::Indexed) {
+        GLubyte index = colour.index;
+        m_imageData->writePixel(position, &index);
+    }
+    else if (m_imageData->format == TextureData::Format::RGBA) {
+        m_imageData->writePixel(position, colour.bytes);
+    }
 }
 
 Editor *ImageDocument::createEditor() {
@@ -176,10 +197,10 @@ bool ImageDocument::doSave(QString fileName)
     uchar *data = m_imageData->readData();
     QImage::Format format;
     switch (m_imageData->format) {
-    case TextureDataFormat::Id::Indexed:
+    case TextureData::Format::Indexed:
         format = QImage::Format_Indexed8;
         break;
-    case TextureDataFormat::Id::RGBA:
+    case TextureData::Format::RGBA:
         format = QImage::Format_ARGB32;
         break;
     default:

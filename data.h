@@ -6,49 +6,43 @@
 #include <QMatrix4x4>
 #include <QOpenGLFunctions_3_3_Core>
 
-class ImageEditor;
-
-struct TextureDataFormat
-{
-    enum class Id {
-        Indexed,
-        RGBA,
-        Invalid,
+struct Rgba {
+    union {
+        GLuint rgba;
+        GLubyte bytes[4];
+        struct {
+            GLubyte b;
+            GLubyte g;
+            GLubyte r;
+            GLubyte a;
+        };
     };
-    Id id;
-    char name[16];
-    GLint internalFormat;
-    GLint format;
-    GLint glEnum;
-    GLint size;
-    GLenum buffers[2];
+
+    explicit Rgba(const GLuint rgba = 0x00000000)
+        : rgba(rgba) {}
+    explicit Rgba(const GLubyte *const bytes) { if (bytes) { memcpy(this->bytes, bytes, 4 * sizeof(GLubyte)); } }
+    explicit Rgba(const GLubyte r, const GLubyte g, const GLubyte b, const GLubyte a)
+        : b(b), g(g), r(r), a(a) {}
+    Rgba(const Rgba &rgba)
+        : Rgba(rgba.rgba) {}
+    inline bool operator==(const Rgba &rhs) { return this->rgba == rhs.rgba; }
+    inline bool operator!=(const Rgba &rhs) { return !this->operator==(rhs); }
 };
 
-extern const TextureDataFormat TEXTURE_DATA_FORMATS[];
+struct Colour : Rgba {
+    GLshort index;
 
-#define B(uint) (uint & 0x000000ff)
-#define G(uint) ((uint & 0x0000ff00) >> 8)
-#define R(uint) ((uint & 0x00ff0000) >> 16)
-#define A(uint) ((uint & 0xff000000) >> 24)
-
-struct Colour {
-    union {
-        uint rgba;
-        uchar bytes[4];
-        struct {
-            uchar b;
-            uchar g;
-            uchar r;
-            uchar a;
-        } components;
-    };
-    short index;
-
-    explicit Colour(const uint p_rgba = 0, const int p_index = -1)
-        : rgba(p_rgba), index(p_index) {}
+    explicit Colour(const GLuint rgba = 0x00000000, const GLshort index = -1)
+        : Rgba(rgba), index(index) {}
+    explicit Colour(const Rgba rgba, const GLshort index = -1)
+        : Rgba(rgba), index(index) {}
+    explicit Colour(const GLubyte *const bytes, const GLshort index = -1)
+        : Rgba(bytes), index(index) {}
+    explicit Colour(const GLubyte r, const GLubyte g, const GLubyte b, const GLubyte a, const GLshort index = -1)
+        : Rgba(r, g, b, a), index(index) {}
     Colour(const Colour &colour)
         : Colour(colour.rgba, colour.index) {}
-    inline bool operator==(const Colour &rhs) { return this->rgba == rhs.rgba && this->index == rhs.index; }
+    inline bool operator==(const Colour &rhs) { return this->Rgba::operator==(rhs) && this->index == rhs.index; }
     inline bool operator!=(const Colour &rhs) { return !this->operator==(rhs); }
 };
 
@@ -59,36 +53,47 @@ public:
     QSurface *const surface;
 
     explicit OpenGLData()
-        : context(QOpenGLContext::currentContext()), surface(context ? context->surface() : nullptr)
-    {
-        initializeOpenGLFunctions();
-    }
+        : context(QOpenGLContext::currentContext()), surface(context ? context->surface() : nullptr) { initializeOpenGLFunctions(); }
 };
 
 class TextureData : public OpenGLData
 {
 public:
+    struct Format {
+        enum Id {
+            Indexed,
+            RGBA,
+        };
+        Id id;
+        char *name;
+        GLint internalFormat;
+        GLint format;
+        GLint glEnum;
+        GLint size;
+        GLenum buffers[2];
+    };
+    static const Format FORMATS[2];
+
     const QSize size;
-    const TextureDataFormat::Id format;
-    const QMatrix4x4 projectionMatrix;
+    const Format::Id format;
     const GLuint texture;
     const GLuint framebuffer;
 
-    explicit TextureData(const QSize &size, const TextureDataFormat::Id format, const GLubyte *const data = nullptr);
+    explicit TextureData(const QSize &size, const Format::Id format, const GLubyte *const data = nullptr);
     ~TextureData();
-    uint pixel(const QPoint &position);
-    void setPixel(const QPoint &position, const uint colour);
-    GLubyte *readData(GLubyte *const data = nullptr);
+    GLubyte *readPixel(const QPoint &position, GLubyte *const buffer = nullptr);
+    void writePixel(const QPoint &position, const GLubyte *const data);
+    GLubyte *readData(GLubyte *const buffer = nullptr);
     void writeData(const GLubyte *const data);
-    void clear(const uint colour);
+    void clear(const Colour &colour);
 };
 
 class PaletteData : public TextureData
 {
 public:
     explicit PaletteData(const GLuint length, const GLubyte *const data = nullptr);
-    uint colour(const uint index) { return pixel(QPoint(index, 0)); }
-    void setColour(const uint index, uint colour) { setPixel(QPoint(index, 0), colour); }
+    Rgba colour(const uint index) { Rgba rgba; readPixel(QPoint(index, 0), rgba.bytes); return rgba; }
+    void setColour(const uint index, const Rgba &rgba) { writePixel(QPoint(index, 0), rgba.bytes); }
     GLuint length() const { return size.width(); }
 };
 
@@ -96,34 +101,11 @@ class ImageData : public TextureData
 {
 public:
     const QRect rect;
+    const QMatrix4x4 projectionMatrix;
     const GLuint vertexBuffer;
 
-    explicit ImageData(const QSize &size, const TextureDataFormat::Id format, const GLubyte *const data = nullptr);
+    explicit ImageData(const QSize &size, const Format::Id format, const GLubyte *const data = nullptr);
     ~ImageData();
 };
-
-//class ImageLayerCel
-//{
-//public:
-//    ImageLayerCel()
-//        : m_begin(0.f), m_end(0.f), m_imageData(nullptr), m_paletteData(nullptr) {}
-
-//protected:
-//    float m_begin, m_end;
-//    ImageData *m_imageData;
-//    PaletteData *m_paletteData;
-//};
-
-//class ImageLayer
-//{
-//public:
-//    ImageLayer()
-//        : m_cels(), transform(), m_paletteData(nullptr) {}
-
-//protected:
-//    QList<ImageLayerCel> m_cels;
-//    Transform transform;
-//    PaletteData *m_paletteData;
-//};
 
 #endif // DATA_H

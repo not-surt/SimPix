@@ -34,7 +34,7 @@ const Colour &ColourSwatch::colour() const
 void ColourSwatch::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
-    drawColourSwatch(&painter, rect(), QColor(m_colour.components.r, m_colour.components.g, m_colour.components.b, m_colour.components.a));
+    drawColourSwatch(&painter, rect(), QColor(m_colour.r, m_colour.g, m_colour.b, m_colour.a));
 
     if (hasFocus()) {
         QStyleOptionFocusRect option;

@@ -40,10 +40,9 @@ QVariant PaletteModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole) {
 //        qDebug() << "2:" << m_editingContext << m_editingContext->palette();
-        QRgb colour;
         GLContextGrabber grab(APP->shareWidget());
-        colour = m_editingContext->palette()->colour(index.row());
-        return QColor(qRed(colour), qGreen(colour), qBlue(colour), qAlpha(colour));
+        Rgba colour  = m_editingContext->palette()->colour(index.row());
+        return QColor(colour.r, colour.g, colour.b, colour.a);
     }
     else {
         return QVariant();
@@ -84,7 +83,7 @@ bool PaletteModel::setData(const QModelIndex &index, const QVariant &value, int 
     }
     else {
         GLContextGrabber grab(APP->shareWidget());
-        m_editingContext->palette()->setColour(index.row(), value.value<QColor>().rgba());
+        m_editingContext->palette()->setColour(index.row(), Rgba(value.value<QColor>().rgba()));
         emit dataChanged(index, index);
         return true;
     }

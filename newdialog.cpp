@@ -1,11 +1,8 @@
 #include "newdialog.h"
-#include "ui_newdialog.h"
 
 #include <QMenu>
 #include <QSettings>
 #include <QDebug>
-
-#include "document.h"
 
 static const QSize sizePresets[] = {
     {50, 50}, {100, 100}, {200, 200},
@@ -31,7 +28,7 @@ static const QSizeF pixelSizePresets[] = {
 typedef struct ImagePreset {
     QSize size;
     QSize pixelSize;
-    QImage::Format mode;
+    QImage::Format format;
     QString palette;
     QVariant fill;
     QVariant transparent;
@@ -51,11 +48,12 @@ NewDialog::NewDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->modeComboBox->addItem("Indexed", (int)TextureDataFormat::Id::Indexed);
-    ui->modeComboBox->addItem("RGBA", (int)TextureDataFormat::Id::RGBA);
-//    for (int i = 0; IMAGE_DATA_FORMATS[i].id != ImageDataFormat::Invalid; ++i) {
-//        ui->modeComboBox->addItem(IMAGE_DATA_FORMATS[i].NAME, (int)IMAGE_DATA_FORMATS[i].id);
-//    }
+//    ui->formatComboBox->addItem("Indexed", (int)TextureData::Format::Indexed);
+//    ui->formatComboBox->addItem("RGBA", (int)TextureData::Format::RGBA);
+    static const int LENGTH = sizeof(TextureData::FORMATS) / sizeof(TextureData::Format);
+    for (int i = 0; i < LENGTH; i++) {
+        ui->formatComboBox->addItem(TextureData::FORMATS[i].name, (int)TextureData::FORMATS[i].id);
+    }
 
     QMenu *presetMenu = new QMenu;
     for (int i = 0; sizePresets[i].isValid() || sizePresets[i+1].isValid(); ++i) {
@@ -77,7 +75,7 @@ NewDialog::NewDialog(QWidget *parent) :
     restoreGeometry(settings.value("window/new/geometry").toByteArray());
     ui->widthSpinBox->setValue(settings.value("window/new/lastSize").toSize().width());
     ui->heightSpinBox->setValue(settings.value("window/new/lastSize").toSize().height());
-    ui->modeComboBox->setCurrentIndex(settings.value("window/new/lastMode").toInt());
+    ui->formatComboBox->setCurrentIndex(settings.value("window/new/lastFormat").toInt());
 }
 
 NewDialog::~NewDialog()
@@ -97,27 +95,11 @@ void NewDialog::closeEvent(QCloseEvent *event)
     QDialog::closeEvent(event);
 }
 
-QSize NewDialog::imageSize() const
-{
-    return QSize(ui->widthSpinBox->value(), ui->heightSpinBox->value());
-}
-
-TextureDataFormat::Id NewDialog::mode() const
-{
-    return static_cast<TextureDataFormat::Id>(ui->modeComboBox->currentData().toInt());
-}
-
-int NewDialog::palette() const
-{
-    return ui->modeComboBox->currentIndex();
-}
-
-
 void NewDialog::accept()
 {
     QSettings settings;
     settings.setValue("window/new/geometry", saveGeometry());
     settings.setValue("window/new/lastSize", QSize(ui->widthSpinBox->value(), ui->heightSpinBox->value()));
-    settings.setValue("window/new/lastMode", ui->modeComboBox->currentIndex());
+    settings.setValue("window/new/lastFormat", ui->formatComboBox->currentIndex());
     QDialog::accept();
 }

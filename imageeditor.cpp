@@ -136,7 +136,7 @@ void ImageEditor::paintGL()
     GLint antialiasUniform = glGetUniformLocation(program, "antialias");
     glUniform1i(antialiasUniform, m_antialias);
     GLint isIndexedUniform = glGetUniformLocation(program, "isIndexed");
-    glUniform1i(isIndexedUniform, (image.imageData()->format == TextureDataFormat::Id::Indexed));
+    glUniform1i(isIndexedUniform, (image.imageData()->format == TextureData::Format::Indexed));
     GLint hasPaletteUniform = glGetUniformLocation(program, "hasPalette");
     glUniform1i(hasPaletteUniform, (image.paletteData() != nullptr));
     GLint paletteTextureUnitUniform = glGetUniformLocation(program, "paletteTextureUnit");
@@ -194,7 +194,7 @@ void ImageEditor::paintGL()
     }
 }
 
-void ImageEditor::drawBrush(const QPoint &point, const uint colour)
+void ImageEditor::drawBrush(const QPoint &point, const Colour &colour)
 {
     ImageDocument &image = static_cast<ImageDocument &>(document);
 
@@ -209,7 +209,7 @@ void ImageEditor::drawBrush(const QPoint &point, const uint colour)
                 wrapPoint.setY((int)round(wrap((float)wrapPoint.y(), 0.f, (float)image.imageData()->size.height())));
             }
         }
-        image.imageData()->setPixel(wrapPoint, colour);
+        image.setPixel(wrapPoint, colour);
         qDebug() << point << wrapPoint;
     }
     else {
@@ -268,16 +268,16 @@ void ImageEditor::drawBrush(const QPoint &point, const uint colour)
 
         glBindBuffer(GL_ARRAY_BUFFER, APP->brushVertexBuffer);
 
-        bool isIndexed = image.imageData()->format == TextureDataFormat::Id::Indexed;
+        bool isIndexed = image.imageData()->format == TextureData::Format::Indexed;
         GLint isIndexedUniform = glGetUniformLocation(program, "isIndexed");
         glUniform1ui(isIndexedUniform, isIndexed);
         if (isIndexed) {
             GLint indexUniform = glGetUniformLocation(program, "index");
-            glUniform1ui(indexUniform, colour);
+            glUniform1ui(indexUniform, colour.index);
         }
         else {
             GLint colourUniform = glGetUniformLocation(program, "colour");
-            glUniform4ui(colourUniform, R(colour), G(colour), B(colour), A(colour));
+            glUniform4ui(colourUniform, colour.r, colour.g, colour.b, colour.a);
         }
 
         GLint matrixUniform = glGetUniformLocation(program, "matrix");
@@ -306,7 +306,7 @@ void ImageEditor::drawBrush(const QPoint &point, const uint colour)
     }
 }
 
-void ImageEditor::doLine(const QPoint &point0, const QPoint &point1, const uint colour, PointCallback pointCallback, const bool inclusive)
+void ImageEditor::doLine(const QPoint &point0, const QPoint &point1, const Colour &colour, PointCallback pointCallback, const bool inclusive)
 {
     QPoint delta = point1 - point0;
     const int stepX = sign(delta.x()), stepY = sign(delta.y());
@@ -338,7 +338,7 @@ void ImageEditor::doLine(const QPoint &point0, const QPoint &point1, const uint 
     }
 }
 
-void ImageEditor::drawLine(const QPoint &point0, const QPoint &point1, const uint colour)
+void ImageEditor::drawLine(const QPoint &point0, const QPoint &point1, const Colour &colour)
 {
     doLine(point0, point1, colour, &ImageEditor::drawBrush);
 }
@@ -347,13 +347,7 @@ void ImageEditor::point(const QPoint &point, EditingContext *const editingContex
 {
     ImageDocument &image = static_cast<ImageDocument &>(document);
     PointCallback pointCallback = &ImageEditor::drawBrush;
-    uint colour;
-    if (image.paletteData()) {
-        colour = editingContext->colourSlot(editingContext->activeColourSlot()).index;
-    }
-    else {
-        colour = editingContext->colourSlot(editingContext->activeColourSlot()).rgba;
-    }
+    Colour colour = editingContext->colourSlot(editingContext->activeColourSlot());
     (this->*pointCallback)(point, colour);
     image.fileInfo.makeDirty();
 }
@@ -363,13 +357,7 @@ void ImageEditor::stroke(const QPoint &start, const QPoint &end, EditingContext 
     ImageDocument &image = static_cast<ImageDocument &>(document);
     PointCallback pointCallback = &ImageEditor::drawBrush;
     SegmentCallback segmentCallback = &ImageEditor::doLine;
-    uint colour;
-    if (image.paletteData()) {
-        colour = editingContext->colourSlot(editingContext->activeColourSlot()).index;
-    }
-    else {
-        colour = editingContext->colourSlot(editingContext->activeColourSlot()).rgba;
-    }
+    Colour colour = editingContext->colourSlot(editingContext->activeColourSlot());
     (this->*segmentCallback)(start, end, colour, pointCallback, true);
 //    undoStack->push(new StrokeCommand(*m_image, a, b));
     image.fileInfo.makeDirty();
@@ -389,18 +377,7 @@ void ImageEditor::pick(const QPoint &point, EditingContext *const editingContext
     }
     Colour colour;
     if (image.imageData()->rect.contains(wrapPoint)) {
-        if (image.format() == TextureDataFormat::Id::Indexed) {
-            colour.index = image.imageData()->pixel(wrapPoint);
-            if (image.paletteData()) {
-                colour.rgba = image.paletteData()->colour(colour.index);
-            }
-            else {
-                colour.rgba = qRgba(colour.index, colour.index, colour.index, 255);
-            }
-        }
-        else if (image.format() == TextureDataFormat::Id::RGBA) {
-            colour.rgba = image.imageData()->pixel(wrapPoint);
-        }
+        colour = image.pixel(wrapPoint);
     }
     else {
         colour = editingContext->colourSlot(EditingContext::ColourSlot::Background);
@@ -454,13 +431,7 @@ void ImageEditor::mouseMoveEvent(QMouseEvent *event)
 //        if (pixel != lastPixel && image.imageData()->rect.contains(pixel)) {
         if (pixel != lastPixel) {
             GLContextGrabber grab(APP->shareWidget());
-            if (image.imageData()->format == TextureDataFormat::Id::Indexed) {
-                colour.index = image.imageData()->pixel(wrapPoint);
-                colour.rgba = image.paletteData()->colour(colour.index);
-            }
-            else {
-                colour.rgba = image.imageData()->pixel(wrapPoint);
-            }
+            colour = image.pixel(wrapPoint);
             emit mousePixelChanged(wrapPoint, colour);
         }
     }

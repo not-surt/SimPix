@@ -132,11 +132,11 @@ protected:
     virtual void keyReleaseEvent(QKeyEvent * event);
     virtual void enterEvent(QEvent *const event);
     virtual void leaveEvent(QEvent * const event);
-    typedef void (ImageEditor::*PointCallback)(const QPoint &point, const uint colour);
-    typedef void (ImageEditor::*SegmentCallback)(const QPoint &point0, const QPoint &point1, const uint colour, PointCallback callback, const bool inclusive);
-    void drawBrush(const QPoint &point, const uint colour);
-    void doLine(const QPoint &point0, const QPoint &point1, const uint colour, PointCallback callback, const bool inclusive = true);
-    void drawLine(const QPoint &point0, const QPoint &point1, const uint colour);
+    typedef void (ImageEditor::*PointCallback)(const QPoint &point, const Colour &colour);
+    typedef void (ImageEditor::*SegmentCallback)(const QPoint &point0, const QPoint &point1, const Colour &colour, PointCallback callback, const bool inclusive);
+    void drawBrush(const QPoint &point, const Colour &colour);
+    void doLine(const QPoint &point0, const QPoint &point1, const Colour &colour, PointCallback callback, const bool inclusive = true);
+    void drawLine(const QPoint &point0, const QPoint &point1, const Colour &colour);
 
 private:
     Transform m_transform;

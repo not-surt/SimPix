@@ -1,9 +1,9 @@
 #ifndef NEWDIALOG_H
 #define NEWDIALOG_H
 
-#include "document.h"
-
 #include <QDialog>
+#include "data.h"
+#include "ui_newdialog.h"
 
 namespace Ui {
 class NewDialog;
@@ -17,9 +17,9 @@ class NewDialog : public QDialog
 public:
     explicit NewDialog(QWidget *parent = nullptr);
     ~NewDialog();
-    QSize imageSize() const;
-    TextureDataFormat::Id mode() const;
-    int palette() const;
+    QSize imageSize() const { return QSize(ui->widthSpinBox->value(), ui->heightSpinBox->value()); }
+    TextureData::Format::Id format() const { return static_cast<TextureData::Format::Id>(ui->formatComboBox->currentData().toInt()); }
+    int palette() const { return ui->formatComboBox->currentIndex(); }
 protected:
     virtual void closeEvent(QCloseEvent *event);
 private:
