@@ -9,31 +9,31 @@
 ImageDocument::ImageDocument(const QSize &size, TextureData::Format::Id format, QObject *parent) :
     Document(QString(), parent), m_imageData(nullptr), m_paletteData(nullptr)
 {
-    GLContextGrabber grab(APP->shareWidget());
+    GLContextGrabber grab(&APP->shareWidget);
 
-    uint fillColour = 0;
+    Colour fillColour;
     if (format == TextureData::Format::Indexed) {
         m_paletteData = new PaletteData(2);
-//        m_paletteData->setColour(0, qRgba(0, 0, 0, 255));
-//        m_paletteData->setColour(1, qRgba(255, 255, 255, 255));
-        fillColour = 1;
+        m_paletteData->setColour(0, Rgba(0, 0, 0, 0));
+        m_paletteData->setColour(1, Rgba(255, 255, 255, 255));
+        fillColour.index = 1;
 //        m_contextColours[ContextColour::Primary] = 1;
 //        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = 0;
     }
     else if (format == TextureData::Format::RGBA) {
-        fillColour = qRgba(255, 0, 0, 255);
+        fillColour = Colour(0, 0, 0, 0);
 //        m_contextColours[ContextColour::Primary] = qRgba(255, 255, 255, 255);
 //        m_contextColours[ContextColour::Secondary] = m_contextColours[ContextColour::Eraser] = qRgba(0, 0, 0, 0);
     }
 
     m_imageData = new ImageData(size, format);
-//    m_imageData->clear(fillColour);
+    clear(fillColour);
 }
 
 ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QObject *parent) :
     Document(fileName, parent), m_imageData(nullptr), m_paletteData(nullptr)
 {
-    GLContextGrabber grab(APP->shareWidget());
+    GLContextGrabber grab(&APP->shareWidget);
 
     QImage image(fileInfo.fileName(), fileFormat);
     if (!image.isNull()) {
@@ -88,7 +88,7 @@ ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QO
 
 ImageDocument::~ImageDocument()
 {
-    GLContextGrabber grab(APP->shareWidget());
+    GLContextGrabber grab(&APP->shareWidget);
     delete m_imageData;
     delete m_paletteData;
 }
@@ -120,6 +120,18 @@ void ImageDocument::setPixel(const QPoint &position, const Colour &colour)
     }
     else if (m_imageData->format == TextureData::Format::RGBA) {
         m_imageData->writePixel(position, colour.bytes);
+    }
+}
+
+void ImageDocument::clear(const Colour &colour)
+{
+    if (m_imageData->format == TextureData::Format::Indexed) {
+        GLubyte index = colour.index;
+        m_imageData->clear(&index);
+    }
+    else if (m_imageData->format == TextureData::Format::RGBA) {
+        GLubyte buffer[4] = {colour.r, colour.g, colour.b, colour.a};
+        m_imageData->clear(buffer);
     }
 }
 
@@ -193,7 +205,7 @@ bool ImageDocument::doOpen(QString fileName)
 bool ImageDocument::doSave(QString fileName)
 {
 
-    APP->shareWidget()->makeCurrent();
+    GLContextGrabber grab(&APP->shareWidget);
     uchar *data = m_imageData->readData();
     QImage::Format format;
     switch (m_imageData->format) {

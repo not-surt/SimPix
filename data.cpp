@@ -7,8 +7,8 @@
 #include "util.h"
 
 const TextureData::Format TextureData::FORMATS[] = {
-    {Format::Indexed, "Indexed", GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte), {GL_COLOR_ATTACHMENT0, GL_NONE}},
-    {Format::RGBA, "RGBA", GL_RGBA8UI, GL_BGRA_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte) * 4, {GL_NONE, GL_COLOR_ATTACHMENT0}},
+    {Format::Indexed, "Indexed", GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte), {GL_COLOR_ATTACHMENT0, GL_NONE}, 0},
+    {Format::RGBA, "RGBA", GL_RGBA8UI, GL_BGRA_INTEGER, GL_UNSIGNED_BYTE, sizeof(GLubyte) * 4, {GL_NONE, GL_COLOR_ATTACHMENT0}, 1},
 };
 
 TextureData::TextureData(const QSize &size, const Format::Id format, const GLubyte *const data) :
@@ -33,7 +33,7 @@ TextureData::TextureData(const QSize &size, const Format::Id format, const GLuby
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
         glDrawBuffers(2, format->buffers);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         return framebuffer; }())
 {
 }
@@ -74,16 +74,17 @@ void TextureData::writeData(const GLubyte *const data)
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size.width(), size.height(), FORMATS[(int)format].format, FORMATS[(int)format].glEnum, data);
 }
 
-void TextureData::clear(const Colour &colour)
+void TextureData::clear(const GLubyte *const data)
 {
-    static GLuint buffer[4];
+    const TextureData::Format *const format = &FORMATS[(int)this->format];
+    GLuint buffer[format->size];
+
+    for (int i = 0; i < format->size; i++) {
+        buffer[i] = data[i];
+    }
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
-    buffer[0] = colour.r;
-    buffer[1] = colour.g;
-    buffer[2] = colour.b;
-    buffer[3] = colour.a;
-    glClearBufferuiv(GL_COLOR, 0, buffer);
+    glClearBufferuiv(GL_COLOR, format->outputBuffer, buffer);
 }
 
 PaletteData::PaletteData(const GLuint length, const GLubyte *const data) :

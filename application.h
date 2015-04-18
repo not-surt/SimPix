@@ -17,16 +17,17 @@
 class Application : public QApplication, public QOpenGLFunctions_3_3_Core
 {
 public:
+    static const QString fileDialogFilterString;
+
+    QOpenGLWidget &shareWidget;
+
     explicit Application(int &argc, char **argv);
     ~Application();
-
-    static const QString fileDialogFilterString;
 
     bool addShader(const QString &name, const QOpenGLShader::ShaderType type, const QString &src);
     GLuint shader(const QString &name) { return m_shaders[name]->shaderId(); }
     bool addProgram(const QString &name, const QStringList &shaders);
     GLuint program(const QString &name) { return m_programs[name]->programId(); }
-    QOpenGLWidget *shareWidget() { return m_shareWidget; }
     Session *session() { return m_session; }
     static const GLfloat brushVertices[][2];
     GLuint brushVertexBuffer;
@@ -37,7 +38,6 @@ private:
     QHash<QString, QOpenGLShader *> m_shaders;
     QHash<QString, QOpenGLShaderProgram *> m_programs;
     MainWindow *m_window;
-    QOpenGLWidget *m_shareWidget;
     Session *m_session;
 };
 

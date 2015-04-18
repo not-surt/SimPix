@@ -14,6 +14,7 @@ public:
     ~ImageDocument();
     Colour pixel(const QPoint &position);
     void setPixel(const QPoint &position, const Colour &colour);
+    void clear(const Colour &colour);
 
     Editor *createEditor();
     static ImageDocument *newGui(QWidget *const parent = nullptr);

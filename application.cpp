@@ -16,10 +16,18 @@ const QString Application::fileDialogFilterString = tr(
             "PNG Image Files (*.png);;"
             "GIF Image Files (*.gif);;"
             "BMP Image Files (*.bmp);;"
-            "JPEG Image Files (*.jpeg *.jpg)");
+            "JPEG Image Files (*.jpeg *.jpg);;");
 
 Application::Application(int &argc, char **argv) :
-    QApplication(argc, argv), m_shaders(), m_programs(), m_window(nullptr), m_shareWidget(nullptr), m_session(new Session)
+    QApplication(argc, argv), m_shaders(), m_programs(), m_window(nullptr), m_session(new Session),
+    shareWidget((({
+        QSurfaceFormat format;
+        format.setVersion(3, 3);
+//        format.setProfile(QSurfaceFormat::CoreProfile);
+//        format.setProfile(QSurfaceFormat::CompatibilityProfile);
+        format.setRenderableType(QSurfaceFormat::OpenGL);
+        QSurfaceFormat::setDefaultFormat(format);
+    }), *new QOpenGLWidget()))
 {
     setWindowIcon(QIcon(":/images/simpix-48x48.png"));
 
@@ -41,33 +49,29 @@ Application::Application(int &argc, char **argv) :
 
     swatchBackgroundPixmap = generateBackgroundPixmap(16);
 
-    QSurfaceFormat format;
-    format.setVersion(3, 3);
-//    format.setProfile(QSurfaceFormat::CoreProfile);
-    format.setProfile(QSurfaceFormat::CompatibilityProfile);
-    format.setRenderableType(QSurfaceFormat::OpenGL);
-    QSurfaceFormat::setDefaultFormat(format);
-    qDebug() << "Default" << "Version:" << "Major" << QSurfaceFormat::defaultFormat().majorVersion() << "Minor" << QSurfaceFormat::defaultFormat().minorVersion() << "Profile" << QSurfaceFormat::defaultFormat().profile();
+    auto formatInfo = [](const QSurfaceFormat &format, const QString &label) {
+        qDebug() <<  qPrintable(label) << "Format:" << "Major" << format.majorVersion() << "Minor" << format.minorVersion() << "Profile" << format.profile();
+    };
 
-    m_window = new MainWindow;
+    formatInfo(QSurfaceFormat::defaultFormat(), "Default");
 
-    m_shareWidget = new QOpenGLWidget;
-//    m_shareWidget->setFormat(format); // For windows?
+//    m_shareWidget = new QOpenGLWidget;
+//    shareWidget.setFormat(format); // For windows?
     // Show to initialize share widget
-    m_shareWidget->show();
-    m_shareWidget->hide();
-    qDebug() << "Context valid:" << m_shareWidget->context()->isValid();
-    qDebug() << "Share" << "Version:" << "Major" << m_shareWidget->context()->format().majorVersion() << "Minor" << m_shareWidget->context()->format().minorVersion() << "Profile" << m_shareWidget->context()->format().profile();
-    m_shareWidget->makeCurrent();
+    shareWidget.show();
+    shareWidget.hide();
+    qDebug() << "Context valid:" << shareWidget.context()->isValid();
+    formatInfo(shareWidget.context()->format(), "Share");
+    shareWidget.makeCurrent();
 
     {
-        GLContextGrabber grab(m_shareWidget);
+        GLContextGrabber grab(&shareWidget);
         initializeOpenGLFunctions();
 
         glGenBuffers((GLsizei)1, &brushVertexBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, brushVertexBuffer);
         glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), brushVertices, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+//        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         QDirIterator iterator(":/shaders");
         while (iterator.hasNext()) {
@@ -82,13 +86,14 @@ Application::Application(int &argc, char **argv) :
         addProgram("brushrectangle", {"brush.vert", "brushrectangle.frag"});
     }
 
+    m_window = new MainWindow;
     m_window->show();
 }
 
 Application::~Application()
 {
     {
-        GLContextGrabber grab(m_shareWidget);
+        GLContextGrabber grab(&shareWidget);
 
         QHashIterator<QString, QOpenGLShaderProgram *> program(m_programs);
         while (program.hasNext()) {
@@ -104,7 +109,7 @@ Application::~Application()
     }
 
     m_window->deleteLater();
-    m_shareWidget->deleteLater();
+    shareWidget.deleteLater();
 
     delete swatchBackgroundPixmap;
 }

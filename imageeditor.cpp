@@ -16,7 +16,7 @@ ImageEditor::ImageEditor(ImageDocument &p_document, QWidget *parent) :
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
 
-//    m_transform.setPan(-QPointF(floor((float)image.imageData()->size.width() / 2.f), floor((float)image.imageData()->size.height() / 2.f)));
+    m_transform.setPan(-QPointF(floor((float)image.imageData()->size.width() / 2.f), floor((float)image.imageData()->size.height() / 2.f)));
     updateTransform();
     m_editingContext.setImage(image.imageData());
     m_editingContext.setPalette(image.paletteData());
@@ -30,6 +30,10 @@ ImageEditor::~ImageEditor()
 void ImageEditor::initializeGL()
 {
     initializeOpenGLFunctions();
+
+    [](const QSurfaceFormat &format, const QString &label) {
+        qDebug() <<  qPrintable(label) << "Format:" << "Major" << format.majorVersion() << "Minor" << format.minorVersion() << "Profile" << format.profile();
+    }(this->context()->format(), "Editor");
 
     glDisable(GL_BLEND);
     glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
@@ -51,7 +55,7 @@ void ImageEditor::resizeGL(int w, int h)
         {-halfWidth + xOffset, halfHeight + yOffset},
     };
     glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+//    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     worldToClip.setToIdentity();
     worldToClip.scale(1.f / halfWidth, -1.f / halfHeight);
@@ -89,7 +93,7 @@ void ImageEditor::paintGL()
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
         glDisableVertexAttribArray(positionAttrib);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+//        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     QRect tilingBounds(0, 0, 1, 1);
@@ -155,9 +159,9 @@ void ImageEditor::paintGL()
     glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, numberOfInstances);
 
     glDisableVertexAttribArray(positionAttrib);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+//    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glUseProgram(0);
+//    glUseProgram(0);
 
     if (m_showAlpha) {
         glDisable(GL_BLEND);
@@ -186,9 +190,9 @@ void ImageEditor::paintGL()
         glDrawArrays(GL_LINE_LOOP, 0, 4);
 
         glDisableVertexAttribArray(positionAttrib);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+//        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        glUseProgram(0);
+//        glUseProgram(0);
     }
 }
 
@@ -289,10 +293,10 @@ void ImageEditor::drawBrush(const QPoint &point, const Colour &colour)
         glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, numberOfInstances);
 
         glDisableVertexAttribArray(positionAttrib);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+//        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        glUseProgram(0);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//        glUseProgram(0);
+//        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 }
 
@@ -440,7 +444,7 @@ void ImageEditor::mouseMoveEvent(QMouseEvent *event)
         Colour colour;
 //        if (pixel != lastPixel && image.imageData()->rect.contains(pixel)) {
         if (pixel != lastPixel) {
-            GLContextGrabber grab(APP->shareWidget());
+            GLContextGrabber grab(&APP->shareWidget);
             colour = image.pixel(wrappedPoint);
             emit mousePixelChanged(wrappedPoint, colour);
         }
@@ -451,12 +455,12 @@ void ImageEditor::mouseMoveEvent(QMouseEvent *event)
         event->accept();
     }
     else if (event->buttons() & Qt::LeftButton) {
-        GLContextGrabber grab(APP->shareWidget());
+        GLContextGrabber grab(&APP->shareWidget);
         stroke(lastPixel, pixel, &m_editingContext);
         event->accept();
     }
     else if (event->buttons() & Qt::RightButton) {
-        GLContextGrabber grab(APP->shareWidget());
+        GLContextGrabber grab(&APP->shareWidget);
         pick(pixel, &m_editingContext);
         event->accept();
     }
@@ -473,7 +477,7 @@ void ImageEditor::mouseReleaseEvent(QMouseEvent *event)
     QMatrix4x4 matrix = m_transform.inverseMatrix() * viewToWorld;
     QPointF mouseImagePos = matrix.map(QPointF(event->pos()));
     if (event->button() == Qt::LeftButton) {
-        GLContextGrabber grab(APP->shareWidget());
+        GLContextGrabber grab(&APP->shareWidget);
         const QPoint pixel = QPoint(floor(mouseImagePos.x()), floor(mouseImagePos.y()));
         point(pixel, &m_editingContext);
         QApplication::restoreOverrideCursor();
@@ -486,7 +490,7 @@ void ImageEditor::mouseReleaseEvent(QMouseEvent *event)
     else if (event->button() == Qt::RightButton) {
         const QPoint pixel = QPoint(floor(mouseImagePos.x()), floor(mouseImagePos.y()));
 //            Scene::ContextColour context = (event->modifiers() & Qt::SHIFT) ? Scene::Secondary : Scene::Primary;
-        GLContextGrabber grab(APP->shareWidget());
+        GLContextGrabber grab(&APP->shareWidget);
         pick(pixel, &editingContext());
         QApplication::restoreOverrideCursor();
         event->accept();

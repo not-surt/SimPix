@@ -71,6 +71,7 @@ public:
         GLint glEnum;
         GLint size;
         GLenum buffers[2];
+        GLint outputBuffer;
     };
     static const Format FORMATS[2];
 
@@ -85,7 +86,7 @@ public:
     void writePixel(const QPoint &position, const GLubyte *const data);
     GLubyte *readData(GLubyte *const buffer = nullptr);
     void writeData(const GLubyte *const data);
-    void clear(const Colour &colour);
+    void clear(const GLubyte *const data);
 };
 
 class PaletteData : public TextureData
