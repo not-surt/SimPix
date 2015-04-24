@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="SessionView" name="sessionView"/>
+  <widget class="QWidget" name="centralWidget"/>
   <widget class="QToolBar" name="toolBar">
    <property name="windowTitle">
     <string>toolBar</string>
@@ -33,7 +33,9 @@
   </widget>
   <action name="actionOpenDocument">
    <property name="icon">
-    <iconset theme="document-open"/>
+    <iconset theme="document-open">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Open Document</string>
@@ -41,7 +43,9 @@
   </action>
   <action name="actionNewDocument">
    <property name="icon">
-    <iconset theme="document-new"/>
+    <iconset theme="document-new">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>New Document</string>
@@ -49,21 +53,15 @@
   </action>
   <action name="actionCloseDocument">
    <property name="icon">
-    <iconset theme="document-close"/>
+    <iconset theme="document-close">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Close Document</string>
    </property>
   </action>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>SessionView</class>
-   <extends>QWidget</extends>
-   <header>sessionwidget.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -64,8 +64,6 @@ private:
     MdiArea *m_mdi;
     StatusMouseWidget *m_statusMouseWidget;
     SubWindow *m_oldSubWindow;
-    QList<ImageDocument *> m_images;
-    QStringList files;
     static const QString fileDialogFilterString;
     QList<QMetaObject::Connection> activeSubWindowConnections;
 };

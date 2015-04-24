@@ -33,7 +33,8 @@ SOURCES += main.cpp\
     widgets.cpp \
     actions.cpp \
     sessionwidget.cpp \
-    palettewidget.cpp
+    palettewidget.cpp \
+    treemodel.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
@@ -56,7 +57,11 @@ HEADERS  += mainwindow.h \
     widgets.h \
     actions.h \
     sessionwidget.h \
-    palettewidget.h
+    palettewidget.h \
+    treemodel.h \
+    stable.h
+
+PRECOMPILED_HEADER = stable.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \

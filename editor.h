@@ -1,15 +1,29 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
+#include "session.h"
+
 class Document;
 
-class Editor
+class Editor : public SessionItem
 {
 public:
-    explicit Editor(Document &_document) :
-        document(_document) {}
     Document &document;
-protected:
+
+    explicit Editor(Document &document, const QString &name = QString());
+    ~Editor();
+
+    QString typeName() const {
+        return "Editor";
+    }
+    TreeModelItem *child(int row) override {
+        return nullptr;
+    }
+    int childCount() const override {
+        return 0;
+    }
+    TreeModelItem *parent();
+    int row();
 };
 
 #endif // EDITOR_H

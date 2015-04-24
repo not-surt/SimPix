@@ -165,22 +165,6 @@
    <addaction name="actionRedo"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QToolBar" name="toolBarTool">
-   <property name="windowTitle">
-    <string>Tools</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>LeftToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="actionToolPaint"/>
-   <addaction name="actionToolErase"/>
-   <addaction name="actionToolPick"/>
-   <addaction name="actionToolSelect"/>
-   <addaction name="actionToolTransform"/>
-  </widget>
   <widget class="QDockWidget" name="paletteDockWidget">
    <property name="windowTitle">
     <string>&amp;Palette</string>
@@ -260,26 +244,6 @@
    <addaction name="actionShowAlpha"/>
    <addaction name="actionAntialias"/>
    <addaction name="actionShowBounds"/>
-  </widget>
-  <widget class="QToolBar" name="toolBarMode">
-   <property name="windowTitle">
-    <string>Mode</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>LeftToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="actionModePixel"/>
-   <addaction name="actionModeBrush"/>
-   <addaction name="actionModeLasso"/>
-   <addaction name="actionModePolygon"/>
-   <addaction name="actionModeLine"/>
-   <addaction name="actionModeRectangle"/>
-   <addaction name="actionModeEllipse"/>
-   <addaction name="actionModeFlood"/>
-   <addaction name="actionModeMatchColour"/>
   </widget>
   <widget class="QToolBar" name="toolBarBrush">
    <property name="windowTitle">

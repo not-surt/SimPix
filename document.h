@@ -3,6 +3,7 @@
 
 #include "data.h"
 #include <QFileInfo>
+#include "session.h"
 
 class Editor;
 
@@ -43,20 +44,45 @@ protected:
     bool m_dirty;
 };
 
-class Document : public QObject
+class Document : public QObject, public SessionItem
 {
     Q_OBJECT
 public:
-    explicit Document(const QString &fileName = QString(), QObject *parent = nullptr);
-    virtual ~Document() {}
+    FileInfo fileInfo;
+    QList<Editor *> editors;
+    Session &session;
+
+    explicit Document(Session &session, const QString &fileName = QString());
+    virtual ~Document();
 
     bool revert() { return doOpen(fileInfo.fileName()); }
     bool save(QString fileName = QString());
     virtual Editor *createEditor() = 0;
 
-
-    QSet<Editor *> editors;
-    FileInfo fileInfo;
+    QString typeName() const {
+        return "Document";
+    }
+    TreeModelItem *child(int row) override;
+    int childCount() const override {
+        return editors.count();
+    }
+    TreeModelItem *parent() {
+        return &session;
+    }
+    int row() {
+        return session.documents.indexOf(this);
+    }
+    QVariant data(int column) const{
+        if (column == 2) {
+            return fileInfo.shortName();
+        }
+        else if (column == 3) {
+            return childCount();
+        }
+        else {
+            return SessionItem::data(column);
+        }
+    }
 
 signals:
 
@@ -81,25 +107,25 @@ protected:
 //    PaletteData *m_paletteData;
 //};
 
-struct DocumentType {
-    char *id;
-    char **extensions;
-    Document *(*create)();
-    Document *(*open)(const QString &fileName);
-};
+//struct DocumentType {
+//    char *id;
+//    char **extensions;
+//    Document *(*create)();
+//    Document *(*open)(const QString &fileName);
+//};
 
-extern const struct DocumentType DOCUMENT_TYPES[];
+//extern const struct DocumentType DOCUMENT_TYPES[];
 
-class DocumentFactory {
-public:
-    enum DocumentType {
-        Image,
-        Palette
-    };
-    bool create(const DocumentType type) { Q_UNUSED(type); }
-    bool open(QString fileName) { Q_UNUSED(fileName); }
-    QMap<QString, Document *(*)()> creators;
-private:
-};
+//class DocumentFactory {
+//public:
+//    enum DocumentType {
+//        Image,
+//        Palette
+//    };
+//    bool create(const DocumentType type) { Q_UNUSED(type); }
+//    bool open(QString fileName) { Q_UNUSED(fileName); }
+//    QMap<QString, Document *(*)()> creators;
+//private:
+//};
 
 #endif // DOCUMENT_H

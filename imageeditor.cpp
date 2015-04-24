@@ -13,6 +13,7 @@ ImageEditor::ImageEditor(ImageDocument &p_document, QWidget *parent) :
     QOpenGLWidget(parent), Editor(p_document), m_transform(), m_tiled(false), m_tileX(true), m_tileY(true), grabCount(0), m_showAlpha(true), m_showBounds(false), m_vertexBuffer(0), m_editingContext(), m_limitTransform(true), viewToWorld(), worldToClip(), transformAroundCursor(true)
 {
     ImageDocument &image = static_cast<ImageDocument &>(document);
+
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
 
@@ -24,7 +25,7 @@ ImageEditor::ImageEditor(ImageDocument &p_document, QWidget *parent) :
 
 ImageEditor::~ImageEditor()
 {
-
+    ImageDocument &image = static_cast<ImageDocument &>(document);
 }
 
 void ImageEditor::initializeGL()
@@ -34,6 +35,11 @@ void ImageEditor::initializeGL()
     [](const QSurfaceFormat &format, const QString &label) {
         qDebug() <<  qPrintable(label) << "Format:" << "Major" << format.majorVersion() << "Minor" << format.minorVersion() << "Profile" << format.profile();
     }(this->context()->format(), "Editor");
+    [](QOpenGLContext &context) {
+        qDebug() <<  "Sharing?" << QOpenGLContext::areSharing(&context, APP->shareWidget.context());
+    }(*context());
+
+    glGenVertexArrays(1, &m_vertexArray);
 
     glDisable(GL_BLEND);
     glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
@@ -67,6 +73,9 @@ void ImageEditor::resizeGL(int w, int h)
 
 void ImageEditor::paintGL()
 {
+//    glDrawBuffer(GL_COLOR_ATTACHMENT0);/////////////////////////////////////
+    glClearColor(1, std::rand() / (float)RAND_MAX, 0, 1);///////////////////////////////////////////
+    glClear(GL_COLOR_BUFFER_BIT);////////////////////////////////////////////////////
     ImageDocument &image = static_cast<ImageDocument &>(document);
     if (!m_tiled || !m_tileX || !m_tileY || m_showAlpha) {
         GLuint program = APP->program("checkerboard");
@@ -85,6 +94,7 @@ void ImageEditor::paintGL()
         GLint matrixUniform = glGetUniformLocation(program, "matrix");
         glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, worldToClip.constData());
 
+        glBindVertexArray(m_vertexArray);
         GLint positionAttrib = glGetAttribLocation(program, "position");
         glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
         glEnableVertexAttribArray(positionAttrib);
@@ -112,7 +122,6 @@ void ImageEditor::paintGL()
             tilingBounds.setBottom((int)floor(bounds.bottom() / image.imageData()->size.height()));
         }
     }
-//    qDebug() << tilingBounds;
 
     const int numberOfInstances = tilingBounds.width() * tilingBounds.height();
 
@@ -151,6 +160,7 @@ void ImageEditor::paintGL()
     GLint matrixUniform = glGetUniformLocation(program, "matrix");
     glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (worldToClip * m_transform.matrix()).constData());
 
+    glBindVertexArray(m_vertexArray);
     GLint positionAttrib = glGetAttribLocation(program, "position");
     glBindBuffer(GL_ARRAY_BUFFER, image.imageData()->vertexBuffer);
     glEnableVertexAttribArray(positionAttrib);

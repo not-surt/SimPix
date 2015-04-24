@@ -2,31 +2,57 @@
 #define SESSION_H
 
 #include <QList>
-#include "document.h"
-#include "editor.h"
+#include "treemodel.h"
 
-#include <QObject>
-
-class Session : public QObject
+class SessionItem : public TreeModelItem
 {
-    Q_OBJECT
 public:
-    explicit Session(QObject *parent = nullptr);
-    explicit Session(const QString &fileName, QObject *parent = nullptr);
-    virtual ~Session() {}
+    explicit SessionItem(const QString &name = QString())
+        : m_name(name) {}
+    virtual ~SessionItem() {}
+    virtual QString typeName() const = 0;
+    QString name() const {
+        return m_name;
+    }
+    QVariant data(int column) const{
+        if (column == 0) {
+            return typeName();
+        }
+        else if (column == 1) {
+            return name();
+        }
+        else {
+            return QVariant();
+        }
+    }
 
-    bool save(QString fileName = QString());
+protected:
+    QString m_name;
+};
 
-    FileInfo fileInfo;
+class Document;
+
+class Session : public SessionItem
+{
+public:
     QList<QWidget *> windows;
     QList<Document *> documents;
-    QList<Editor *> editors;
 
-signals:
-
-public slots:
-
-private:
+    explicit Session(const QString &name = QString())
+        : SessionItem(name), windows(), documents() {}
+    QString typeName() const {
+        return "Session";
+    }
+    TreeModelItem *child(int row) override;
+    int childCount() const override {
+        return documents.count();
+    }
+    TreeModelItem *parent() {
+        return nullptr;
+    }
+    int row() {
+        return 0;
+    }
 };
 
 #endif // SESSION_H

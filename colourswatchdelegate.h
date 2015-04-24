@@ -1,5 +1,6 @@
 #ifndef COLOURSWATCHDELEGATE_H
 #define COLOURSWATCHDELEGATE_H
+
 #include <QStyledItemDelegate>
 
 class ColourSwatchDelegate : public QStyledItemDelegate

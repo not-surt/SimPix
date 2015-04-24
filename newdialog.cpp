@@ -3,6 +3,7 @@
 #include <QMenu>
 #include <QSettings>
 #include <QDebug>
+#include "application.h"
 
 static const QSize sizePresets[] = {
     {50, 50}, {100, 100}, {200, 200},
@@ -71,11 +72,10 @@ NewDialog::NewDialog(QWidget *parent) :
     }
     ui->presetButton->setMenu(presetMenu);
 
-    QSettings settings;
-    restoreGeometry(settings.value("window/new/geometry").toByteArray());
-    ui->widthSpinBox->setValue(settings.value("window/new/lastSize").toSize().width());
-    ui->heightSpinBox->setValue(settings.value("window/new/lastSize").toSize().height());
-    ui->formatComboBox->setCurrentIndex(settings.value("window/new/lastFormat").toInt());
+    restoreGeometry(APP->settings.value("window/new/geometry").toByteArray());
+    ui->widthSpinBox->setValue(APP->settings.value("window/new/lastSize").toSize().width());
+    ui->heightSpinBox->setValue(APP->settings.value("window/new/lastSize").toSize().height());
+    ui->formatComboBox->setCurrentIndex(APP->settings.value("window/new/lastFormat").toInt());
 }
 
 NewDialog::~NewDialog()
@@ -97,9 +97,8 @@ void NewDialog::closeEvent(QCloseEvent *event)
 
 void NewDialog::accept()
 {
-    QSettings settings;
-    settings.setValue("window/new/geometry", saveGeometry());
-    settings.setValue("window/new/lastSize", QSize(ui->widthSpinBox->value(), ui->heightSpinBox->value()));
-    settings.setValue("window/new/lastFormat", ui->formatComboBox->currentIndex());
+    APP->settings.setValue("window/new/geometry", saveGeometry());
+    APP->settings.setValue("window/new/lastSize", QSize(ui->widthSpinBox->value(), ui->heightSpinBox->value()));
+    APP->settings.setValue("window/new/lastFormat", ui->formatComboBox->currentIndex());
     QDialog::accept();
 }

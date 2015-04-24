@@ -12,5 +12,8 @@
         <file>shaders/brushrectangle.frag</file>
         <file>text/ABOUT</file>
         <file>text/LICENSE</file>
+        <file>images/actions.png</file>
+        <file>images/cursors.png</file>
+        <file>images/objects.png</file>
     </qresource>
 </RCC>

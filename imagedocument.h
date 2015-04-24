@@ -9,8 +9,8 @@ class ImageDocument : public Document
 {
     Q_OBJECT
 public:
-    explicit ImageDocument(const QSize &size, TextureData::Format::Id format, QObject *parent = nullptr);
-    explicit ImageDocument(const QString &fileName, const char *format = nullptr, QObject *parent = nullptr);
+    explicit ImageDocument(Session &session, const QSize &size, TextureData::Format::Id format);
+    explicit ImageDocument(Session &session, const QString &fileName, const char *format = nullptr);
     ~ImageDocument();
     Colour pixel(const QPoint &position);
     void setPixel(const QPoint &position, const Colour &colour);

@@ -6,8 +6,8 @@
 #include <QDir>
 #include <QFileDialog>
 
-ImageDocument::ImageDocument(const QSize &size, TextureData::Format::Id format, QObject *parent) :
-    Document(QString(), parent), m_imageData(nullptr), m_paletteData(nullptr)
+ImageDocument::ImageDocument(Session &session, const QSize &size, TextureData::Format::Id format) :
+    Document(session, QString()), m_imageData(nullptr), m_paletteData(nullptr)
 {
     GLContextGrabber grab(&APP->shareWidget);
 
@@ -30,8 +30,8 @@ ImageDocument::ImageDocument(const QSize &size, TextureData::Format::Id format, 
     clear(fillColour);
 }
 
-ImageDocument::ImageDocument(const QString &fileName, const char *fileFormat, QObject *parent) :
-    Document(fileName, parent), m_imageData(nullptr), m_paletteData(nullptr)
+ImageDocument::ImageDocument(Session &session, const QString &fileName, const char *fileFormat) :
+    Document(session, fileName), m_imageData(nullptr), m_paletteData(nullptr)
 {
     GLContextGrabber grab(&APP->shareWidget);
 
@@ -154,19 +154,18 @@ ImageDocument *ImageDocument::openGui(QWidget *const parent)
 
 bool ImageDocument::saveGui(QWidget *const parent)
 {
-    QSettings settings;
-    settings.beginGroup("file");
+    APP->settings.beginGroup("file");
     if (fileInfo.fileName().isNull()) {
         return saveAsGui();
     }
     if (save()) {
-        settings.setValue("lastSaved", fileInfo.fileName());
+        APP->settings.setValue("lastSaved", fileInfo.fileName());
         return true;
     }
     else {
         QMessageBox::critical(parent, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(fileInfo.fileName()).fileName()));
     }
-    settings.endGroup();
+    APP->settings.endGroup();
 }
 
 void ImageDocument::closeGui(QWidget *const parent)
@@ -175,26 +174,25 @@ void ImageDocument::closeGui(QWidget *const parent)
 
 bool ImageDocument::saveAsGui(QWidget *const parent)
 {
-    QSettings settings;
-    settings.beginGroup("file");
+    APP->settings.beginGroup("file");
     QString newFileName;
     if (!fileInfo.fileName().isNull()) {
         newFileName = fileInfo.fileName();
     }
     else {
-        QFileInfo fileInfo(settings.value("lastSaved", QDir::homePath()).toString());
+        QFileInfo fileInfo(APP->settings.value("lastSaved", QDir::homePath()).toString());
         newFileName = fileInfo.dir().path();
     }
     newFileName = QFileDialog::getSaveFileName(parent, tr("Save Image"), newFileName, APP->fileDialogFilterString);
     if (!newFileName.isNull()) {
         if (save(newFileName)) {
-            settings.setValue("lastSaved", newFileName);
+            APP->settings.setValue("lastSaved", newFileName);
         }
         else {
             QMessageBox::critical(parent, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(newFileName).fileName()));
         }
     }
-    settings.endGroup();
+    APP->settings.endGroup();
 }
 
 bool ImageDocument::doOpen(QString fileName)

@@ -9,10 +9,15 @@
 #include <QDir>
 #include "newdialog.h"
 
-Document::Document(const QString &fileName, QObject *parent) :
-    QObject(parent), fileInfo(fileName)
+Document::Document(Session &session, const QString &fileName) :
+    QObject(), fileInfo(fileName), editors(), session(session)
 {
+   session.documents.append(this);
+}
 
+Document::~Document()
+{
+    session.documents.removeOne(this);
 }
 
 bool Document::save(QString fileName)
@@ -31,7 +36,11 @@ bool Document::save(QString fileName)
     return saved;
 }
 
-const struct DocumentType DOCUMENT_TYPES[] = {
-//    {"image", (char *[]){"png", "gif", "bmp"}, &ImageDocument::create, &ImageDocument::open},
-    {"palette", (char *[]){"gpl", "pal"}, nullptr, nullptr},
-};
+TreeModelItem *Document::child(int row) {
+    return editors.value(row);
+}
+
+//const struct DocumentType DOCUMENT_TYPES[] = {
+////    {"image", (char *[]){"png", "gif", "bmp"}, &ImageDocument::create, &ImageDocument::open},
+//    {"palette", (char *[]){"gpl", "pal"}, nullptr, nullptr},
+//};

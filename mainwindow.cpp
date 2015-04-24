@@ -52,7 +52,7 @@ QSize MdiArea::subWindowSizeOverhead() const
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_mdi(nullptr),m_statusMouseWidget(nullptr), m_oldSubWindow(nullptr), m_images()
+    ui(new Ui::MainWindow), m_mdi(nullptr), m_statusMouseWidget(nullptr), m_oldSubWindow(nullptr)
 {    
     ui->setupUi(this);
     m_mdi = new MdiArea;
@@ -180,15 +180,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->toolBarLayout->hide();
     activateSubWindow(nullptr);
 
-    QSettings settings;
-    settings.beginGroup("window");
-    restoreGeometry(settings.value("geometry").toByteArray());
-    restoreState(settings.value("state").toByteArray());
-    settings.endGroup();
+    APP->settings.beginGroup("window");
+    restoreGeometry(APP->settings.value("geometry").toByteArray());
+    restoreState(APP->settings.value("state").toByteArray());
+    APP->settings.endGroup();
 //    toolbars = findChildren<QToolBar *>();
 //    toolbar = QListIterator<QToolBar *>(toolbars);
 //    while (toolbar.hasNext()) {
-//        toolbar.next()->restoreGeometry(settings.value(QString("window/geometry").arg(toolbar.objectName())).toByteArray());
+//        toolbar.next()->restoreGeometry(APP->settings.value(QString("window/geometry").arg(toolbar.objectName())).toByteArray());
 //    }
 }
 
@@ -313,12 +312,10 @@ void MainWindow::closeEvent(QCloseEvent *event)
 //        event->ignore();
     }
     else {
-        QSettings settings;
-        settings.beginGroup("window");
-        settings.setValue("geometry", saveGeometry());
-        settings.setValue("state", saveState());
-        settings.endGroup();
-        QMainWindow::closeEvent(event);
+        APP->settings.beginGroup("window");
+        APP->settings.setValue("geometry", saveGeometry());
+        APP->settings.setValue("state", saveState());
+        APP->settings.endGroup();
     }
 }
 
@@ -349,40 +346,39 @@ void MainWindow::newImage()
 {
     NewDialog *dialog = new NewDialog(this);
     if (dialog->exec()) {
-        ImageDocument *image = new ImageDocument(dialog->imageSize(), dialog->format());
-        m_images.append(image);
+        ImageDocument *image = new ImageDocument(APP->session, dialog->imageSize(), dialog->format());
+//        APP->session.documents.append(image);
         ImageEditor *editor = static_cast<ImageEditor *>(image->createEditor());
+        static_cast<SessionWidget *>(ui->dockWidgetSession->widget())->setSession(&APP->session);
         newEditorSubWindow(editor);
     }
 }
 
 void MainWindow::openImage()
 {
-    QSettings settings;
-    settings.beginGroup("file");
-    QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open Image"), settings.value("lastOpened", QDir::homePath()).toString(), APP->fileDialogFilterString);
+    APP->settings.beginGroup("file");
+    QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open Image"), APP->settings.value("lastOpened", QDir::homePath()).toString(), APP->fileDialogFilterString);
     QStringListIterator fileNameIterator(fileNames);
     QStringList failed;
     while (fileNameIterator.hasNext()) {
         QString fileName = fileNameIterator.next();
-        settings.setValue("lastOpened", fileName);
-        ImageDocument *image = new ImageDocument(fileName);
+        APP->settings.setValue("lastOpened", fileName);
+        ImageDocument *image = new ImageDocument(APP->session, fileName);
         if (!image->imageData()) {
             delete image;
             failed.append(QFileInfo(fileName).fileName());
         }
         else {
-            m_images.append(image);
-            files.append(fileName);
-            static_cast<SessionWidget *>(ui->dockWidgetSession->widget())->setStringList(files);
+//            APP->session.documents.append(image);
             ImageEditor *editor = static_cast<ImageEditor *>(image->createEditor());
+            static_cast<SessionWidget *>(ui->dockWidgetSession->widget())->setSession(&APP->session);
             newEditorSubWindow(editor);
         }
     }
     if (failed.length() > 0) {
         QMessageBox::critical(this, QString(), QString(tr("Error opening file(s) <b>\"%1\"</b>")).arg(failed.join(tr(", "))));
     }
-    settings.endGroup();
+    APP->settings.endGroup();
 }
 
 bool MainWindow::saveImage()
@@ -391,19 +387,18 @@ bool MainWindow::saveImage()
     if (subWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
         ImageDocument &image = static_cast<ImageDocument &>(editor->document);
-        QSettings settings;
-        settings.beginGroup("file");
+        APP->settings.beginGroup("file");
         if (image.fileInfo.fileName().isNull()) {
             return saveAsImage();
         }
         if (image.save()) {
-            settings.setValue("lastSaved", image.fileInfo.fileName());
+            APP->settings.setValue("lastSaved", image.fileInfo.fileName());
             return true;
         }
         else {
             QMessageBox::critical(this, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(image.fileInfo.fileName()).fileName()));
         }
-        settings.endGroup();
+        APP->settings.endGroup();
     }
     return false;
 }
@@ -414,26 +409,25 @@ bool MainWindow::saveAsImage()
     if (subWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
         ImageDocument &image = static_cast<ImageDocument &>(editor->document);
-        QSettings settings;
-        settings.beginGroup("file");
+        APP->settings.beginGroup("file");
         QString fileName;
         if (!image.fileInfo.fileName().isNull()) {
             fileName = image.fileInfo.fileName();
         }
         else {
-            QFileInfo fileInfo(settings.value("lastSaved", QDir::homePath()).toString());
+            QFileInfo fileInfo(APP->settings.value("lastSaved", QDir::homePath()).toString());
             fileName = fileInfo.dir().path();
         }
         fileName = QFileDialog::getSaveFileName(this, tr("Save Image"), fileName, APP->fileDialogFilterString);
         if (!fileName.isNull()) {
             if (image.save(fileName)) {
-                settings.setValue("lastSaved", fileName);
+                APP->settings.setValue("lastSaved", fileName);
             }
             else {
                 QMessageBox::critical(this, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(fileName).fileName()));
             }
         }
-        settings.endGroup();
+        APP->settings.endGroup();
     }
     return false;
 }

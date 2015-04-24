@@ -1,11 +1,7 @@
 #include "session.h"
 
-Session::Session(QObject *parent) :
-    QObject(parent)
-{
-}
+#include "document.h"
 
-bool Session::save(QString fileName)
-{
-
+TreeModelItem *Session::child(int row) {
+    return documents.value(row);
 }
