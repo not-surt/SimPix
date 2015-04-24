@@ -13,6 +13,7 @@
 #include <QOpenGLShader>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLWidget>
+#include <QKeySequence>
 #include "session.h"
 
 class Application : public QApplication, public QOpenGLFunctions_3_3_Core
@@ -20,6 +21,17 @@ class Application : public QApplication, public QOpenGLFunctions_3_3_Core
 public:
     static const QString fileDialogFilterString;
     static const GLfloat brushVertices[][2];
+    struct ActionDefinition {
+        char *name;
+        char *text;
+        char *icon;
+        int standardShortcut;
+        char *customShortcut;
+        char *iconText;
+        char *toolTip;
+        char *statusTip;
+    };
+    static const std::vector<Application::ActionDefinition> actionDefinitions;
 
     QOpenGLWidget &shareWidget;
     GLuint brushVertexBuffer;

@@ -195,11 +195,38 @@ QIcon Application::icon(const QString &sheet, const QString &name, const int sca
     return QIcon();
 }
 
+const std::vector<Application::ActionDefinition> Application::actionDefinitions = {
+    {"documentNew", "&New", "document-new", QKeySequence::New, nullptr, "New Document", "Open new document.", nullptr},
+    {"documentOpen", "&Open", "document-open", QKeySequence::Open, nullptr, "Open Document", "Open existing document.", nullptr},
+    {"documentSave", "&Save", "document-save", QKeySequence::Save, nullptr, "Save Document", "Save document.", nullptr},
+    {"documentSaveAs", "Save &As", "document-save-as", QKeySequence::SaveAs, nullptr, "Save Document As" ,"Save document as new filename.", nullptr},
+    {"documentClose", "&Close", "document-close", QKeySequence::Close, nullptr, "Close Document", "Close open document.", nullptr},
+};
+
 void Application::createActions()
 {
-    actions["documentNew"] = new QAction(QIcon::fromTheme("document-new"), QString("New"), nullptr);
-    actions["documentOpen"] = new QAction(QIcon::fromTheme("document-open"), QString("Open"), nullptr);
-    actions["documentSave"] = new QAction(QIcon::fromTheme("document-save"), QString("Save"), nullptr);
-    actions["documentSaveAs"] = new QAction(QIcon::fromTheme("document-save-as"), QString("Save As"), nullptr);
-    actions["documentClose"] = new QAction(QIcon::fromTheme("document-close"), QString("Close"), nullptr);
+    return;
+//    const int actionCount = sizeof(actionDefinitions) / sizeof(struct ActionDefinition);
+    const Application::ActionDefinition *definition;
+    for (int i = 0; definition = &Application::actionDefinitions[i], i < Application::actionDefinitions.size(); i++) {
+        QAction *action = new QAction(QIcon::fromTheme(definition->icon), QString(definition->text), nullptr);
+        if (definition->standardShortcut >= 0) {
+            action->setShortcut(static_cast<enum QKeySequence::StandardKey>(definition->standardShortcut));
+            action->setShortcutContext(Qt::ApplicationShortcut);
+        }
+        else if (definition->customShortcut) {
+            action->setShortcut(QKeySequence(definition->customShortcut));
+            action->setShortcutContext(Qt::ApplicationShortcut);
+        }
+        if (definition->iconText) {
+            action->setIconText(definition->iconText);
+        }
+        if (definition->toolTip) {
+            action->setToolTip(definition->toolTip);
+        }
+        if (definition->statusTip) {
+            action->setStatusTip(definition->statusTip);
+        }
+        actions[definition->name] = action;
+    }
 }

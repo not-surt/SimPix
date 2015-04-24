@@ -187,6 +187,7 @@ void ImageEditor::paintGL()
         GLint matrixUniform = glGetUniformLocation(program, "matrix");
         glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, (worldToClip * m_transform.matrix()).constData());
 
+        glBindVertexArray(m_vertexArray);
         GLint positionAttrib = glGetAttribLocation(program, "position");
         glBindBuffer(GL_ARRAY_BUFFER, image.imageData()->vertexBuffer);
         glEnableVertexAttribArray(positionAttrib);
@@ -296,6 +297,9 @@ void ImageEditor::drawBrush(const QPoint &point, const Colour &colour)
         GLint imageSizeUniform = glGetUniformLocation(program, "imageSize");
         glUniform2i(imageSizeUniform, image.imageData()->size.width(), image.imageData()->size.height());
 
+        GLuint m_vertexArray;
+        glGenVertexArrays(1, &m_vertexArray);
+        glBindVertexArray(m_vertexArray);
         GLint positionAttrib = glGetAttribLocation(program, "position");
         glEnableVertexAttribArray(positionAttrib);
         glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
