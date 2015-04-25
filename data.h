@@ -18,7 +18,7 @@ struct Rgba {
         };
     };
 
-    explicit Rgba(const GLuint rgba = 0x00000000)
+    Rgba(const GLuint rgba = 0x00000000)
         : rgba(rgba) {}
     explicit Rgba(const GLubyte *const bytes) { if (bytes) { memcpy(this->bytes, bytes, 4 * sizeof(GLubyte)); } }
     explicit Rgba(const GLubyte r, const GLubyte g, const GLubyte b, const GLubyte a)
@@ -32,7 +32,7 @@ struct Rgba {
 struct Colour : Rgba {
     GLshort index;
 
-    explicit Colour(const GLuint rgba = 0x00000000, const GLshort index = -1)
+    Colour(const GLuint rgba = 0x00000000, const GLshort index = -1)
         : Rgba(rgba), index(index) {}
     explicit Colour(const Rgba rgba, const GLshort index = -1)
         : Rgba(rgba), index(index) {}
