@@ -25,6 +25,7 @@
 #include <QMdiArea>
 #include <QMdiSubWindow>
 #include <QMenu>
+#include <QMenuBar>
 #include <QModelIndex>
 #include <QObject>
 #include <QOffscreenSurface>

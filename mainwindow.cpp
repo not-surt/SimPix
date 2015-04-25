@@ -86,11 +86,11 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->actionLicense, &QAction::triggered, APP, &Application::license);
     QObject::connect(ui->actionExit, &QAction::triggered, APP, &Application::closeAllWindows);
 
-    QObject::connect(ui->actionFileNew, &QAction::triggered, this, &MainWindow::newImage);
-    QObject::connect(ui->actionFileOpen, &QAction::triggered, this, &MainWindow::openImage);
-    QObject::connect(ui->actionFileSave, &QAction::triggered, this, &MainWindow::saveImage);
-    QObject::connect(ui->actionFileSaveAs, &QAction::triggered, this, &MainWindow::saveAsImage);
-    QObject::connect(ui->actionFileClose, &QAction::triggered, this, &MainWindow::closeImage);
+    QObject::connect(ui->actionFileNew, &QAction::triggered, APP, &Application::documentNew);
+    QObject::connect(ui->actionFileOpen, &QAction::triggered, APP, &Application::documentOpen);
+    QObject::connect(ui->actionFileSave, &QAction::triggered, APP, &Application::documentSave);
+    QObject::connect(ui->actionFileSaveAs, &QAction::triggered, APP, &Application::documentSaveAs);
+    QObject::connect(ui->actionFileClose, &QAction::triggered, APP, &Application::documentClose);
 
     QObject::connect(ui->actionMenu, &QAction::triggered, this->menuBar(), &QToolBar::setVisible);
     QObject::connect(ui->actionStatusBar, &QAction::triggered, this->statusBar(), &QToolBar::setVisible);
@@ -327,6 +327,14 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
 }
 
+void MainWindow::setFullscreen(const bool fullscreen)
+{
+    if (fullscreen)
+        showFullScreen();
+    else
+        showNormal();
+}
+
 SubWindow *MainWindow::newEditorSubWindow(ImageEditor *const editor)
 {
     ImageDocument &image = static_cast<ImageDocument &>(editor->document);
@@ -349,132 +357,4 @@ SubWindow *MainWindow::newEditorSubWindow(ImageEditor *const editor)
     editor->transform().setZoom(scale);
     editor->show();
     return subWindow;
-}
-
-void MainWindow::newImage()
-{
-    NewDialog *dialog = new NewDialog(this);
-    if (dialog->exec()) {
-        ImageDocument *image = new ImageDocument(APP->session, dialog->imageSize(), dialog->format());
-//        APP->session.documents.append(image);
-        ImageEditor *editor = static_cast<ImageEditor *>(image->createEditor());
-        static_cast<SessionWidget *>(ui->dockWidgetSession->widget())->setSession(&APP->session);
-        newEditorSubWindow(editor);
-    }
-}
-
-void MainWindow::openImage()
-{
-    APP->settings.beginGroup("file");
-    QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open Image"), APP->settings.value("lastOpened", QDir::homePath()).toString(), APP->fileDialogFilterString);
-    QStringListIterator fileNameIterator(fileNames);
-    QStringList failed;
-    while (fileNameIterator.hasNext()) {
-        QString fileName = fileNameIterator.next();
-        APP->settings.setValue("lastOpened", fileName);
-        ImageDocument *image = new ImageDocument(APP->session, fileName);
-        if (!image->imageData()) {
-            delete image;
-            failed.append(QFileInfo(fileName).fileName());
-        }
-        else {
-//            APP->session.documents.append(image);
-            ImageEditor *editor = static_cast<ImageEditor *>(image->createEditor());
-            static_cast<SessionWidget *>(ui->dockWidgetSession->widget())->setSession(&APP->session);
-            newEditorSubWindow(editor);
-        }
-    }
-    if (failed.length() > 0) {
-        QMessageBox::critical(this, QString(), QString(tr("Error opening file(s) <b>\"%1\"</b>")).arg(failed.join(tr(", "))));
-    }
-    APP->settings.endGroup();
-}
-
-bool MainWindow::saveImage()
-{
-    SubWindow *subWindow = static_cast<SubWindow *>(m_mdi->activeSubWindow());
-    if (subWindow) {
-        ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
-        ImageDocument &image = static_cast<ImageDocument &>(editor->document);
-        APP->settings.beginGroup("file");
-        if (image.fileInfo.fileName().isNull()) {
-            return saveAsImage();
-        }
-        if (image.save()) {
-            APP->settings.setValue("lastSaved", image.fileInfo.fileName());
-            return true;
-        }
-        else {
-            QMessageBox::critical(this, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(image.fileInfo.fileName()).fileName()));
-        }
-        APP->settings.endGroup();
-    }
-    return false;
-}
-
-bool MainWindow::saveAsImage()
-{
-    SubWindow *subWindow = static_cast<SubWindow *>(m_mdi->activeSubWindow());
-    if (subWindow) {
-        ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
-        ImageDocument &image = static_cast<ImageDocument &>(editor->document);
-        APP->settings.beginGroup("file");
-        QString fileName;
-        if (!image.fileInfo.fileName().isNull()) {
-            fileName = image.fileInfo.fileName();
-        }
-        else {
-            QFileInfo fileInfo(APP->settings.value("lastSaved", QDir::homePath()).toString());
-            fileName = fileInfo.dir().path();
-        }
-        fileName = QFileDialog::getSaveFileName(this, tr("Save Image"), fileName, APP->fileDialogFilterString);
-        if (!fileName.isNull()) {
-            if (image.save(fileName)) {
-                APP->settings.setValue("lastSaved", fileName);
-            }
-            else {
-                QMessageBox::critical(this, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(fileName).fileName()));
-            }
-        }
-        APP->settings.endGroup();
-    }
-    return false;
-}
-
-bool MainWindow::closeImage()
-{
-    SubWindow *subWindow = static_cast<SubWindow *>(m_mdi->activeSubWindow());
-    if (subWindow) {
-        ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
-        ImageDocument &image = static_cast<ImageDocument &>(editor->document);
-        if (image.fileInfo.dirty()) {
-            QString fileName = image.fileInfo.fileName().isNull() ? "<i>unnamed</>" : QFileInfo(image.fileInfo.fileName()).fileName();
-            QMessageBox::StandardButton button = QMessageBox::question(this, QString(),
-                QString(tr("The file \"<b>%1</b>\" has unsaved changes.<br/>"
-                           "Do you want to save it before closing?")).arg(fileName),
-                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
-                QMessageBox::Save);
-            if (button == QMessageBox::Cancel) {
-                return false;
-            }
-            if (button == QMessageBox::Save) {
-                if (!saveImage()) {
-                    return false;
-                }
-            }
-//            m_mdi->closeActiveSubWindow();
-            subWindow->close();
-        }
-//        m_mdi->closeActiveSubWindow();
-        subWindow->close();
-    }
-    return true;
-}
-
-void MainWindow::setFullscreen(const bool fullscreen)
-{
-    if (fullscreen)
-        showFullScreen();
-    else
-        showNormal();
 }

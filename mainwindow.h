@@ -34,17 +34,14 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
+    MdiArea *m_mdi;
+
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
     Editor *activeEditor();
 
 public slots:
-    void newImage();
-    void openImage();
-    bool saveImage();
-    bool saveAsImage();
-    bool closeImage();
     void setFullscreen(bool);
     void showToolbars(bool checked);
     void lockToolbars(bool checked);
@@ -60,7 +57,6 @@ protected:
 
 private:
     Ui::MainWindow *ui;
-    MdiArea *m_mdi;
     StatusMouseWidget *m_statusMouseWidget;
     SubWindow *m_oldSubWindow;
     static const QString fileDialogFilterString;

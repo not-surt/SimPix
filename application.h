@@ -86,6 +86,7 @@ private:
     void createActions();
     void createMenus();
     void setActionMenus();
+    static QMenuBar *menuBarFromMenu(QMenu *menu);
     Document *m_activeDocument;
 };
 

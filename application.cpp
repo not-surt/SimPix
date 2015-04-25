@@ -6,6 +6,10 @@
 #include <QAction>
 #include <QMenu>
 #include <QMessageBox>
+#include "newdialog.h"
+#include "imagedocument.h"
+#include <QFileDialog>
+#include <QMenuBar>
 
 const GLfloat Application::brushVertices[][2] = {
     {-1.f, -1.f},
@@ -59,6 +63,7 @@ Application::Application(int &argc, char **argv) :
     createActions();
     createMenus();
     setActionMenus();
+    QMenuBar *menuBar = menuBarFromMenu(menus["main"]);
 
     auto formatInfo = [](const QSurfaceFormat &format, const QString &label) {
         qDebug() <<  qPrintable(label) << "Format:" << "Major" << format.majorVersion() << "Minor" << format.minorVersion() << "Profile" << format.profile();
@@ -235,27 +240,136 @@ Editor *Application::activeEditor()
 
 void Application::documentNew()
 {
-
+    MainWindow *window = dynamic_cast<MainWindow *>(activeWindow());
+    if (window) {
+        NewDialog *dialog = new NewDialog(window);
+        if (dialog->exec()) {
+            ImageDocument *image = new ImageDocument(APP->session, dialog->imageSize(), dialog->format());
+    //        APP->session.documents.append(image);
+            ImageEditor *editor = static_cast<ImageEditor *>(image->createEditor());
+//            static_cast<SessionWidget *>(ui->dockWidgetSession->widget())->setSession(&APP->session);
+            window->newEditorSubWindow(editor);
+        }
+        dialog->deleteLater();
+    }
 }
 
 void Application::documentOpen()
 {
-
+    MainWindow *window = dynamic_cast<MainWindow *>(activeWindow());
+    if (window) {
+        APP->settings.beginGroup("file");
+        QStringList fileNames = QFileDialog::getOpenFileNames(window, tr("Open Image"), APP->settings.value("lastOpened", QDir::homePath()).toString(), APP->fileDialogFilterString);
+        QStringListIterator fileNameIterator(fileNames);
+        QStringList failed;
+        while (fileNameIterator.hasNext()) {
+            QString fileName = fileNameIterator.next();
+            APP->settings.setValue("lastOpened", fileName);
+            ImageDocument *image = new ImageDocument(APP->session, fileName);
+            if (!image->imageData()) {
+                delete image;
+                failed.append(QFileInfo(fileName).fileName());
+            }
+            else {
+    //            APP->session.documents.append(image);
+                ImageEditor *editor = static_cast<ImageEditor *>(image->createEditor());
+//                static_cast<SessionWidget *>(ui->dockWidgetSession->widget())->setSession(&APP->session);
+                window->newEditorSubWindow(editor);
+            }
+        }
+        if (failed.length() > 0) {
+            QMessageBox::critical(window, QString(), QString(tr("Error opening file(s) <b>\"%1\"</b>")).arg(failed.join(tr(", "))));
+        }
+        APP->settings.endGroup();
+    }
 }
 
 bool Application::documentSave()
 {
-
+    MainWindow *window = dynamic_cast<MainWindow *>(activeWindow());
+    if (window) {
+        SubWindow *subWindow = static_cast<SubWindow *>(window->m_mdi->activeSubWindow());
+        if (subWindow) {
+            ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
+            ImageDocument &image = static_cast<ImageDocument &>(editor->document);
+            APP->settings.beginGroup("file");
+            if (image.fileInfo.fileName().isNull()) {
+                return documentSaveAs();
+            }
+            if (image.save()) {
+                APP->settings.setValue("lastSaved", image.fileInfo.fileName());
+                return true;
+            }
+            else {
+                QMessageBox::critical(window, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(image.fileInfo.fileName()).fileName()));
+            }
+            APP->settings.endGroup();
+        }
+    }
+    return false;
 }
 
 bool Application::documentSaveAs()
 {
-
+    MainWindow *window = dynamic_cast<MainWindow *>(activeWindow());
+    if (window) {
+        SubWindow *subWindow = static_cast<SubWindow *>(window->m_mdi->activeSubWindow());
+        if (subWindow) {
+            ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
+            ImageDocument &image = static_cast<ImageDocument &>(editor->document);
+            APP->settings.beginGroup("file");
+            QString fileName;
+            if (!image.fileInfo.fileName().isNull()) {
+                fileName = image.fileInfo.fileName();
+            }
+            else {
+                QFileInfo fileInfo(APP->settings.value("lastSaved", QDir::homePath()).toString());
+                fileName = fileInfo.dir().path();
+            }
+            fileName = QFileDialog::getSaveFileName(window, tr("Save Image"), fileName, APP->fileDialogFilterString);
+            if (!fileName.isNull()) {
+                if (image.save(fileName)) {
+                    APP->settings.setValue("lastSaved", fileName);
+                }
+                else {
+                    QMessageBox::critical(window, QString(), QString(tr("Error saving file <b>\"%1\"</b>")).arg(QFileInfo(fileName).fileName()));
+                }
+            }
+            APP->settings.endGroup();
+        }
+    }
+    return false;
 }
 
 bool Application::documentClose()
 {
-
+    MainWindow *window = dynamic_cast<MainWindow *>(activeWindow());
+    if (window) {
+        SubWindow *subWindow = static_cast<SubWindow *>(window->m_mdi->activeSubWindow());
+        if (subWindow) {
+            ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
+            ImageDocument &image = static_cast<ImageDocument &>(editor->document);
+            if (image.fileInfo.dirty()) {
+                QString fileName = image.fileInfo.fileName().isNull() ? "<i>unnamed</>" : QFileInfo(image.fileInfo.fileName()).fileName();
+                QMessageBox::StandardButton button = QMessageBox::question(window, QString(),
+                    QString(tr("The file \"<b>%1</b>\" has unsaved changes.<br/>"
+                               "Do you want to save it before closing?")).arg(fileName),
+                    QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
+                    QMessageBox::Save);
+                if (button == QMessageBox::Cancel) {
+                    return false;
+                }
+                if (button == QMessageBox::Save) {
+                    if (!documentSave()) {
+                        return false;
+                    }
+                }
+                subWindow->close();
+            }
+            subWindow->close();
+        }
+    }
+    return true;
 }
 
 bool Application::editorNew()
@@ -383,4 +497,20 @@ void Application::setActionMenus()
             qDebug() << definition.menuName;
         }
     }
+}
+
+QMenuBar *Application::menuBarFromMenu(QMenu *menu)
+{
+    QMenuBar *menuBar = new QMenuBar();
+    QListIterator<QAction *> iterator(menu->actions());
+    while (iterator.hasNext()) {
+        QAction *const action = iterator.next();
+        if (action->menu()) {
+            menuBar->addMenu(action->menu());
+        }
+        else {
+            menuBar->addAction(action);
+        }
+    }
+    return menuBar;
 }
