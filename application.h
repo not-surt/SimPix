@@ -18,21 +18,32 @@
 
 class Application : public QApplication, public QOpenGLFunctions_3_3_Core
 {
+    Q_OBJECT
 public:
     static const QString fileDialogFilterString;
     static const GLfloat brushVertices[][2];
     struct ActionDefinition {
-        char *name;
-        char *text;
-        char *icon;
+        QString name;
+        QString text;
+        QString icon;
         int standardShortcut;
-        char *customShortcut;
-        char *iconText;
-        char *toolTip;
-        char *statusTip;
+        QString customShortcut;
+        QString iconText;
+        QString toolTip;
+        QString statusTip;
+        QString menuName;
     };
-    static const std::vector<Application::ActionDefinition> actionDefinitions;
+    static const QList<Application::ActionDefinition> actionDefinitions;
+    struct MenuDefinition {
+        QString name;
+        QString text;
+        QList<QString> actionNames;
+    };
+    static const QList<Application::MenuDefinition> menuDefinitions;
+    static const int iconSheetWidth;
 
+    QOffscreenSurface offScreen;
+    QOpenGLContext context;
     QOpenGLWidget &shareWidget;
     GLuint brushVertexBuffer;
     QHash<QString, QOpenGLShader *> shaders;
@@ -40,21 +51,42 @@ public:
     Session session;
     QSettings settings;
     QHash<QString, QAction *> actions;
+    QHash<QString, QMenu *> menus;
     QHash<QString, QImage *> iconSheets;
     QHash<QString, QIcon *> iconCache;
 
     explicit Application(int &argc, char **argv);
-    ~Application();
+    virtual ~Application();
     bool addShader(const QString &name, const QOpenGLShader::ShaderType type, const QString &src);
     bool addProgram(const QString &name, const QStringList &shaderList);
     GLuint shader(const QString &name) { return shaders[name]->shaderId(); }
     GLuint program(const QString &name) { return programs[name]->programId(); }
     QIcon icon(const QString &sheet, const QString &name, const int scale = 1);
 
+    Document *activeDocument();
+    Editor *activeEditor();
+
+signals:
+    void activeDocumentChanged(Document *document);
+    void activeEditorChanged(Editor *editor);
+
+public slots:
+    void documentNew();
+    void documentOpen();
+    bool documentSave();
+    bool documentSaveAs();
+    bool documentClose();
+    bool editorNew();
+    bool editorClose();
+    void about();
+    void aboutQt();
+    void license();
+
 private:
-    GLuint processShader(const GLenum type, const QString &src);
-    GLuint processProgram(const QStringList &shaders);
     void createActions();
+    void createMenus();
+    void setActionMenus();
+    Document *m_activeDocument;
 };
 
 #define APP (static_cast<Application *>(qApp))

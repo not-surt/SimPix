@@ -37,16 +37,15 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    Editor *activeEditor();
+
 public slots:
     void newImage();
     void openImage();
     bool saveImage();
     bool saveAsImage();
-    void setFullscreen(bool);
-    void about();
-    void aboutQt();
     bool closeImage();
-    void license();
+    void setFullscreen(bool);
     void showToolbars(bool checked);
     void lockToolbars(bool checked);
     void showDocks(bool checked);

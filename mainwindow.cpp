@@ -81,10 +81,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QObject::connect(m_mdi, &MdiArea::subWindowActivated, [this](QMdiSubWindow *const subWindow) { this->activateSubWindow(static_cast<SubWindow *>(subWindow)); } );
 
-    QObject::connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
-    QObject::connect(ui->actionAboutQt, &QAction::triggered, this, &MainWindow::aboutQt);
-    QObject::connect(ui->actionLicense, &QAction::triggered, this, &MainWindow::license);
-    QObject::connect(ui->actionExit, &QAction::triggered, this, &MainWindow::close);
+    QObject::connect(ui->actionAbout, &QAction::triggered, APP, &Application::about);
+    QObject::connect(ui->actionAboutQt, &QAction::triggered, APP, &Application::aboutQt);
+    QObject::connect(ui->actionLicense, &QAction::triggered, APP, &Application::license);
+    QObject::connect(ui->actionExit, &QAction::triggered, APP, &Application::closeAllWindows);
 
     QObject::connect(ui->actionFileNew, &QAction::triggered, this, &MainWindow::newImage);
     QObject::connect(ui->actionFileOpen, &QAction::triggered, this, &MainWindow::openImage);
@@ -196,7 +196,15 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::activateSubWindow(SubWindow *const subWindow) {
+Editor *MainWindow::activeEditor()
+{
+    SubWindow *subWindow = static_cast<SubWindow *>(m_mdi->activeSubWindow());
+    ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
+    return editor;
+}
+
+void MainWindow::activateSubWindow(SubWindow *const subWindow)
+{
     if (m_oldSubWindow) {
         QListIterator<QMetaObject::Connection> connectionsIterator(activeSubWindowConnections);
         while (connectionsIterator.hasNext()) {
@@ -319,7 +327,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
 }
 
-SubWindow *MainWindow::newEditorSubWindow(ImageEditor *const editor) {
+SubWindow *MainWindow::newEditorSubWindow(ImageEditor *const editor)
+{
     ImageDocument &image = static_cast<ImageDocument &>(editor->document);
     SubWindow *subWindow = new SubWindow;
     subWindow->setAttribute(Qt::WA_DeleteOnClose);
@@ -462,36 +471,10 @@ bool MainWindow::closeImage()
     return true;
 }
 
-void MainWindow::setFullscreen(bool fullscreen)
+void MainWindow::setFullscreen(const bool fullscreen)
 {
     if (fullscreen)
         showFullScreen();
     else
         showNormal();
-}
-
-void MainWindow::about()
-{
-   QFile data(":/text/ABOUT");
-   QString text;
-   if (data.open(QFile::ReadOnly)) {
-       text = QTextStream(&data).readAll();
-   }
-   QMessageBox::about(this, tr(QString("About %1").arg(QCoreApplication::applicationName()).toLatin1()),
-        text.arg(QCoreApplication::applicationName()));
-}
-
-void MainWindow::aboutQt()
-{
-    QMessageBox::aboutQt(this);
-}
-
-void MainWindow::license()
-{
-    QFile data(":/text/LICENSE");
-    QString text;
-    if (data.open(QFile::ReadOnly)) {
-        text = QTextStream(&data).readAll();
-    }
-    QMessageBox::information(this, QString(), text);
 }

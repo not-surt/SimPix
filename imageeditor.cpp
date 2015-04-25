@@ -14,6 +14,11 @@ ImageEditor::ImageEditor(ImageDocument &p_document, QWidget *parent) :
 {
     ImageDocument &image = static_cast<ImageDocument &>(document);
 
+//    QSurface *surface = context()->surface();
+//    context()->setShareContext(&APP->context);
+//    context()->create();
+//    context()->makeCurrent(surface);
+
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
 
@@ -26,6 +31,9 @@ ImageEditor::ImageEditor(ImageDocument &p_document, QWidget *parent) :
 ImageEditor::~ImageEditor()
 {
     ImageDocument &image = static_cast<ImageDocument &>(document);
+
+    GLContextGrabber grab(this);
+    glDeleteBuffers((GLsizei)1, &m_vertexBuffer);
 }
 
 void ImageEditor::initializeGL()
@@ -297,9 +305,7 @@ void ImageEditor::drawBrush(const QPoint &point, const Colour &colour)
         GLint imageSizeUniform = glGetUniformLocation(program, "imageSize");
         glUniform2i(imageSizeUniform, image.imageData()->size.width(), image.imageData()->size.height());
 
-        GLuint m_vertexArray;
-        glGenVertexArrays(1, &m_vertexArray);
-        glBindVertexArray(m_vertexArray);
+        glBindVertexArray(image.imageData()->vertexArray);
         GLint positionAttrib = glGetAttribLocation(program, "position");
         glEnableVertexAttribArray(positionAttrib);
         glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);

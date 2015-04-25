@@ -21,6 +21,7 @@
 #include <QListView>
 #include <QMainWindow>
 #include <QMatrix4x4>
+#include <QMessageBox>
 #include <QMdiArea>
 #include <QMdiSubWindow>
 #include <QMenu>

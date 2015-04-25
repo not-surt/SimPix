@@ -13,7 +13,7 @@ const TextureData::Format TextureData::FORMATS[] = {
 
 TextureData::TextureData(const QSize &size, const Format::Id format, const GLubyte *const data) :
     OpenGLData(), size(size), format(format),
-    texture([&](){
+    texture([this, data](){
         const TextureData::Format *const format = &FORMATS[(int)this->format];
         GLuint texture;
         glGenTextures((GLsizei)1, &texture);
@@ -24,9 +24,9 @@ TextureData::TextureData(const QSize &size, const Format::Id format, const GLuby
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexImage2D(GL_TEXTURE_2D, 0, format->internalFormat, size.width(), size.height(), 0, format->format, format->glEnum, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, format->internalFormat, this->size.width(), this->size.height(), 0, format->format, format->glEnum, data);
         return texture; }()),
-    framebuffer([&](){
+    framebuffer([this](){
         const TextureData::Format *const format = &FORMATS[(int)this->format];
         GLuint framebuffer;
         glGenFramebuffers((GLsizei)1, &framebuffer);
@@ -94,22 +94,26 @@ PaletteData::PaletteData(const GLuint length, const GLubyte *const data) :
 
 ImageData::ImageData(const QSize &size, const Format::Id format, const GLubyte *const data) :
     TextureData(size, format, data), rect(QPoint(0, 0), size),
-    projectionMatrix([&]() {
-        const float halfWidth = (float)size.width() / 2.f;
-        const float halfHeight = (float)size.height() / 2.f;
+    projectionMatrix([this]() {
+        const float halfWidth = (float)this->size.width() / 2.f;
+        const float halfHeight = (float)this->size.height() / 2.f;
         QMatrix4x4 temp;
         temp.scale(1.f / (float)halfWidth, 1.f / (float)halfHeight);
         temp.translate(-halfWidth, -halfHeight);
-        return temp;} ()),
-    vertexBuffer([&](){
+        return temp; }()),
+    vertexArray([this](){
+        GLuint vertexArray;
+        glGenVertexArrays(1, &vertexArray);
+        return vertexArray; }()),
+    vertexBuffer([this](){
         GLuint vertexBuffer;
         glGenBuffers((GLsizei)1, &vertexBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
         const GLfloat vertices[][2] = {
             {0.f, 0.f},
-            {(GLfloat)size.width(), 0.f},
-            {(GLfloat)size.width(), (GLfloat)size.height()},
-            {0.f, (GLfloat)size.height()},
+            {(GLfloat)this->size.width(), 0.f},
+            {(GLfloat)this->size.width(), (GLfloat)this->size.height()},
+            {0.f, (GLfloat)this->size.height()},
         };
         glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
         return vertexBuffer; }())
@@ -121,5 +125,6 @@ ImageData::~ImageData()
 {
     GLContextGrabber grab(context, surface);
 
+    glDeleteVertexArrays(1, &vertexArray);
     glDeleteBuffers(1, &vertexBuffer);
 }

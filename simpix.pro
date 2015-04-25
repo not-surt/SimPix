@@ -12,7 +12,7 @@ TARGET = simpix
 TEMPLATE = app
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
+    mainwindow.cpp \
     newdialog.cpp \
     colourselector.cpp \
     transformwidget.cpp \

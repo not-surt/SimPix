@@ -81,7 +81,7 @@ public:
     const GLuint framebuffer;
 
     explicit TextureData(const QSize &size, const Format::Id format, const GLubyte *const data = nullptr);
-    ~TextureData();
+    virtual ~TextureData();
     GLubyte *readPixel(const QPoint &position, GLubyte *const buffer = nullptr);
     void writePixel(const QPoint &position, const GLubyte *const data);
     GLubyte *readData(GLubyte *const buffer = nullptr);
@@ -103,10 +103,11 @@ class ImageData : public TextureData
 public:
     const QRect rect;
     const QMatrix4x4 projectionMatrix;
+    const GLuint vertexArray;
     const GLuint vertexBuffer;
 
     explicit ImageData(const QSize &size, const Format::Id format, const GLubyte *const data = nullptr);
-    ~ImageData();
+    virtual ~ImageData();
 };
 
 #endif // DATA_H
