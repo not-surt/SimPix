@@ -62,6 +62,9 @@ MainWindow::MainWindow(QWidget *parent) :
     setCentralWidget(m_mdi);
     setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
 
+    addActions(APP->actions.values());////////////////////
+    setMenuBar(APP->menuBar());
+
     // Copy actions to window so available when menu hidden. Is there a better way?
     QListIterator<QMenu *> menuIterator(ui->menuBar->findChildren<QMenu *>());
     while (menuIterator.hasNext()) {
@@ -81,20 +84,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QObject::connect(m_mdi, &MdiArea::subWindowActivated, [this](QMdiSubWindow *const subWindow) { this->activateSubWindow(static_cast<SubWindow *>(subWindow)); } );
 
-    QObject::connect(ui->actionAbout, &QAction::triggered, APP, &Application::about);
-    QObject::connect(ui->actionAboutQt, &QAction::triggered, APP, &Application::aboutQt);
-    QObject::connect(ui->actionLicense, &QAction::triggered, APP, &Application::license);
-    QObject::connect(ui->actionExit, &QAction::triggered, APP, &Application::closeAllWindows);
+    QObject::connect(APP->actions["applicationAbout"], &QAction::triggered, APP, &Application::about);
+    QObject::connect(APP->actions["applicationAboutQt"], &QAction::triggered, APP, &Application::aboutQt);
+    QObject::connect(APP->actions["applicationLicense"], &QAction::triggered, APP, &Application::license);
+    QObject::connect(APP->actions["applicationExit"], &QAction::triggered, APP, &Application::closeAllWindows);
 
-    QObject::connect(ui->actionFileNew, &QAction::triggered, APP, &Application::documentNew);
-    QObject::connect(ui->actionFileOpen, &QAction::triggered, APP, &Application::documentOpen);
-    QObject::connect(ui->actionFileSave, &QAction::triggered, APP, &Application::documentSave);
-    QObject::connect(ui->actionFileSaveAs, &QAction::triggered, APP, &Application::documentSaveAs);
-    QObject::connect(ui->actionFileClose, &QAction::triggered, APP, &Application::documentClose);
+    QObject::connect(APP->actions["documentNew"], &QAction::triggered, APP, &Application::documentNew);
+    QObject::connect(APP->actions["documentOpen"], &QAction::triggered, APP, &Application::documentOpen);
+    QObject::connect(APP->actions["documentSave"], &QAction::triggered, APP, &Application::documentSave);
+    QObject::connect(APP->actions["documentSaveAs"], &QAction::triggered, APP, &Application::documentSaveAs);
+    QObject::connect(APP->actions["documentClose"], &QAction::triggered, APP, &Application::documentClose);
 
-    QObject::connect(ui->actionMenu, &QAction::triggered, this->menuBar(), &QToolBar::setVisible);
-    QObject::connect(ui->actionStatusBar, &QAction::triggered, this->statusBar(), &QToolBar::setVisible);
-    QObject::connect(ui->actionFullscreen, &QAction::triggered, this, &MainWindow::setFullscreen);
+    QObject::connect(APP->actions["layoutFullScreen"], &QAction::triggered, this, &MainWindow::setFullscreen);
+    QObject::connect(APP->actions["layoutMenuBar"], &QAction::triggered, this->menuBar(), &QMenuBar::setVisible);
+    QObject::connect(APP->actions["layoutStatusBar"], &QAction::triggered, this->statusBar(), &QStatusBar::setVisible);
     QObject::connect(ui->actionTileSubwindows, &QAction::triggered, m_mdi, &MdiArea::tileSubWindows);
     QObject::connect(ui->actionCascadeSubwindows, &QAction::triggered, m_mdi, &MdiArea::cascadeSubWindows);
     QObject::connect(ui->actionNextSubwindow, &QAction::triggered, m_mdi, &MdiArea::activateNextSubWindow);

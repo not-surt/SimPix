@@ -56,9 +56,9 @@ Application::Application(int &argc, char **argv) :
 
     swatchBackgroundPixmap = generateBackgroundPixmap(16);
 
-    iconSheets.insert("cursors", new QImage(":/images/cursors.png"));
-    iconSheets.insert("actions", new QImage(":/images/actions.png"));
-    iconSheets.insert("objects", new QImage(":/images/objects.png"));
+    iconSheets.insert("cursors", QImage(":/images/cursors.png"));
+    iconSheets.insert("actions", QImage(":/images/actions.png"));
+    iconSheets.insert("objects", QImage(":/images/objects.png"));
 
     createActions();
     createMenus();
@@ -151,8 +151,6 @@ Application::~Application()
     shareWidget.deleteLater();
 
     qDeleteAll(actions);
-    qDeleteAll(iconSheets);
-    qDeleteAll(iconCache);
 
     delete swatchBackgroundPixmap;
 }
@@ -219,7 +217,7 @@ const int Application::iconSheetWidth = 16;
 
 QIcon Application::icon(const QString &sheet, const QString &name, const int scale)
 {
-    const QImage &image = *iconSheets[sheet];
+    const QImage &image = iconSheets[sheet];
     const int size = int(floor(image.width() / iconSheetWidth));
     return QIcon();
 }
@@ -236,6 +234,51 @@ Editor *Application::activeEditor()
 
     }
     return nullptr;
+}
+
+QMenuBar *Application::menuBar()
+{
+    return menuBarFromMenu(menus["main"]);
+}
+
+void Application::sessionNew()
+{
+
+}
+
+void Application::sessionOpen()
+{
+
+}
+
+bool Application::sessionSave()
+{
+
+}
+
+bool Application::sessionSaveAs()
+{
+
+}
+
+bool Application::sessionClose()
+{
+
+}
+
+bool Application::windowNew()
+{
+
+}
+
+bool Application::windowClone()
+{
+
+}
+
+bool Application::windowClose()
+{
+
 }
 
 void Application::documentNew()
@@ -377,6 +420,11 @@ bool Application::editorNew()
 
 }
 
+bool Application::editorClone()
+{
+
+}
+
 bool Application::editorClose()
 {
 
@@ -409,30 +457,50 @@ void Application::license()
 }
 
 const QList<Application::ActionDefinition> Application::actionDefinitions = {
-    {"applicationMenu", "&Application", nullptr, -1, nullptr, nullptr, nullptr, nullptr, "application"},
-    {"applicationAbout", "&About", "help-about", -1, nullptr, nullptr, "About application.", nullptr, nullptr},
-    {"applicationAboutQt", "About &Qt", nullptr, -1, nullptr, nullptr, "About Qt.", nullptr, nullptr},
-    {"applicationExit", "&Exit", "application-exit", QKeySequence::Quit, nullptr, nullptr, "Exit application.", nullptr, nullptr},
+    {"applicationMenu", "&Application", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "application"},
+    {"applicationAbout", "&About", "help-about", false, false, -1, nullptr, nullptr, "About application.", nullptr, nullptr},
+    {"applicationAboutQt", "About &Qt", nullptr, false, false, -1, nullptr, nullptr, "About Qt.", nullptr, nullptr},
+    {"applicationLicense", "&License", nullptr, false, false, -1, nullptr, nullptr, "Application license.", nullptr, nullptr},
+    {"applicationExit", "&Exit", "application-exit", false, false, QKeySequence::Quit, nullptr, nullptr, "Exit application.", nullptr, nullptr},
 
-    {"sessionMenu", "&Session", nullptr, -1, nullptr, nullptr, nullptr, nullptr, "session"},
-    {"sessionNew", "&New", nullptr, -1, nullptr, "New Session", "Open new session.", nullptr, nullptr},
-    {"sessionOpen", "&Open", nullptr, -1, nullptr, "Open Session", "Open existing session.", nullptr, nullptr},
-    {"sessionSave", "&Save", nullptr, -1, nullptr, "Save Session", "Save current session.", nullptr, nullptr},
-    {"sessionSaveAs", "Save &As", nullptr, -1, nullptr, "Save Session As" ,"Save current session as new filename.", nullptr, nullptr},
-    {"sessionClose", "&Close", nullptr, -1, nullptr, "Close Session", "Close current session.", nullptr, nullptr},
+    {"sessionMenu", "&Session", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "session"},
+    {"sessionNew", "&New", nullptr, false, false, -1, nullptr, "New Session", "Open new session.", nullptr, nullptr},
+    {"sessionOpen", "&Open", nullptr, false, false, -1, nullptr, "Open Session", "Open existing session.", nullptr, nullptr},
+    {"sessionSave", "&Save", nullptr, false, false, -1, nullptr, "Save Session", "Save current session.", nullptr, nullptr},
+    {"sessionSaveAs", "Save &As", nullptr, false, false, -1, nullptr, "Save Session As" ,"Save current session as new filename.", nullptr, nullptr},
+    {"sessionClose", "&Close", nullptr, false, false, -1, nullptr, "Close Session", "Close current session.", nullptr, nullptr},
 
-    {"windowFullScreen", "&Full Screen", "view-fullscreen", QKeySequence::FullScreen, nullptr, nullptr, "Make window full screen.", nullptr, nullptr},
+    {"layoutMenu", "&Layout", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "layout"},
+    {"layoutFullScreen", "&Full Screen", "view-fullscreen", true, false, QKeySequence::FullScreen, "Toggle window full screen.", nullptr, nullptr},
+    {"layoutMenuBar", "&Menu Bar", nullptr, true, true, -1, nullptr, "Menu Bar", "Toggle menu bar visibility.", nullptr, nullptr},
+    {"layoutStatusBar", "&Status Bar", nullptr, true, true, -1, nullptr, "Status Bar", "Toggle status bar visibility.", nullptr, nullptr},
 
-    {"documentMenu", "&Document", nullptr, -1, nullptr, nullptr, nullptr, nullptr, "document"},
-    {"documentNew", "&New", "document-new", QKeySequence::New, nullptr, "New Document", "Open new document.", nullptr, nullptr},
-    {"documentOpen", "&Open", "document-open", QKeySequence::Open, nullptr, "Open Document", "Open existing document.", nullptr, nullptr},
-    {"documentSave", "&Save", "document-save", QKeySequence::Save, nullptr, "Save Document", "Save current document.", nullptr, nullptr},
-    {"documentSaveAs", "Save &As", "document-save-as", QKeySequence::SaveAs, nullptr, "Save Document As" ,"Save current document as new filename.", nullptr, nullptr},
-    {"documentClose", "&Close", "document-close", -1, nullptr, "Close Document", "Close current document.", nullptr, nullptr},
+    {"subWindowsMenu", "&Subwindows", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "subWindows"},
+    {"subWindowsUseTabs", "&Use Tabs", nullptr, true, false, -1, nullptr, "Use Tabs", "Toggle tabbed subwindows.", nullptr, nullptr},
+    {"subWindowsTile", "&Tile Subwindows", nullptr, false, false, -1, nullptr, "Tile Subwindows", "Tile arange subwindows.", nullptr, nullptr},
+    {"subWindowsCascade", "&Cascade Subwindows", nullptr, false, false, -1, nullptr, "Cascade Subwindows", "Cascade arange subwindows.", nullptr, nullptr},
+    {"subWindowsNext", "&Next Subwindow", nullptr, false, false, -1, nullptr, "Next Subwindow", "Switch to next subwindow.", nullptr, nullptr},
+    {"subWindowsPrevious", "&Previous Subwindow", nullptr, false, false, -1, nullptr, "Previous Subwindow", "Switch to previous subwindow.", nullptr, nullptr},
 
-    {"editorMenu", "&Editor", nullptr, -1, nullptr, nullptr, nullptr, nullptr, "editor"},
-    {"editorNew", "&New", "document-new", -1, nullptr, "New Editor", "Open new editor.", nullptr, nullptr},
-    {"editorClose", "&Close", "document-close", QKeySequence::Close, nullptr, "Close Editor", "Close current editor.", nullptr, nullptr},
+    {"toolBarsMenu", "&Toolbars", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "toolBars"},
+    {"toolBarsLock", "&Lock Toolbars", nullptr, true, false, -1, nullptr, "Lock Toolbars", "Lock poisition of all toolbars.", nullptr, nullptr},
+    {"toolBarsAll", "&All Toolbars", nullptr, true, false, -1, nullptr, "All Toolbars", "Toggle visibility of all toolbars.", nullptr, nullptr},
+
+    {"docksMenu", "&Docks", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "docks"},
+    {"docksTitles", "&Dock Titles", nullptr, true, false, -1, nullptr, "Dock Titles", "Toggle visibility of dock titles.", nullptr, nullptr},
+    {"docksLock", "&Lock Docks", nullptr, true, false, -1, nullptr, "Lock Docks", "Lock poisition of all docks.", nullptr, nullptr},
+    {"docksAll", "&All Docks", nullptr, true, false, -1, nullptr, "All Docks", "Toggle visibility of all docks.", nullptr, nullptr},
+
+    {"documentMenu", "&Document", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "document"},
+    {"documentNew", "&New", "document-new", false, false, QKeySequence::New, nullptr, "New Document", "Open new document.", nullptr, nullptr},
+    {"documentOpen", "&Open", "document-open", false, false, QKeySequence::Open, nullptr, "Open Document", "Open existing document.", nullptr, nullptr},
+    {"documentSave", "&Save", "document-save", false, false, QKeySequence::Save, nullptr, "Save Document", "Save current document.", nullptr, nullptr},
+    {"documentSaveAs", "Save &As", "document-save-as", false, false, QKeySequence::SaveAs, nullptr, "Save Document As" ,"Save current document as new filename.", nullptr, nullptr},
+    {"documentClose", "&Close", "document-close", false, false, -1, nullptr, "Close Document", "Close current document.", nullptr, nullptr},
+
+    {"editorMenu", "&Editor", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "editor"},
+    {"editorNew", "&New", "document-new", false, false, -1, nullptr, "New Editor", "Open new editor.", nullptr, nullptr},
+    {"editorClose", "&Close", "document-close", false, false, QKeySequence::Close, nullptr, "Close Editor", "Close current editor.", nullptr, nullptr},
 };
 
 void Application::createActions()
@@ -440,6 +508,8 @@ void Application::createActions()
     for (int i = 0; i < Application::actionDefinitions.size(); i++) {
         const Application::ActionDefinition &definition = Application::actionDefinitions[i];
         QAction *action = new QAction(QIcon::fromTheme(definition.icon), definition.text, nullptr);
+        action->setCheckable(definition.checkable);
+        action->setChecked(definition.checked);
         if (definition.standardShortcut >= 0) {
             action->setShortcut(static_cast<enum QKeySequence::StandardKey>(definition.standardShortcut));
             action->setShortcutContext(Qt::ApplicationShortcut);
@@ -463,9 +533,13 @@ void Application::createActions()
 }
 
 const QList<Application::MenuDefinition> Application::menuDefinitions = {
-    {"main", "&Menu", {"applicationMenu", "sessionMenu", "documentMenu"}},
-    {"application", "&Application", {"applicationAbout", "applicationAboutQt", nullptr, "applicationExit"}},
+    {"main", "&Menu", {"applicationMenu", "sessionMenu", "layoutMenu", "documentMenu", "editorMenu"}},
+    {"application", "&Application", {"applicationAbout", "applicationAboutQt", "applicationLicense", nullptr, "applicationExit"}},
     {"session", "&Session", {"sessionNew", "sessionOpen", nullptr, "sessionSave", "sessionSaveAs", nullptr, "sessionClose"}},
+    {"layout", "&Layout", {"layoutFullScreen", nullptr, "layoutMenuBar", "layoutStatusBar", nullptr, "subWindowsMenu", "toolBarsMenu", "docksMenu"}},
+    {"subWindows", "&Subwindows", {"subWindowsUseTabs", nullptr, "subWindowsTile", "subWindowsCascade", nullptr, "subWindowsNext", "subWindowsPrevious"}},
+    {"toolBars", "&Toolbars", {"toolBarsLock", nullptr, "toolBarsAll", nullptr}},
+    {"docks", "&Docks", {"docksTitles", "docksLock", nullptr, "docksAll", nullptr}},
     {"document", "&Document", {"documentNew", "documentOpen", nullptr, "documentSave", "documentSaveAs", nullptr, "documentClose"}},
     {"editor", "&Editor", {"editorNew", nullptr, "editorClose"}},
 };

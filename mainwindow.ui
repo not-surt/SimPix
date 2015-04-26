@@ -334,9 +334,6 @@
    <property name="text">
     <string>E&amp;xit</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+Q</string>
-   </property>
    <property name="shortcutContext">
     <enum>Qt::WindowShortcut</enum>
    </property>
