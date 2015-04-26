@@ -18,6 +18,13 @@
 #include "widgets.h"
 #include "actions.h"
 
+SubWindow::SubWindow(QWidget *parent) :
+    QMdiSubWindow(parent)
+{
+    // Hack to remove conflicting close shortcut
+    systemMenu()->actions().last()->setShortcut(QKeySequence());
+}
+
 void SubWindow::closeEvent(QCloseEvent *event)
 {
     ImageEditor *editor = static_cast<ImageEditor *>(widget());
@@ -52,14 +59,14 @@ QSize MdiArea::subWindowSizeOverhead() const
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), m_mdi(nullptr), m_statusMouseWidget(nullptr), m_oldSubWindow(nullptr)
+    ui(new Ui::MainWindow), mdi(nullptr), statusMouseWidget(nullptr), oldSubWindow(nullptr)
 {    
     ui->setupUi(this);
-    m_mdi = new MdiArea;
-    m_mdi->setTabsClosable(true);
-    m_mdi->setTabsMovable(true);
-    m_mdi->setActivationOrder(QMdiArea::CreationOrder);
-    setCentralWidget(m_mdi);
+    mdi = new MdiArea;
+    mdi->setTabsClosable(true);
+    mdi->setTabsMovable(true);
+    mdi->setActivationOrder(QMdiArea::CreationOrder);
+    setCentralWidget(mdi);
     setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
 
     addActions(APP->actions.values());////////////////////
@@ -78,15 +85,12 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     ui->menuBar->hide();
 
-    QHash<QString, QActionGroup *> actionGroups;
-    QHash<QString, QAction *> actions;
-    actions["actionAbout"] = new QAction(this);
-
-    QObject::connect(m_mdi, &MdiArea::subWindowActivated, [this](QMdiSubWindow *const subWindow) { this->activateSubWindow(static_cast<SubWindow *>(subWindow)); } );
+    QObject::connect(mdi, &MdiArea::subWindowActivated, [this](QMdiSubWindow *const subWindow) { this->activateSubWindow(static_cast<SubWindow *>(subWindow)); } );
 
     QObject::connect(APP->actions["applicationAbout"], &QAction::triggered, APP, &Application::about);
     QObject::connect(APP->actions["applicationAboutQt"], &QAction::triggered, APP, &Application::aboutQt);
     QObject::connect(APP->actions["applicationLicense"], &QAction::triggered, APP, &Application::license);
+    QObject::connect(APP->actions["applicationSettings"], &QAction::triggered, APP, &Application::applicationSettings);
     QObject::connect(APP->actions["applicationExit"], &QAction::triggered, APP, &Application::closeAllWindows);
 
     QObject::connect(APP->actions["documentNew"], &QAction::triggered, APP, &Application::documentNew);
@@ -98,18 +102,38 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(APP->actions["layoutFullScreen"], &QAction::triggered, this, &MainWindow::setFullscreen);
     QObject::connect(APP->actions["layoutMenuBar"], &QAction::triggered, this->menuBar(), &QMenuBar::setVisible);
     QObject::connect(APP->actions["layoutStatusBar"], &QAction::triggered, this->statusBar(), &QStatusBar::setVisible);
-    QObject::connect(ui->actionTileSubwindows, &QAction::triggered, m_mdi, &MdiArea::tileSubWindows);
-    QObject::connect(ui->actionCascadeSubwindows, &QAction::triggered, m_mdi, &MdiArea::cascadeSubWindows);
-    QObject::connect(ui->actionNextSubwindow, &QAction::triggered, m_mdi, &MdiArea::activateNextSubWindow);
-    QObject::connect(ui->actionPreviousSubwindow, &QAction::triggered, m_mdi, &MdiArea::activatePreviousSubWindow);
-    QObject::connect(ui->actionUseTabs, &QAction::triggered, this, &MainWindow::useTabs);
-    QObject::connect(ui->actionToolbarsMenu, &QAction::triggered, this, &MainWindow::showToolbars);
-    QObject::connect(ui->actionAllToolbars, &QAction::triggered, this, &MainWindow::showToolbars);
-    QObject::connect(ui->actionLockToolbars, &QAction::triggered, this, &MainWindow::lockToolbars);
-    QObject::connect(ui->actionDocksMenu, &QAction::triggered, this, &MainWindow::showDocks);
-    QObject::connect(ui->actionAllDocks, &QAction::triggered, this, &MainWindow::showDocks);
-    QObject::connect(ui->actionDockTitles, &QAction::triggered, this, &MainWindow::showDockTitles);
-    QObject::connect(ui->actionLockDocks, &QAction::triggered, this, &MainWindow::lockDocks);
+    QObject::connect(APP->actions["subWindowsUseTabs"], &QAction::triggered, this, &MainWindow::useTabs);
+    QObject::connect(APP->actions["subWindowsTile"], &QAction::triggered, mdi, &MdiArea::tileSubWindows);
+    QObject::connect(APP->actions["subWindowsCascade"], &QAction::triggered, mdi, &MdiArea::cascadeSubWindows);
+    QObject::connect(APP->actions["subWindowsNext"], &QAction::triggered, mdi, &MdiArea::activateNextSubWindow);
+    QObject::connect(APP->actions["subWindowsPrevious"], &QAction::triggered, mdi, &MdiArea::activatePreviousSubWindow);
+    QObject::connect(APP->actions["toolBarsLock"], &QAction::triggered, this, &MainWindow::lockToolbars);
+    QObject::connect(APP->actions["toolBarsAll"], &QAction::triggered, this, &MainWindow::showToolbars);
+    QObject::connect(APP->actions["docksTitles"], &QAction::triggered, this, &MainWindow::showDockTitles);
+    QObject::connect(APP->actions["docksLock"], &QAction::triggered, this, &MainWindow::lockDocks);
+    QObject::connect(APP->actions["docksAll"], &QAction::triggered, this, &MainWindow::showDocks);
+
+    {
+        QDockWidget *dock;
+
+        dock = new QDockWidget();
+        dock->setWindowTitle("Palette");
+        paletteWidget = new PaletteWidget();
+        dock->setWidget(paletteWidget);
+        addDockWidget(Qt::RightDockWidgetArea, dock);
+
+        dock = new QDockWidget();
+        dock->setWindowTitle("Colour Context");
+        colourContextWidget = new ColourContextWidget();
+        dock->setWidget(colourContextWidget);
+        addDockWidget(Qt::RightDockWidgetArea, dock);
+
+        dock = new QDockWidget();
+        dock->setWindowTitle("Colour Selector");
+        colourSelector = new ColourSelector();
+        dock->setWidget(colourSelector);
+        addDockWidget(Qt::RightDockWidgetArea, dock);
+    }
 
     QToolBar *toolBarBrush = ui->toolBarBrush;
     ModeActionGroup<EditingContext::BrushStyle> *brushStyleGroup = new ModeActionGroup<EditingContext::BrushStyle>(this);
@@ -175,9 +199,9 @@ MainWindow::MainWindow(QWidget *parent) :
         dockMenu->addAction(dock.next()->toggleViewAction());
     }
 
-    m_statusMouseWidget = new StatusMouseWidget;
-    m_statusMouseWidget->hide();
-    statusBar()->addWidget(m_statusMouseWidget);
+    statusMouseWidget = new StatusMouseWidget;
+    statusMouseWidget->hide();
+    statusBar()->addWidget(statusMouseWidget);
     statusBar()->setSizeGripEnabled(true);
 
     ui->toolBarLayout->hide();
@@ -201,14 +225,14 @@ MainWindow::~MainWindow()
 
 Editor *MainWindow::activeEditor()
 {
-    SubWindow *subWindow = static_cast<SubWindow *>(m_mdi->activeSubWindow());
+    SubWindow *subWindow = static_cast<SubWindow *>(mdi->activeSubWindow());
     ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
     return editor;
 }
 
 void MainWindow::activateSubWindow(SubWindow *const subWindow)
 {
-    if (m_oldSubWindow) {
+    if (oldSubWindow) {
         QListIterator<QMetaObject::Connection> connectionsIterator(activeSubWindowConnections);
         while (connectionsIterator.hasNext()) {
             QMetaObject::Connection connection = (connectionsIterator.next());
@@ -242,9 +266,9 @@ void MainWindow::activateSubWindow(SubWindow *const subWindow)
         activeSubWindowConnections.append(QObject::connect(ui->actionAntialias, &QAction::triggered, editor, &ImageEditor::setAntialias));
         ui->actionAntialias->setChecked(editor->antialias());
 
-        activeSubWindowConnections.append(QObject::connect(editor, &ImageEditor::mouseEntered, m_statusMouseWidget, &StatusMouseWidget::show));
-        activeSubWindowConnections.append(QObject::connect(editor, &ImageEditor::mouseLeft, m_statusMouseWidget, &StatusMouseWidget::hide));
-        activeSubWindowConnections.append(QObject::connect(editor, &ImageEditor::mousePixelChanged, m_statusMouseWidget, &StatusMouseWidget::setMouseInfo));
+        activeSubWindowConnections.append(QObject::connect(editor, &ImageEditor::mouseEntered, statusMouseWidget, &StatusMouseWidget::show));
+        activeSubWindowConnections.append(QObject::connect(editor, &ImageEditor::mouseLeft, statusMouseWidget, &StatusMouseWidget::hide));
+        activeSubWindowConnections.append(QObject::connect(editor, &ImageEditor::mousePixelChanged, statusMouseWidget, &StatusMouseWidget::setMouseInfo));
     }
     else {
         ui->paletteWidget->setEditingContext(nullptr);
@@ -256,7 +280,7 @@ void MainWindow::activateSubWindow(SubWindow *const subWindow)
     ui->actionShowBounds->setEnabled(subWindow);
     ui->actionShowAlpha->setEnabled(subWindow);
     ui->actionAntialias->setEnabled(subWindow);
-    m_oldSubWindow = subWindow;
+    oldSubWindow = subWindow;
 }
 
 void MainWindow::showToolbars(bool checked)
@@ -301,7 +325,7 @@ void MainWindow::lockDocks(bool checked)
 
 void MainWindow::useTabs(bool checked)
 {
-    m_mdi->setViewMode(checked ? QMdiArea::TabbedView : QMdiArea::SubWindowView);
+    mdi->setViewMode(checked ? QMdiArea::TabbedView : QMdiArea::SubWindowView);
 }
 
 void MainWindow::lockToolbars(bool checked)
@@ -317,9 +341,9 @@ void MainWindow::lockToolbars(bool checked)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    m_mdi->closeAllSubWindows();
+    mdi->closeAllSubWindows();
     //if (!closeImage()) {
-    if (m_mdi->subWindowList().length() > 0) {
+    if (mdi->subWindowList().length() > 0) {
 //        event->ignore();
     }
     else {
@@ -345,8 +369,8 @@ SubWindow *MainWindow::newEditorSubWindow(ImageEditor *const editor)
     subWindow->setAttribute(Qt::WA_DeleteOnClose);
     subWindow->setWindowTitle(image.fileInfo.shortName());
 
-    QSize overhead = m_mdi->subWindowSizeOverhead();
-    QSize mdiAvailableSize = m_mdi->size() - overhead;
+    QSize overhead = mdi->subWindowSizeOverhead();
+    QSize mdiAvailableSize = mdi->size() - overhead;
     const float scaleStep = 2;
     auto scaleToFit = [](float size, float available, float scaleStep) {
         return pow(scaleStep, floor(log(available / size) / log(scaleStep)));
@@ -354,7 +378,7 @@ SubWindow *MainWindow::newEditorSubWindow(ImageEditor *const editor)
     const float scale = std::min(scaleToFit(image.imageData()->size.width(), mdiAvailableSize.width(), scaleStep),
                                  scaleToFit(image.imageData()->size.height(), mdiAvailableSize.height(), scaleStep));
     subWindow->resize(image.imageData()->size * scale + overhead);
-    m_mdi->addSubWindow(subWindow);
+    mdi->addSubWindow(subWindow);
 
     subWindow->setWidget(editor);
     editor->transform().setZoom(scale);

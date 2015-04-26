@@ -15,8 +15,7 @@ class MainWindow;
 class SubWindow : public QMdiSubWindow
 {
 public:
-    explicit SubWindow(QWidget *parent = nullptr) :
-        QMdiSubWindow(parent) {}
+    explicit SubWindow(QWidget *parent = nullptr);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -30,11 +29,22 @@ public:
     QSize subWindowSizeOverhead() const;
 };
 
+class PaletteWidget;
+class ColourSelector;
+class ColourContextWidget;
+class SessionWidget;
+class StatusMouseWidget;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    MdiArea *m_mdi;
+    MdiArea *mdi;
+    PaletteWidget *paletteWidget;
+    ColourSelector *colourSelector;
+    ColourContextWidget *colourContextWidget;
+    SessionWidget *sessionWidget;
+    StatusMouseWidget *statusMouseWidget;
 
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -57,8 +67,7 @@ protected:
 
 private:
     Ui::MainWindow *ui;
-    StatusMouseWidget *m_statusMouseWidget;
-    SubWindow *m_oldSubWindow;
+    SubWindow *oldSubWindow;
     static const QString fileDialogFilterString;
     QList<QMetaObject::Connection> activeSubWindowConnections;
 };

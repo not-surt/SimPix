@@ -71,6 +71,7 @@ public slots:
     void about();
     void aboutQt();
     void license();
+    void applicationSettings();
 
 private:
     static const GLfloat brushVertices[][2];
@@ -100,6 +101,7 @@ private:
     void createMenus();
     void setActionMenus();
     static QMenuBar *menuBarFromMenu(QMenu *menu);
+    void createToolBars();
     Document *m_activeDocument;
 };
 
