@@ -43,9 +43,11 @@ public:
     GLuint program(const QString &name) { return programs[name]->programId(); }
     QIcon icon(const QString &sheet, const QString &name, const int scale = 1);
 
+//    MainWindow *activeWindow();
     Document *activeDocument();
     Editor *activeEditor();
-    QMenuBar *menuBar();
+
+    QMenuBar *createMenuBar();
 
 signals:
     void activeDocumentChanged(Document *document);
@@ -97,9 +99,11 @@ private:
     static const QList<Application::MenuDefinition> menuDefinitions;
     static const int iconSheetWidth;
 
+    void initializeGL();
     void createActions();
     void createMenus();
     void setActionMenus();
+    void connectActions();
     static QMenuBar *menuBarFromMenu(QMenu *menu);
     void createToolBars();
     Document *m_activeDocument;

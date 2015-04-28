@@ -72,10 +72,12 @@ NewDialog::NewDialog(QWidget *parent) :
     }
     ui->presetButton->setMenu(presetMenu);
 
-    restoreGeometry(APP->settings.value("window/new/geometry").toByteArray());
-    ui->widthSpinBox->setValue(APP->settings.value("window/new/lastSize").toSize().width());
-    ui->heightSpinBox->setValue(APP->settings.value("window/new/lastSize").toSize().height());
-    ui->formatComboBox->setCurrentIndex(APP->settings.value("window/new/lastFormat").toInt());
+    APP->settings.beginGroup("window/new");
+    restoreGeometry(APP->settings.value("geometry").toByteArray());
+    ui->widthSpinBox->setValue(APP->settings.value("lastSize").toSize().width());
+    ui->heightSpinBox->setValue(APP->settings.value("lastSize").toSize().height());
+    ui->formatComboBox->setCurrentIndex(APP->settings.value("lastFormat").toInt());
+    APP->settings.endGroup();
 }
 
 NewDialog::~NewDialog()
@@ -97,8 +99,10 @@ void NewDialog::closeEvent(QCloseEvent *event)
 
 void NewDialog::accept()
 {
-    APP->settings.setValue("window/new/geometry", saveGeometry());
-    APP->settings.setValue("window/new/lastSize", QSize(ui->widthSpinBox->value(), ui->heightSpinBox->value()));
-    APP->settings.setValue("window/new/lastFormat", ui->formatComboBox->currentIndex());
+    APP->settings.beginGroup("window/new");
+    APP->settings.setValue("geometry", saveGeometry());
+    APP->settings.setValue("lastSize", QSize(ui->widthSpinBox->value(), ui->heightSpinBox->value()));
+    APP->settings.setValue("lastFormat", ui->formatComboBox->currentIndex());
+    APP->settings.endGroup();
     QDialog::accept();
 }

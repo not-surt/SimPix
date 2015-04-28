@@ -33,6 +33,7 @@ class PaletteWidget;
 class ColourSelector;
 class ColourContextWidget;
 class SessionWidget;
+class TransformWidget;
 class StatusMouseWidget;
 
 class MainWindow : public QMainWindow
@@ -44,6 +45,7 @@ public:
     ColourSelector *colourSelector;
     ColourContextWidget *colourContextWidget;
     SessionWidget *sessionWidget;
+    TransformWidget *transformWidget;
     StatusMouseWidget *statusMouseWidget;
 
     explicit MainWindow(QWidget *parent = nullptr);

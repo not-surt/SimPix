@@ -39,9 +39,9 @@ Application::Application(int &argc, char **argv) :
     setWindowIcon(QIcon(":/images/simpix-48x48.png"));
 
     setApplicationName("SimPix");
+    setApplicationVersion("0.0.1");
     setOrganizationName("Uninhabitant");
     setOrganizationDomain("uninhabitant.com");
-    setApplicationVersion("0.0.1");
 
     setStyleSheet(
 //        "QStatusBar::item {border: none}"
@@ -60,74 +60,11 @@ Application::Application(int &argc, char **argv) :
     iconSheets.insert("actions", QImage(":/images/actions.png"));
     iconSheets.insert("objects", QImage(":/images/objects.png"));
 
+    initializeGL();
     createActions();
     createMenus();
     setActionMenus();
-    QMenuBar *menuBar = menuBarFromMenu(menus["main"]);
-
-    auto formatInfo = [](const QSurfaceFormat &format, const QString &label) {
-        qDebug() <<  qPrintable(label) << "Format:" << "Major" << format.majorVersion() << "Minor" << format.minorVersion() << "Profile" << format.profile();
-    };
-
-//    offScreen.setFormat(QSurfaceFormat::defaultFormat());
-//    offScreen.create();
-//    context.setFormat(QSurfaceFormat::defaultFormat());
-//    context.create();
-//    context.makeCurrent(&offScreen);
-//    formatInfo(offScreen.format(), "Off Screen");
-//    formatInfo(context.format(), "Context");
-
-    formatInfo(QSurfaceFormat::defaultFormat(), "Default");
-
-    // Show to initialize share widget
-    shareWidget.show();
-    shareWidget.hide();
-    qDebug() << "Context valid:" << shareWidget.context()->isValid();
-    formatInfo(shareWidget.context()->format(), "Share");
-    shareWidget.makeCurrent();
-
-//    shareWidget.context()->setShareContext(&context);
-//    shareWidget.context()->create();
-//    shareWidget.makeCurrent();
-//    qDebug() << "Sharing?" << QOpenGLContext::areSharing(&context, shareWidget.context());
-//    qDebug() << "Context valid:" << shareWidget.context()->isValid();
-//    QOpenGLWidget *widget = new QOpenGLWidget();
-//    widget->show();
-//    widget->hide();
-//    widget->context()->setShareContext(&context);
-//    widget->context()->create();
-//    widget->makeCurrent();
-//    qDebug() << "Sharing?" << QOpenGLContext::areSharing(&context, widget->context());
-//    qDebug() << "Context valid:" << widget->context()->isValid();
-//    qDebug() << "Sharing?" << QOpenGLContext::areSharing(shareWidget.context(), widget->context());
-
-    {
-        GLContextGrabber grab(&shareWidget);
-//        GLContextGrabber grab(&context, &offScreen);
-        initializeOpenGLFunctions();
-
-        glGenBuffers((GLsizei)1, &brushVertexBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, brushVertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), brushVertices, GL_STATIC_DRAW);
-//        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        static const QHash<QString, QOpenGLShader::ShaderTypeBit> extensionToShaderType = {
-            { "vert", QOpenGLShader::Vertex },
-            { "frag", QOpenGLShader::Fragment },
-            { "geom", QOpenGLShader::Geometry },
-        };
-        QDirIterator iterator(":/shaders");
-        while (iterator.hasNext()) {
-            iterator.next();
-            QFileInfo info = iterator.fileInfo();
-            addShader(info.fileName(), extensionToShaderType[info.completeSuffix()], fileToString(info.filePath()));
-        }
-        addProgram("image", {"canvastiled.vert", "image.frag"});
-        addProgram("frame", {"canvassingle.vert", "frame.frag"});
-        addProgram("checkerboard", {"viewport.vert", "checkerboard.frag"});
-        addProgram("brushellipse", {"brush.vert", "brushellipse.frag"});
-        addProgram("brushrectangle", {"brush.vert", "brushrectangle.frag"});
-    }
+    connectActions();
 
     windowNew();
 }
@@ -220,6 +157,11 @@ QIcon Application::icon(const QString &sheet, const QString &name, const int sca
     return QIcon();
 }
 
+//MainWindow *Application::activeWindow()
+//{
+//    return nullptr;
+//}
+
 Document *Application::activeDocument()
 {
     return nullptr;
@@ -234,7 +176,7 @@ Editor *Application::activeEditor()
     return nullptr;
 }
 
-QMenuBar *Application::menuBar()
+QMenuBar *Application::createMenuBar()
 {
     return menuBarFromMenu(menus["main"]);
 }
@@ -278,7 +220,8 @@ bool Application::windowClone()
 
 bool Application::windowClose()
 {
-
+    MainWindow *window = dynamic_cast<MainWindow *>(activeWindow());
+    window->close();
 }
 
 void Application::documentNew()
@@ -302,7 +245,16 @@ void Application::documentOpen()
     MainWindow *window = dynamic_cast<MainWindow *>(activeWindow());
     if (window) {
         APP->settings.beginGroup("file");
-        QStringList fileNames = QFileDialog::getOpenFileNames(window, tr("Open Image"), APP->settings.value("lastOpened", QDir::homePath()).toString(), APP->fileDialogFilterString);
+        QFileDialog dialog(window, tr("Open Image"), APP->settings.value("lastOpened", QDir::homePath()).toString(), APP->fileDialogFilterString);
+        APP->settings.endGroup();
+        APP->settings.beginGroup("window/open");
+        dialog.restoreGeometry(APP->settings.value("geometry").toByteArray());
+        dialog.exec();
+        APP->settings.setValue("geometry", dialog.saveGeometry());
+        QStringList fileNames = dialog.selectedFiles();
+        APP->settings.endGroup();
+        APP->settings.beginGroup("file");
+//        QStringList fileNames = QFileDialog::getOpenFileNames(window, tr("Open Image"), APP->settings.value("lastOpened", QDir::homePath()).toString(), APP->fileDialogFilterString);
         QStringListIterator fileNameIterator(fileNames);
         QStringList failed;
         while (fileNameIterator.hasNext()) {
@@ -461,6 +413,71 @@ void Application::applicationSettings()
 
 }
 
+void Application::initializeGL()
+{
+    auto formatInfo = [](const QSurfaceFormat &format, const QString &label) {
+        qDebug() <<  qPrintable(label) << "Format:" << "Major" << format.majorVersion() << "Minor" << format.minorVersion() << "Profile" << format.profile();
+    };
+
+//    offScreen.setFormat(QSurfaceFormat::defaultFormat());
+//    offScreen.create();
+//    context.setFormat(QSurfaceFormat::defaultFormat());
+//    context.create();
+//    context.makeCurrent(&offScreen);
+//    formatInfo(offScreen.format(), "Off Screen");
+//    formatInfo(context.format(), "Context");
+
+    formatInfo(QSurfaceFormat::defaultFormat(), "Default");
+
+    // Show to initialize share widget
+    shareWidget.show();
+    shareWidget.hide();
+    qDebug() << "Context valid:" << shareWidget.context()->isValid();
+    formatInfo(shareWidget.context()->format(), "Share");
+    shareWidget.makeCurrent();
+
+//    shareWidget.context()->setShareContext(&context);
+//    shareWidget.context()->create();
+//    shareWidget.makeCurrent();
+//    qDebug() << "Sharing?" << QOpenGLContext::areSharing(&context, shareWidget.context());
+//    qDebug() << "Context valid:" << shareWidget.context()->isValid();
+//    QOpenGLWidget *widget = new QOpenGLWidget();
+//    widget->show();
+//    widget->hide();
+//    widget->context()->setShareContext(&context);
+//    widget->context()->create();
+//    widget->makeCurrent();
+//    qDebug() << "Sharing?" << QOpenGLContext::areSharing(&context, widget->context());
+//    qDebug() << "Context valid:" << widget->context()->isValid();
+//    qDebug() << "Sharing?" << QOpenGLContext::areSharing(shareWidget.context(), widget->context());
+
+    GLContextGrabber grab(&shareWidget);
+//    GLContextGrabber grab(&context, &offScreen);
+    initializeOpenGLFunctions();
+
+    glGenBuffers((GLsizei)1, &brushVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, brushVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), brushVertices, GL_STATIC_DRAW);
+//    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    static const QHash<QString, QOpenGLShader::ShaderTypeBit> extensionToShaderType = {
+        { "vert", QOpenGLShader::Vertex },
+        { "frag", QOpenGLShader::Fragment },
+        { "geom", QOpenGLShader::Geometry },
+    };
+    QDirIterator iterator(":/shaders");
+    while (iterator.hasNext()) {
+        iterator.next();
+        QFileInfo info = iterator.fileInfo();
+        addShader(info.fileName(), extensionToShaderType[info.completeSuffix()], fileToString(info.filePath()));
+    }
+    addProgram("image", {"canvastiled.vert", "image.frag"});
+    addProgram("frame", {"canvassingle.vert", "frame.frag"});
+    addProgram("checkerboard", {"viewport.vert", "checkerboard.frag"});
+    addProgram("brushellipse", {"brush.vert", "brushellipse.frag"});
+    addProgram("brushrectangle", {"brush.vert", "brushrectangle.frag"});
+}
+
 const QList<Application::ActionDefinition> Application::actionDefinitions = {
     {"applicationMenu", "&Application", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "application"},
     {"applicationAbout", "&About", "help-about", false, false, -1, nullptr, nullptr, "About application.", nullptr, nullptr},
@@ -501,6 +518,11 @@ const QList<Application::ActionDefinition> Application::actionDefinitions = {
     {"docksTitles", "&Dock Titles", nullptr, true, false, -1, nullptr, "Dock Titles", "Toggle visibility of dock titles.", nullptr, nullptr},
     {"docksLock", "&Lock Docks", nullptr, true, false, -1, nullptr, "Lock Docks", "Lock poisition of all docks.", nullptr, nullptr},
     {"docksAll", "&All Docks", nullptr, true, false, -1, nullptr, "All Docks", "Toggle visibility of all docks.", nullptr, nullptr},
+
+    {"windowMenu", "&Window", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "window"},
+    {"windowNew", "&New Window", nullptr, false, false, -1, nullptr, "New Window", "Open new window.", nullptr, nullptr},
+    {"windowClone", "&Clone Window", nullptr, false, false, -1, nullptr, "Clone Window", "Clone current window.", nullptr, nullptr},
+    {"windowClose", "&Close Window", nullptr, false, false, -1, nullptr, "Close Window", "Close current window.", nullptr, nullptr},
 
     {"documentMenu", "&Document", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "document"},
     {"documentNew", "&New", "document-new", false, false, QKeySequence::New, nullptr, "New Document", "Open new document.", nullptr, nullptr},
@@ -549,7 +571,7 @@ void Application::createActions()
 }
 
 const QList<Application::MenuDefinition> Application::menuDefinitions = {
-    {"main", "&Menu", {"applicationMenu", "sessionMenu", "layoutMenu", "documentMenu", "editorMenu"}},
+    {"main", "&Menu", {"applicationMenu", "sessionMenu", "layoutMenu", "windowMenu", "documentMenu", "editorMenu"}},
     {"application", "&Application", {"applicationAbout", "applicationAboutQt", "applicationLicense", nullptr, "applicationSettings", nullptr, "applicationExit"}},
     {"session", "&Session", {"sessionNew", "sessionOpen", "sessionRecentMenu", nullptr, "sessionSave", "sessionSaveAs", nullptr, "sessionClose"}},
     {"sessionRecent", "&Recent", {}},
@@ -558,6 +580,7 @@ const QList<Application::MenuDefinition> Application::menuDefinitions = {
     {"subWindows", "&Subwindows", {"subWindowsUseTabs", nullptr, "subWindowsTile", "subWindowsCascade", nullptr, "subWindowsNext", "subWindowsPrevious"}},
     {"toolBars", "&Toolbars", {"toolBarsLock", nullptr, "toolBarsAll", nullptr}},
     {"docks", "&Docks", {"docksTitles", "docksLock", nullptr, "docksAll", nullptr}},
+    {"window", "&Window", {"windowNew", "windowClone", nullptr, "windowClose"}},
     {"document", "&Document", {"documentNew", "documentOpen", "documentRecentMenu", nullptr, "documentSave", "documentSaveAs", "documentSaveAll", nullptr, "documentClose", "documentCloseAll"}},
     {"documentRecent", "&Recent", {}},
     {"editor", "&Editor", {"editorNew", "editorClone", nullptr, "editorClose", "editorCloseAll"}},
@@ -590,6 +613,24 @@ void Application::setActionMenus()
             qDebug() << definition.menuName;
         }
     }
+}
+
+void Application::connectActions()
+{
+    QObject::connect(actions["applicationAbout"], &QAction::triggered, this, &Application::about);
+    QObject::connect(actions["applicationAboutQt"], &QAction::triggered, this, &Application::aboutQt);
+    QObject::connect(actions["applicationLicense"], &QAction::triggered, this, &Application::license);
+    QObject::connect(actions["applicationSettings"], &QAction::triggered, this, &Application::applicationSettings);
+    QObject::connect(actions["applicationExit"], &QAction::triggered, this, &Application::closeAllWindows);
+
+    QObject::connect(actions["windowNew"], &QAction::triggered, this, &Application::windowNew);
+    QObject::connect(actions["windowClose"], &QAction::triggered, this, &Application::windowClose);
+
+    QObject::connect(actions["documentNew"], &QAction::triggered, this, &Application::documentNew);
+    QObject::connect(actions["documentOpen"], &QAction::triggered, this, &Application::documentOpen);
+    QObject::connect(actions["documentSave"], &QAction::triggered, this, &Application::documentSave);
+    QObject::connect(actions["documentSaveAs"], &QAction::triggered, this, &Application::documentSaveAs);
+    QObject::connect(actions["documentClose"], &QAction::triggered, this, &Application::documentClose);
 }
 
 QMenuBar *Application::menuBarFromMenu(QMenu *menu)

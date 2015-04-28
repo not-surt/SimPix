@@ -70,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
 
     addActions(APP->actions.values());////////////////////
-    setMenuBar(APP->menuBar());
+    setMenuBar(APP->createMenuBar());
 
     // Copy actions to window so available when menu hidden. Is there a better way?
     QListIterator<QMenu *> menuIterator(ui->menuBar->findChildren<QMenu *>());
@@ -86,18 +86,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->menuBar->hide();
 
     QObject::connect(mdi, &MdiArea::subWindowActivated, [this](QMdiSubWindow *const subWindow) { this->activateSubWindow(static_cast<SubWindow *>(subWindow)); } );
-
-    QObject::connect(APP->actions["applicationAbout"], &QAction::triggered, APP, &Application::about);
-    QObject::connect(APP->actions["applicationAboutQt"], &QAction::triggered, APP, &Application::aboutQt);
-    QObject::connect(APP->actions["applicationLicense"], &QAction::triggered, APP, &Application::license);
-    QObject::connect(APP->actions["applicationSettings"], &QAction::triggered, APP, &Application::applicationSettings);
-    QObject::connect(APP->actions["applicationExit"], &QAction::triggered, APP, &Application::closeAllWindows);
-
-    QObject::connect(APP->actions["documentNew"], &QAction::triggered, APP, &Application::documentNew);
-    QObject::connect(APP->actions["documentOpen"], &QAction::triggered, APP, &Application::documentOpen);
-    QObject::connect(APP->actions["documentSave"], &QAction::triggered, APP, &Application::documentSave);
-    QObject::connect(APP->actions["documentSaveAs"], &QAction::triggered, APP, &Application::documentSaveAs);
-    QObject::connect(APP->actions["documentClose"], &QAction::triggered, APP, &Application::documentClose);
 
     QObject::connect(APP->actions["layoutFullScreen"], &QAction::triggered, this, &MainWindow::setFullscreen);
     QObject::connect(APP->actions["layoutMenuBar"], &QAction::triggered, this->menuBar(), &QMenuBar::setVisible);
@@ -117,21 +105,38 @@ MainWindow::MainWindow(QWidget *parent) :
         QDockWidget *dock;
 
         dock = new QDockWidget();
+        dock->setObjectName("dockPalette");
         dock->setWindowTitle("Palette");
         paletteWidget = new PaletteWidget();
         dock->setWidget(paletteWidget);
         addDockWidget(Qt::RightDockWidgetArea, dock);
 
         dock = new QDockWidget();
+        dock->setObjectName("dockColourContext");
         dock->setWindowTitle("Colour Context");
         colourContextWidget = new ColourContextWidget();
         dock->setWidget(colourContextWidget);
         addDockWidget(Qt::RightDockWidgetArea, dock);
 
         dock = new QDockWidget();
+        dock->setObjectName("dockColourSelector");
         dock->setWindowTitle("Colour Selector");
         colourSelector = new ColourSelector();
         dock->setWidget(colourSelector);
+        addDockWidget(Qt::RightDockWidgetArea, dock);
+
+        dock = new QDockWidget();
+        dock->setObjectName("dockSession");
+        dock->setWindowTitle("Session");
+        sessionWidget = new SessionWidget();
+        dock->setWidget(sessionWidget);
+        addDockWidget(Qt::RightDockWidgetArea, dock);
+
+        dock = new QDockWidget();
+        dock->setObjectName("dockTransform");
+        dock->setWindowTitle("Transform");
+        transformWidget = new TransformWidget();
+        dock->setWidget(transformWidget);
         addDockWidget(Qt::RightDockWidgetArea, dock);
     }
 
