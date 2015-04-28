@@ -15,7 +15,7 @@ ColourContextWidget::~ColourContextWidget()
 
 void ColourContextWidget::setColourSlot(const Colour colour, const EditingContext::ColourSlot slot)
 {
-    ColourSwatch *swatch = nullptr;
+    ColourSwatchWidget *swatch = nullptr;
     switch (slot) {
     default:
     case EditingContext::ColourSlot::Primary:

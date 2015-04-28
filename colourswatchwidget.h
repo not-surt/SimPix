@@ -1,16 +1,16 @@
-#ifndef COLOURSWATCH_H
-#define COLOURSWATCH_H
+#ifndef COLOURSWATCHWIDGET_H
+#define COLOURSWATCHWIDGET_H
 
 #include <QAbstractButton>
 #include <QFocusFrame>
 #include "data.h"
 
-class ColourSwatch : public QAbstractButton
+class ColourSwatchWidget : public QAbstractButton
 {
     Q_OBJECT
 
 public:
-    explicit ColourSwatch(QWidget *parent = nullptr);
+    explicit ColourSwatchWidget(QWidget *parent = nullptr);
     virtual QSize sizeHint() const;
     const Colour &colour() const;
 
@@ -28,4 +28,4 @@ private:
     QFocusFrame *focusFrame;
 };
 
-#endif // COLOURSWATCH_H
+#endif // COLOURSWATCHWIDGET_H

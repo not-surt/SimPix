@@ -30,7 +30,7 @@ public:
 };
 
 class PaletteWidget;
-class ColourSelector;
+class ColourSelectorWidget;
 class ColourContextWidget;
 class SessionWidget;
 class TransformWidget;
@@ -40,13 +40,18 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
+//    struct {
+
+//    } ui;
     MdiArea *mdi;
     PaletteWidget *paletteWidget;
-    ColourSelector *colourSelector;
+    ColourSelectorWidget *colourSelector;
     ColourContextWidget *colourContextWidget;
     SessionWidget *sessionWidget;
     TransformWidget *transformWidget;
     StatusMouseWidget *statusMouseWidget;
+    QMenu *toolBarMenu;
+    QMenu *dockMenu;
 
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();

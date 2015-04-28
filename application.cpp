@@ -34,7 +34,7 @@ Application::Application(int &argc, char **argv) :
         format.setRenderableType(QSurfaceFormat::OpenGL);
         QSurfaceFormat::setDefaultFormat(format);
         }), *new QOpenGLWidget())),
-    offScreen(), context()
+    offScreen(), context(), settingsWindow()
 {
     setWindowIcon(QIcon(":/images/simpix-48x48.png"));
 
@@ -408,11 +408,6 @@ void Application::license()
     QMessageBox::information(activeWindow(), QString(), text);
 }
 
-void Application::applicationSettings()
-{
-
-}
-
 void Application::initializeGL()
 {
     auto formatInfo = [](const QSurfaceFormat &format, const QString &label) {
@@ -520,9 +515,9 @@ const QList<Application::ActionDefinition> Application::actionDefinitions = {
     {"docksAll", "&All Docks", nullptr, true, false, -1, nullptr, "All Docks", "Toggle visibility of all docks.", nullptr, nullptr},
 
     {"windowMenu", "&Window", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "window"},
-    {"windowNew", "&New Window", nullptr, false, false, -1, nullptr, "New Window", "Open new window.", nullptr, nullptr},
+    {"windowNew", "&New Window", "window-new", false, false, -1, nullptr, "New Window", "Open new window.", nullptr, nullptr},
     {"windowClone", "&Clone Window", nullptr, false, false, -1, nullptr, "Clone Window", "Clone current window.", nullptr, nullptr},
-    {"windowClose", "&Close Window", nullptr, false, false, -1, nullptr, "Close Window", "Close current window.", nullptr, nullptr},
+    {"windowClose", "&Close Window", "window-close", false, false, -1, nullptr, "Close Window", "Close current window.", nullptr, nullptr},
 
     {"documentMenu", "&Document", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "document"},
     {"documentNew", "&New", "document-new", false, false, QKeySequence::New, nullptr, "New Document", "Open new document.", nullptr, nullptr},
@@ -535,9 +530,9 @@ const QList<Application::ActionDefinition> Application::actionDefinitions = {
     {"documentCloseAll", "Close &All", nullptr, false, false, -1, nullptr, "Close All Documents" ,"Close all documents.", nullptr, nullptr},
 
     {"editorMenu", "&Editor", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "editor"},
-    {"editorNew", "&New", "document-new", false, false, -1, "Ctrl+Shift+N", "New Editor", "Open new editor.", nullptr, nullptr},
+    {"editorNew", "&New", "window-new", false, false, -1, "Ctrl+Shift+N", "New Editor", "Open new editor.", nullptr, nullptr},
     {"editorClone", "&Clone", nullptr, false, false, -1, "Ctrl+Shift+C", "Clone Editor", "Clone current editor.", nullptr, nullptr},
-    {"editorClose", "&Close", "document-close", false, false, QKeySequence::Close, nullptr, "Close Editor", "Close current editor.", nullptr, nullptr},
+    {"editorClose", "&Close", "window-close", false, false, QKeySequence::Close, nullptr, "Close Editor", "Close current editor.", nullptr, nullptr},
     {"editorCloseAll", "Close &All", nullptr, false, false, -1, nullptr, "Close All Editors" ,"Close all editors.", nullptr, nullptr},
 };
 
@@ -620,10 +615,11 @@ void Application::connectActions()
     QObject::connect(actions["applicationAbout"], &QAction::triggered, this, &Application::about);
     QObject::connect(actions["applicationAboutQt"], &QAction::triggered, this, &Application::aboutQt);
     QObject::connect(actions["applicationLicense"], &QAction::triggered, this, &Application::license);
-    QObject::connect(actions["applicationSettings"], &QAction::triggered, this, &Application::applicationSettings);
+    QObject::connect(actions["applicationSettings"], &QAction::triggered, &settingsWindow, &SettingsDialog::show);
     QObject::connect(actions["applicationExit"], &QAction::triggered, this, &Application::closeAllWindows);
 
     QObject::connect(actions["windowNew"], &QAction::triggered, this, &Application::windowNew);
+    QObject::connect(actions["windowClone"], &QAction::triggered, this, &Application::windowClone);
     QObject::connect(actions["windowClose"], &QAction::triggered, this, &Application::windowClose);
 
     QObject::connect(actions["documentNew"], &QAction::triggered, this, &Application::documentNew);
@@ -631,6 +627,12 @@ void Application::connectActions()
     QObject::connect(actions["documentSave"], &QAction::triggered, this, &Application::documentSave);
     QObject::connect(actions["documentSaveAs"], &QAction::triggered, this, &Application::documentSaveAs);
     QObject::connect(actions["documentClose"], &QAction::triggered, this, &Application::documentClose);
+
+    QObject::connect(actions["sessionNew"], &QAction::triggered, this, &Application::sessionNew);
+    QObject::connect(actions["sessionOpen"], &QAction::triggered, this, &Application::sessionOpen);
+    QObject::connect(actions["sessionSave"], &QAction::triggered, this, &Application::sessionSave);
+    QObject::connect(actions["sessionSaveAs"], &QAction::triggered, this, &Application::sessionSaveAs);
+    QObject::connect(actions["sessionClose"], &QAction::triggered, this, &Application::sessionClose);
 }
 
 QMenuBar *Application::menuBarFromMenu(QMenu *menu)
@@ -647,9 +649,4 @@ QMenuBar *Application::menuBarFromMenu(QMenu *menu)
         }
     }
     return menuBar;
-}
-
-void Application::createToolBars()
-{
-
 }

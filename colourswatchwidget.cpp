@@ -1,11 +1,11 @@
-#include "colourswatch.h"
+#include "colourswatchwidget.h"
 #include <QApplication>
 #include <QStyle>
 #include <QPainter>
 #include <QStyleOptionFocusRect>
 #include "util.h"
 
-ColourSwatch::ColourSwatch(QWidget *parent) :
+ColourSwatchWidget::ColourSwatchWidget(QWidget *parent) :
     QAbstractButton(parent), m_colour()
 {
     setFocusPolicy(Qt::StrongFocus);
@@ -14,7 +14,7 @@ ColourSwatch::ColourSwatch(QWidget *parent) :
 //    focusFrame->setWidget(this);
 }
 
-void ColourSwatch::setColour(const Colour &colour)
+void ColourSwatchWidget::setColour(const Colour &colour)
 {
     if (m_colour != colour) {
         m_colour = colour;
@@ -24,18 +24,18 @@ void ColourSwatch::setColour(const Colour &colour)
 }
 
 
-QSize ColourSwatch::sizeHint() const
+QSize ColourSwatchWidget::sizeHint() const
 {
     const int size = QApplication::style()->pixelMetric(QStyle::PM_ToolBarIconSize);
     return QSize(size, size);
 }
 
-const Colour &ColourSwatch::colour() const
+const Colour &ColourSwatchWidget::colour() const
 {
     return m_colour;
 }
 
-void ColourSwatch::paintEvent(QPaintEvent *)
+void ColourSwatchWidget::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
     drawColourSwatch(&painter, rect(), QColor(m_colour.r, m_colour.g, m_colour.b, m_colour.a));

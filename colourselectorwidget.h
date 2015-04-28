@@ -1,20 +1,20 @@
-#ifndef COLOURSELECTOR_H
-#define COLOURSELECTOR_H
+#ifndef COLOURSELECTORWIDGET_H
+#define COLOURSELECTORWIDGET_H
 
 #include <QWidget>
 #include <QColor>
 
 namespace Ui {
-class ColourSelector;
+class ColourSelectorWidget;
 }
 
-class ColourSelector : public QWidget
+class ColourSelectorWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit ColourSelector(QWidget *parent = nullptr);
-    ~ColourSelector();
+    explicit ColourSelectorWidget(QWidget *parent = nullptr);
+    ~ColourSelectorWidget();
     void setColour(const QColor &colour);
 
 signals:
@@ -27,8 +27,8 @@ private slots:
     void updateColour();
 
 private:
-    Ui::ColourSelector *ui;
+    Ui::ColourSelectorWidget *ui;
     QColor m_colour;
 };
 
-#endif // COLOURSELECTOR_H
+#endif // COLOURSELECTORWIDGET_H

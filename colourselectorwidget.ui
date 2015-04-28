@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ColourSelector</class>
- <widget class="QWidget" name="ColourSelector">
+ <class>ColourSelectorWidget</class>
+ <widget class="QWidget" name="ColourSelectorWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>206</width>
-    <height>152</height>
+    <height>158</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -119,7 +119,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>&amp;Blue</string>
+      <string>B&amp;lue</string>
      </property>
      <property name="buddy">
       <cstring>blueSpinBox</cstring>

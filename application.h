@@ -15,6 +15,7 @@
 #include <QOpenGLWidget>
 #include <QKeySequence>
 #include "session.h"
+#include "settingsdialog.h"
 
 class Application : public QApplication, public QOpenGLFunctions_3_3_Core
 {
@@ -25,6 +26,7 @@ public:
     QOffscreenSurface offScreen;
     QOpenGLContext context;
     QOpenGLWidget &shareWidget;
+    SettingsDialog settingsWindow;
     GLuint brushVertexBuffer;
     QHash<QString, QOpenGLShader *> shaders;
     QHash<QString, QOpenGLShaderProgram *> programs;
@@ -73,7 +75,6 @@ public slots:
     void about();
     void aboutQt();
     void license();
-    void applicationSettings();
 
 private:
     static const GLfloat brushVertices[][2];
@@ -105,7 +106,6 @@ private:
     void setActionMenus();
     void connectActions();
     static QMenuBar *menuBarFromMenu(QMenu *menu);
-    void createToolBars();
     Document *m_activeDocument;
 };
 

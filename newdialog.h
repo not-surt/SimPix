@@ -21,13 +21,12 @@ public:
     TextureData::Format::Id format() const { return static_cast<TextureData::Format::Id>(ui->formatComboBox->currentData().toInt()); }
     int palette() const { return ui->formatComboBox->currentIndex(); }
 protected:
-    virtual void closeEvent(QCloseEvent *event);
+    virtual void showEvent(QShowEvent *event);
+    virtual void hideEvent(QHideEvent *event);
 private:
     Ui::NewDialog *ui;
 
-    // QDialog interface
 public slots:
-    virtual void accept();
     void setPreset();
 };
 

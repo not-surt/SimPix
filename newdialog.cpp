@@ -71,13 +71,6 @@ NewDialog::NewDialog(QWidget *parent) :
         }
     }
     ui->presetButton->setMenu(presetMenu);
-
-    APP->settings.beginGroup("window/new");
-    restoreGeometry(APP->settings.value("geometry").toByteArray());
-    ui->widthSpinBox->setValue(APP->settings.value("lastSize").toSize().width());
-    ui->heightSpinBox->setValue(APP->settings.value("lastSize").toSize().height());
-    ui->formatComboBox->setCurrentIndex(APP->settings.value("lastFormat").toInt());
-    APP->settings.endGroup();
 }
 
 NewDialog::~NewDialog()
@@ -85,24 +78,31 @@ NewDialog::~NewDialog()
     delete ui;
 }
 
-void NewDialog::setPreset() {
-    const QSize &size = sender()->property("size").toSize();
-    ui->widthSpinBox->setValue(size.width());
-    ui->heightSpinBox->setValue(size.height());
-}
-
-void NewDialog::closeEvent(QCloseEvent *event)
+void NewDialog::showEvent(QShowEvent *event)
 {
-    // Why no work?! >:(
-    QDialog::closeEvent(event);
+    APP->settings.beginGroup("window/new");
+    restoreGeometry(APP->settings.value("geometry").toByteArray());
+    ui->widthSpinBox->setValue(APP->settings.value("lastSize").toSize().width());
+    ui->heightSpinBox->setValue(APP->settings.value("lastSize").toSize().height());
+    ui->formatComboBox->setCurrentIndex(APP->settings.value("lastFormat").toInt());
+    APP->settings.endGroup();
+
+    QDialog::showEvent(event);
 }
 
-void NewDialog::accept()
+void NewDialog::hideEvent(QHideEvent *event)
 {
     APP->settings.beginGroup("window/new");
     APP->settings.setValue("geometry", saveGeometry());
     APP->settings.setValue("lastSize", QSize(ui->widthSpinBox->value(), ui->heightSpinBox->value()));
     APP->settings.setValue("lastFormat", ui->formatComboBox->currentIndex());
     APP->settings.endGroup();
-    QDialog::accept();
+
+    QDialog::hideEvent(event);
+}
+
+void NewDialog::setPreset() {
+    const QSize &size = sender()->property("size").toSize();
+    ui->widthSpinBox->setValue(size.width());
+    ui->heightSpinBox->setValue(size.height());
 }

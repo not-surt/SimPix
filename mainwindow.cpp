@@ -2,7 +2,7 @@
 #include "ui_mainwindow.h"
 #include "newdialog.h"
 #include "util.h"
-#include "colourswatch.h"
+#include "colourswatchwidget.h"
 #include "application.h"
 #include "imageeditor.h"
 #include "imagedocument.h"
@@ -15,7 +15,13 @@
 #include <QMdiSubWindow>
 #include <QWidgetAction>
 #include <QSpinBox>
+#include <QDockWidget>
 #include "widgets.h"
+#include "palettewidget.h"
+#include "colourcontextwidget.h"
+#include "colourselectorwidget.h"
+#include "sessionwidget.h"
+#include "transformwidget.h"
 #include "actions.h"
 
 SubWindow::SubWindow(QWidget *parent) :
@@ -121,7 +127,7 @@ MainWindow::MainWindow(QWidget *parent) :
         dock = new QDockWidget();
         dock->setObjectName("dockColourSelector");
         dock->setWindowTitle("Colour Selector");
-        colourSelector = new ColourSelector();
+        colourSelector = new ColourSelectorWidget();
         dock->setWidget(colourSelector);
         addDockWidget(Qt::RightDockWidgetArea, dock);
 
@@ -138,6 +144,44 @@ MainWindow::MainWindow(QWidget *parent) :
         transformWidget = new TransformWidget();
         dock->setWidget(transformWidget);
         addDockWidget(Qt::RightDockWidgetArea, dock);
+    }
+
+    {
+        QToolBar *toolBar;
+
+        toolBar = new QToolBar();
+        toolBar->setObjectName("toolBarMain");
+        toolBar->setWindowTitle("Main");
+        MenuToolButtonAction *menuToolButtonAction = new MenuToolButtonAction();
+        menuToolButtonAction->setText("Menu");
+        menuToolButtonAction->setMenu(APP->menus["main"]);
+        toolBar->addAction(menuToolButtonAction);
+        toolBar->addSeparator();
+        toolBar->addAction(APP->actions["documentNew"]);
+        toolBar->addAction(APP->actions["documentOpen"]);
+        toolBar->addSeparator();
+        toolBar->addAction(APP->actions["documentSave"]);
+        toolBar->addAction(APP->actions["documentSaveAs"]);
+        toolBar->addSeparator();
+        toolBar->addAction(APP->actions["documentClose"]);
+        toolBar->addSeparator();
+        toolBar->addAction(APP->actions["applicationExit"]);
+        addToolBar(Qt::TopToolBarArea, toolBar);
+
+        toolBar = new QToolBar();
+        toolBar->setObjectName("toolBarLayout");
+        toolBar->setWindowTitle("Layout");
+        addToolBar(Qt::TopToolBarArea, toolBar);
+
+        toolBar = new QToolBar();
+        toolBar->setObjectName("toolBarEditor");
+        toolBar->setWindowTitle("Editor");
+        addToolBar(Qt::TopToolBarArea, toolBar);
+
+        toolBar = new QToolBar();
+        toolBar->setObjectName("toolBarEditingContext");
+        toolBar->setWindowTitle("Editing Context");
+        addToolBar(Qt::TopToolBarArea, toolBar);
     }
 
     QToolBar *toolBarBrush = ui->toolBarBrush;
@@ -176,17 +220,7 @@ MainWindow::MainWindow(QWidget *parent) :
     toolBarColour->addAction(actionBackgroundColour);
     toolBarColour->addAction(actionBrushHeight);
 
-    QMenu *menuMenu = new QMenu;
-    QListIterator<QMenu *> menu2(ui->menuBar->findChildren<QMenu *>(QString(), Qt::FindDirectChildrenOnly));
-    while (menu2.hasNext()) {
-        menuMenu->addMenu(menu2.next());
-    }
-    MenuToolButtonAction *menuToolButtonAction = new MenuToolButtonAction();
-    menuToolButtonAction->setMenu(menuMenu);
-    menuToolButtonAction->setText("Menu");
-    ui->toolBarMain->insertAction(ui->toolBarMain->actions()[0], menuToolButtonAction);
-
-    QMenu *toolBarMenu = new QMenu;
+    toolBarMenu = new QMenu;
     ui->actionToolbars->setMenu(toolBarMenu);
     ui->actionToolbarsMenu->setMenu(toolBarMenu);
     static_cast<QToolButton *>(ui->toolBarLayout->widgetForAction(ui->actionToolbarsMenu))->setPopupMode(QToolButton::MenuButtonPopup);
@@ -195,7 +229,7 @@ MainWindow::MainWindow(QWidget *parent) :
         toolBarMenu->addAction(toolbar.next()->toggleViewAction());
     }
 
-    QMenu *dockMenu = new QMenu;
+    dockMenu = new QMenu;
     ui->actionDocks->setMenu(dockMenu);
     ui->actionDocksMenu->setMenu(dockMenu);
     static_cast<QToolButton *>(ui->toolBarLayout->widgetForAction(ui->actionDocksMenu))->setPopupMode(QToolButton::MenuButtonPopup);
@@ -244,19 +278,19 @@ void MainWindow::activateSubWindow(SubWindow *const subWindow)
             QObject::disconnect(connection);
         }
         activeSubWindowConnections.clear();
-        ui->paletteWidget->setEditingContext(nullptr);
+        paletteWidget->setEditingContext(nullptr);
     }
     if (subWindow) {
         ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
         ImageDocument &image = static_cast<ImageDocument &>(editor->document);
 
         activeSubWindowConnections.append(QObject::connect(&image.fileInfo, &FileInfo::dirtied, editor, SS_CAST(ImageEditor, update,)));
-        activeSubWindowConnections.append(QObject::connect(&editor->editingContext(), &EditingContext::changed, [this](EditingContext *const context) { ui->colourContextWidget->setColourSlot(context->colourSlot(EditingContext::ColourSlot::Primary)); }));
-        ui->paletteWidget->setEditingContext(&editor->editingContext());
+        activeSubWindowConnections.append(QObject::connect(&editor->editingContext(), &EditingContext::changed, [this](EditingContext *const context) { colourContextWidget->setColourSlot(context->colourSlot(EditingContext::ColourSlot::Primary)); }));
+        paletteWidget->setEditingContext(&editor->editingContext());
         setWindowFilePath(image.fileInfo.fileName());
 
-        activeSubWindowConnections.append(QObject::connect(ui->transformWidget, &TransformWidget::transformChanged, &editor->transform(), &Transform::copy));
-        activeSubWindowConnections.append(QObject::connect(&editor->transform(), &Transform::changed, ui->transformWidget, &TransformWidget::setTransform));
+        activeSubWindowConnections.append(QObject::connect(transformWidget, &TransformWidget::transformChanged, &editor->transform(), &Transform::copy));
+        activeSubWindowConnections.append(QObject::connect(&editor->transform(), &Transform::changed, transformWidget, &TransformWidget::setTransform));
 
         activeSubWindowConnections.append(QObject::connect(ui->actionWrap, &QAction::triggered, editor, &ImageEditor::setTiled));
         ui->actionWrap->setChecked(editor->tiled());
@@ -276,7 +310,7 @@ void MainWindow::activateSubWindow(SubWindow *const subWindow)
         activeSubWindowConnections.append(QObject::connect(editor, &ImageEditor::mousePixelChanged, statusMouseWidget, &StatusMouseWidget::setMouseInfo));
     }
     else {
-        ui->paletteWidget->setEditingContext(nullptr);
+        paletteWidget->setEditingContext(nullptr);
         setWindowFilePath(QString());
     }
     ui->actionWrap->setEnabled(subWindow);

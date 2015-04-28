@@ -14,11 +14,9 @@ TEMPLATE = app
 SOURCES += main.cpp\
     mainwindow.cpp \
     newdialog.cpp \
-    colourselector.cpp \
     transformwidget.cpp \
     transform.cpp \
     colourcontextwidget.cpp \
-    colourswatch.cpp \
     colourswatchdelegate.cpp \
     util.cpp \
     application.cpp \
@@ -34,16 +32,17 @@ SOURCES += main.cpp\
     actions.cpp \
     sessionwidget.cpp \
     palettewidget.cpp \
-    treemodel.cpp
+    treemodel.cpp \
+    colourselectorwidget.cpp \
+    colourswatchwidget.cpp \
+    settingsdialog.cpp
 
 HEADERS  += mainwindow.h \
     newdialog.h \
-    colourselector.h \
     transformwidget.h \
     transform.h \
     colourcontextwidget.h \
     colourswatchdelegate.h \
-    colourswatch.h \
     util.h \
     application.h \
     statusmousewidget.h \
@@ -59,18 +58,21 @@ HEADERS  += mainwindow.h \
     sessionwidget.h \
     palettewidget.h \
     treemodel.h \
-    stable.h
+    stable.h \
+    colourselectorwidget.h \
+    colourswatchwidget.h \
+    settingsdialog.h
 
 PRECOMPILED_HEADER = stable.h
 
 FORMS    += mainwindow.ui \
     newdialog.ui \
-    colourselector.ui \
     transformwidget.ui \
     palettewidget.ui \
     colourcontextwidget.ui \
     statusmousewidget.ui \
-    sessionwidget.ui
+    sessionwidget.ui \
+    colourselectorwidget.ui
 
 CONFIG += c++11
 

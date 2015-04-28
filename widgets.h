@@ -5,7 +5,7 @@
 #include <QSpinBox>
 #include <QToolButton>
 #include <QWidgetAction>
-#include "colourswatch.h"
+#include "colourswatchwidget.h"
 
 class ActionWidget : public QWidget
 {
@@ -183,7 +183,7 @@ public:
 
 protected:
     virtual QWidget *createWidget(QWidget *parent) {
-        ColourSwatch *swatch = new ColourSwatch(parent);
+        ColourSwatchWidget *swatch = new ColourSwatchWidget(parent);
         return swatch;
     }
 };

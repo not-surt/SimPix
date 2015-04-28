@@ -92,7 +92,7 @@
    </widget>
    <widget class="QMenu" name="menuEditor">
     <property name="title">
-     <string>E&amp;ditor</string>
+     <string>Edito&amp;r</string>
     </property>
     <addaction name="actionWrap"/>
     <addaction name="actionWrapX"/>
@@ -146,43 +146,7 @@
    <addaction name="menuEdit"/>
    <addaction name="menuContext"/>
   </widget>
-  <widget class="QToolBar" name="toolBarMain">
-   <property name="windowTitle">
-    <string>Main</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="actionFileNew"/>
-   <addaction name="actionFileOpen"/>
-   <addaction name="actionFileSave"/>
-   <addaction name="actionFileClose"/>
-   <addaction name="separator"/>
-   <addaction name="actionUndo"/>
-   <addaction name="actionRedo"/>
-  </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QDockWidget" name="paletteDockWidget">
-   <property name="windowTitle">
-    <string>&amp;Palette</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="PaletteWidget" name="paletteWidget"/>
-  </widget>
-  <widget class="QDockWidget" name="colourSelectorDockWidget">
-   <property name="windowTitle">
-    <string>&amp;Colour</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="ColourSelector" name="colourSelector"/>
-  </widget>
   <widget class="QToolBar" name="toolBarLayout">
    <property name="windowTitle">
     <string>Window</string>
@@ -205,27 +169,6 @@
    <addaction name="actionLockDocks"/>
    <addaction name="separator"/>
    <addaction name="actionStatusBar"/>
-  </widget>
-  <widget class="QDockWidget" name="colourContextDockWidget">
-   <property name="windowTitle">
-    <string>Colo&amp;ur Context</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="ColourContextWidget" name="colourContextWidget"/>
-  </widget>
-  <widget class="QDockWidget" name="transformDockWidget">
-   <property name="floating">
-    <bool>false</bool>
-   </property>
-   <property name="windowTitle">
-    <string>Tra&amp;nsform</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="TransformWidget" name="transformWidget"/>
   </widget>
   <widget class="QToolBar" name="toolBarEditor">
    <property name="windowTitle">
@@ -266,15 +209,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-  </widget>
-  <widget class="QDockWidget" name="dockWidgetSession">
-   <property name="windowTitle">
-    <string>Session</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="SessionWidget" name="sessionWidget"/>
   </widget>
   <action name="actionFileNew">
    <property name="icon">
@@ -1015,38 +949,6 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
-  <customwidget>
-   <class>ColourSelector</class>
-   <extends>QWidget</extends>
-   <header>colourselector.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>TransformWidget</class>
-   <extends>QWidget</extends>
-   <header>transformwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>PaletteWidget</class>
-   <extends>QWidget</extends>
-   <header>palettewidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ColourContextWidget</class>
-   <extends>QWidget</extends>
-   <header>colourcontextwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>SessionWidget</class>
-   <extends>QWidget</extends>
-   <header>sessionwidget.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

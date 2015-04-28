@@ -1,11 +1,11 @@
-#include "colourselector.h"
-#include "ui_colourselector.h"
+#include "colourselectorwidget.h"
+#include "ui_colourselectorwidget.h"
 
 #include "util.h"
 
-ColourSelector::ColourSelector(QWidget *parent) :
+ColourSelectorWidget::ColourSelectorWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::ColourSelector)
+    ui(new Ui::ColourSelectorWidget)
 {
     ui->setupUi(this);
 
@@ -18,12 +18,12 @@ ColourSelector::ColourSelector(QWidget *parent) :
     QObject::connect(ui->alphaSpinBox, signal, func);
 }
 
-ColourSelector::~ColourSelector()
+ColourSelectorWidget::~ColourSelectorWidget()
 {
     delete ui;
 }
 
-void ColourSelector::setColour(const QColor &colour)
+void ColourSelectorWidget::setColour(const QColor &colour)
 {
     if (m_colour != colour) {
         m_colour = colour;
@@ -39,12 +39,12 @@ void ColourSelector::setColour(const QColor &colour)
     }
 }
 
-void ColourSelector::updateColour()
+void ColourSelectorWidget::updateColour()
 {
     setColour(QColor(ui->redSpinBox->value(), ui->greenSpinBox->value(), ui->blueSpinBox->value(), ui->alphaSpinBox->value()));
 }
 
-const QColor &ColourSelector::colour()
+const QColor &ColourSelectorWidget::colour()
 {
     return m_colour;
 }
