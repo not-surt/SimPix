@@ -106,6 +106,7 @@ private:
     static const int iconSheetWidth;
 
     void initializeGL();
+    QHash<QString, QAction *> actionsFromDefinitions(const QList<Application::ActionDefinition> &definitions);
     void createActions();
     void createMenus();
     void setActionMenus();

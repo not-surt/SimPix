@@ -474,6 +474,32 @@ void Application::initializeGL()
     addProgram("brushrectangle", {"brush.vert", "brushrectangle.frag"});
 }
 
+QHash<QString, QAction *> Application::actionsFromDefinitions(const QList<Application::ActionDefinition> &definitions)
+{
+    QHash<QString, QAction *> actions;
+
+    for (int i = 0; i < definitions.size(); i++) {
+        const Application::ActionDefinition &definition = definitions[i];
+        QAction *action = new QAction(QIcon::fromTheme(definition.icon), definition.text, nullptr);
+        action->setCheckable(definition.checkable);
+        action->setChecked(definition.checked);
+        if (definition.standardShortcut >= 0) {
+            action->setShortcut(static_cast<enum QKeySequence::StandardKey>(definition.standardShortcut));
+            action->setShortcutContext(Qt::ApplicationShortcut);
+        }
+        else if (!definition.customShortcut.isEmpty()) {
+            action->setShortcut(QKeySequence(definition.customShortcut));
+            action->setShortcutContext(Qt::ApplicationShortcut);
+        }
+        if (!definition.toolTip.isEmpty()) {
+            action->setToolTip(definition.toolTip);
+        }
+        actions[definition.name] = action;
+    }
+
+    return actions;
+}
+
 const QList<Application::ActionDefinition> Application::actionDefinitions = {
     {"applicationMenu", "&Application", nullptr, false, false, -1, nullptr, nullptr, "application", nullptr},
     {"applicationAbout", "&About", "help-about", false, false, -1, nullptr, "About application.", nullptr, nullptr},
@@ -564,25 +590,7 @@ const QList<Application::ActionDefinition> Application::actionDefinitions = {
 
 void Application::createActions()
 {
-    for (int i = 0; i < Application::actionDefinitions.size(); i++) {
-        const Application::ActionDefinition &definition = Application::actionDefinitions[i];
-        QAction *action = new QAction(QIcon::fromTheme(definition.icon), definition.text, nullptr);
-        action->setCheckable(definition.checkable);
-        action->setChecked(definition.checked);
-        if (definition.standardShortcut >= 0) {
-            action->setShortcut(static_cast<enum QKeySequence::StandardKey>(definition.standardShortcut));
-            action->setShortcutContext(Qt::ApplicationShortcut);
-        }
-        else if (!definition.customShortcut.isEmpty()) {
-            action->setShortcut(QKeySequence(definition.customShortcut));
-            action->setShortcutContext(Qt::ApplicationShortcut);
-        }
-        if (!definition.toolTip.isEmpty()) {
-            action->setToolTip(definition.toolTip);
-        }
-        actions[definition.name] = action;
-    }
-//    qDebug() << actions;
+    actions = actionsFromDefinitions(Application::actionDefinitions);
 }
 
 const QList<Application::MenuDefinition> Application::menuDefinitions = {
