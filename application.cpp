@@ -62,6 +62,7 @@ Application::Application(int &argc, char **argv) :
 
     initializeGL();
     createActions();
+    setActionGroups();
     createMenus();
     setActionMenus();
     connectActions();
@@ -474,66 +475,91 @@ void Application::initializeGL()
 }
 
 const QList<Application::ActionDefinition> Application::actionDefinitions = {
-    {"applicationMenu", "&Application", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "application"},
-    {"applicationAbout", "&About", "help-about", false, false, -1, nullptr, nullptr, "About application.", nullptr, nullptr},
-    {"applicationAboutQt", "About &Qt", nullptr, false, false, -1, nullptr, nullptr, "About Qt.", nullptr, nullptr},
-    {"applicationLicense", "&License", nullptr, false, false, -1, nullptr, nullptr, "Application license.", nullptr, nullptr},
-    {"applicationSettings", "&Settings", nullptr, false, false, -1, nullptr, nullptr, "Application settings.", nullptr, nullptr},
-    {"applicationExit", "&Exit", "application-exit", false, false, QKeySequence::Quit, nullptr, nullptr, "Exit application.", nullptr, nullptr},
+    {"applicationMenu", "&Application", nullptr, false, false, -1, nullptr, nullptr, "application", nullptr},
+    {"applicationAbout", "&About", "help-about", false, false, -1, nullptr, "About application.", nullptr, nullptr},
+    {"applicationAboutQt", "About &Qt", nullptr, false, false, -1, nullptr, "About Qt.", nullptr, nullptr},
+    {"applicationLicense", "&License", nullptr, false, false, -1, nullptr, "Application license.", nullptr, nullptr},
+    {"applicationSettings", "&Settings", nullptr, false, false, QKeySequence::Preferences, nullptr, "Application settings.", nullptr, nullptr},
+    {"applicationExit", "&Exit", "application-exit", false, false, QKeySequence::Quit, nullptr, "Exit application.", nullptr, nullptr},
 
-    {"sessionMenu", "&Session", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "session"},
-    {"sessionNew", "&New", "document-new", false, false, -1, nullptr, "New Session", "Open new session.", nullptr, nullptr},
-    {"sessionOpen", "&Open", "document-open", false, false, -1, nullptr, "Open Session", "Open existing session.", nullptr, nullptr},
-    {"sessionRecentMenu", "&Recent", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "sessionRecent"},
-    {"sessionSave", "&Save", "document-save", false, false, -1, nullptr, "Save Session", "Save current session.", nullptr, nullptr},
-    {"sessionSaveAs", "Save &As", "document-save-as", false, false, -1, nullptr, "Save Session As" ,"Save current session as new filename.", nullptr, nullptr},
-    {"sessionClose", "&Close", "document-close", false, false, -1, nullptr, "Close Session", "Close current session.", nullptr, nullptr},
+    {"sessionMenu", "&Session", nullptr, false, false, -1, nullptr, nullptr, "session", nullptr},
+    {"sessionNew", "&New", "document-new", false, false, -1, nullptr, "Open new session.", nullptr, nullptr},
+    {"sessionOpen", "&Open", "document-open", false, false, -1, nullptr, "Open existing session.", nullptr, nullptr},
+    {"sessionRecentMenu", "&Recent", nullptr, false, false, -1, nullptr, nullptr, "sessionRecent", nullptr},
+    {"sessionSave", "&Save", "document-save", false, false, -1, nullptr, "Save current session.", nullptr, nullptr},
+    {"sessionSaveAs", "Save &As", "document-save-as", false, false, -1, nullptr, "Save current session as new filename.", nullptr, nullptr},
+    {"sessionClose", "&Close", "document-close", false, false, -1, nullptr, "Close current session.", nullptr, nullptr},
 
-    {"layoutMenu", "&Layout", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "layout"},
-    {"layoutFullScreen", "&Full Screen", "view-fullscreen", true, false, QKeySequence::FullScreen, "Toggle window full screen.", nullptr, nullptr},
-    {"layoutMenuBar", "&Menu Bar", nullptr, true, true, -1, nullptr, "Menu Bar", "Toggle menu bar visibility.", nullptr, nullptr},
-    {"layoutStatusBar", "&Status Bar", nullptr, true, true, -1, nullptr, "Status Bar", "Toggle status bar visibility.", nullptr, nullptr},
+    {"layoutMenu", "&Layout", nullptr, false, false, -1, nullptr, nullptr, "layout", nullptr},
+    {"layoutFullScreen", "&Full Screen", "view-fullscreen", true, false, QKeySequence::FullScreen, nullptr, "Toggle window full screen.", nullptr, nullptr},
+    {"layoutMenuBar", "&Menu Bar", nullptr, true, true, -1, "Ctrl+M", "Toggle menu bar visibility.", nullptr, nullptr},
+    {"layoutStatusBar", "&Status Bar", nullptr, true, true, -1, "Ctrl+B", "Toggle status bar visibility.", nullptr, nullptr},
 
-    {"windowsMenu", "&Windows", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "windows"},
-    {"windowsNext", "&Next Window", nullptr, false, false, -1, nullptr, "Next Window", "Switch to next window.", nullptr, nullptr},
-    {"windowsPrevious", "&Previous Window", nullptr, false, false, -1, nullptr, "Previous Window", "Switch to previous window.", nullptr, nullptr},
+    {"windowsMenu", "&Windows", nullptr, false, false, -1, nullptr, nullptr, "windows", nullptr},
+    {"windowsNext", "&Next Window", nullptr, false, false, -1, nullptr, "Switch to next window.", nullptr, nullptr},
+    {"windowsPrevious", "&Previous Window", nullptr, false, false, -1, nullptr, "Switch to previous window.", nullptr, nullptr},
 
-    {"subWindowsMenu", "&Subwindows", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "subWindows"},
-    {"subWindowsUseTabs", "&Use Tabs", nullptr, true, false, -1, nullptr, "Use Tabs", "Toggle tabbed subwindows.", nullptr, nullptr},
-    {"subWindowsTile", "&Tile Subwindows", nullptr, false, false, -1, nullptr, "Tile Subwindows", "Tile arange subwindows.", nullptr, nullptr},
-    {"subWindowsCascade", "&Cascade Subwindows", nullptr, false, false, -1, nullptr, "Cascade Subwindows", "Cascade arange subwindows.", nullptr, nullptr},
-    {"subWindowsNext", "&Next Subwindow", nullptr, false, false, -1, nullptr, "Next Subwindow", "Switch to next subwindow.", nullptr, nullptr},
-    {"subWindowsPrevious", "&Previous Subwindow", nullptr, false, false, -1, nullptr, "Previous Subwindow", "Switch to previous subwindow.", nullptr, nullptr},
+    {"subWindowsMenu", "&Subwindows", nullptr, false, false, -1, nullptr, nullptr, "subWindows", nullptr},
+    {"subWindowsUseTabs", "&Use Tabs", nullptr, true, false, -1, nullptr, "Toggle tabbed subwindows.", nullptr, nullptr},
+    {"subWindowsTile", "&Tile Subwindows", nullptr, false, false, -1, nullptr, "Tile arange subwindows.", nullptr, nullptr},
+    {"subWindowsCascade", "&Cascade Subwindows", nullptr, false, false, -1, nullptr, "Cascade arange subwindows.", nullptr, nullptr},
+    {"subWindowsNext", "&Next Subwindow", nullptr, false, false, -1, nullptr, "Switch to next subwindow.", nullptr, nullptr},
+    {"subWindowsPrevious", "&Previous Subwindow", nullptr, false, false, -1, nullptr, "Switch to previous subwindow.", nullptr, nullptr},
 
-    {"toolBarsMenu", "&Toolbars", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "toolBars"},
-    {"toolBarsLock", "&Lock Toolbars", nullptr, true, false, -1, nullptr, "Lock Toolbars", "Lock poisition of all toolbars.", nullptr, nullptr},
-    {"toolBarsAll", "&All Toolbars", nullptr, true, false, -1, nullptr, "All Toolbars", "Toggle visibility of all toolbars.", nullptr, nullptr},
+    {"toolBarsMenu", "&Toolbars", nullptr, false, false, -1, nullptr, nullptr, "toolBars", nullptr},
+    {"toolBarsLock", "&Lock Toolbars", nullptr, true, false, -1, nullptr, "Lock poisition of all toolbars.", nullptr, nullptr},
+    {"toolBarsAll", "&All Toolbars", nullptr, true, false, -1, "Ctrl+Shift+T", "Toggle visibility of all toolbars.", nullptr, nullptr},
 
-    {"docksMenu", "&Docks", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "docks"},
-    {"docksTitles", "&Dock Titles", nullptr, true, false, -1, nullptr, "Dock Titles", "Toggle visibility of dock titles.", nullptr, nullptr},
-    {"docksLock", "&Lock Docks", nullptr, true, false, -1, nullptr, "Lock Docks", "Lock poisition of all docks.", nullptr, nullptr},
-    {"docksAll", "&All Docks", nullptr, true, false, -1, nullptr, "All Docks", "Toggle visibility of all docks.", nullptr, nullptr},
+    {"docksMenu", "&Docks", nullptr, false, false, -1, nullptr, nullptr, "docks", nullptr},
+    {"docksTitles", "&Dock Titles", nullptr, true, false, -1, nullptr, "Toggle visibility of dock titles.", nullptr, nullptr},
+    {"docksLock", "&Lock Docks", nullptr, true, false, -1, nullptr, "Lock poisition of all docks.", nullptr, nullptr},
+    {"docksAll", "&All Docks", nullptr, true, false, -1, "Ctrl+Shift+D", "Toggle visibility of all docks.", nullptr, nullptr},
 
-    {"windowMenu", "&Window", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "window"},
-    {"windowNew", "&New Window", "window-new", false, false, -1, nullptr, "New Window", "Open new window.", nullptr, nullptr},
-    {"windowClone", "&Clone Window", nullptr, false, false, -1, nullptr, "Clone Window", "Clone current window.", nullptr, nullptr},
-    {"windowClose", "&Close Window", "window-close", false, false, -1, nullptr, "Close Window", "Close current window.", nullptr, nullptr},
+    {"windowMenu", "&Window", nullptr, false, false, -1, nullptr, nullptr, "window", nullptr},
+    {"windowNew", "&New Window", "window-new", false, false, -1, nullptr, "Open new window.", nullptr, nullptr},
+    {"windowClone", "&Clone Window", nullptr, false, false, -1, nullptr, "Clone current window.", nullptr, nullptr},
+    {"windowClose", "&Close Window", "window-close", false, false, -1, nullptr, "Close current window.", nullptr, nullptr},
 
-    {"documentMenu", "&Document", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "document"},
-    {"documentNew", "&New", "document-new", false, false, QKeySequence::New, nullptr, "New Document", "Open new document.", nullptr, nullptr},
-    {"documentOpen", "&Open", "document-open", false, false, QKeySequence::Open, nullptr, "Open Document", "Open existing document.", nullptr, nullptr},
-    {"documentRecentMenu", "&Recent", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "documentRecent"},
-    {"documentSave", "&Save", "document-save", false, false, QKeySequence::Save, nullptr, "Save Document", "Save current document.", nullptr, nullptr},
-    {"documentSaveAs", "Save &As", "document-save-as", false, false, QKeySequence::SaveAs, nullptr, "Save Document As" ,"Save current document as new filename.", nullptr, nullptr},
-    {"documentSaveAll", "Save &All", nullptr, false, false, -1, nullptr, "Save All Documents" ,"Save all documents.", nullptr, nullptr},
-    {"documentClose", "&Close", "document-close", false, false, -1, "Ctrl+Shift+W", "Close Document", "Close current document.", nullptr, nullptr},
-    {"documentCloseAll", "Close &All", nullptr, false, false, -1, nullptr, "Close All Documents" ,"Close all documents.", nullptr, nullptr},
+    {"documentMenu", "&Document", nullptr, false, false, -1, nullptr, nullptr, "document", nullptr},
+    {"documentNew", "&New", "document-new", false, false, QKeySequence::New, nullptr, "Open new document.", nullptr, nullptr},
+    {"documentOpen", "&Open", "document-open", false, false, QKeySequence::Open, nullptr, "Open existing document.", nullptr, nullptr},
+    {"documentRecentMenu", "&Recent", nullptr, false, false, -1, nullptr, nullptr, "documentRecent", nullptr},
+    {"documentSave", "&Save", "document-save", false, false, QKeySequence::Save, nullptr, "Save current document.", nullptr, nullptr},
+    {"documentSaveAs", "Save &As", "document-save-as", false, false, QKeySequence::SaveAs, nullptr, "Save current document as new filename.", nullptr, nullptr},
+    {"documentSaveAll", "Save &All", nullptr, false, false, -1, nullptr, "Save All Documents", nullptr, nullptr},
+    {"documentClose", "&Close", "document-close", false, false, -1, "Ctrl+Shift+W", "Close current document.", nullptr, nullptr},
+    {"documentCloseAll", "Close &All", nullptr, false, false, -1, nullptr, "Close all documents.", nullptr, nullptr},
 
-    {"editorMenu", "&Editor", nullptr, false, false, -1, nullptr, nullptr, nullptr, nullptr, "editor"},
-    {"editorNew", "&New", "window-new", false, false, -1, "Ctrl+Shift+N", "New Editor", "Open new editor.", nullptr, nullptr},
-    {"editorClone", "&Clone", nullptr, false, false, -1, "Ctrl+Shift+C", "Clone Editor", "Clone current editor.", nullptr, nullptr},
-    {"editorClose", "&Close", "window-close", false, false, QKeySequence::Close, nullptr, "Close Editor", "Close current editor.", nullptr, nullptr},
-    {"editorCloseAll", "Close &All", nullptr, false, false, -1, nullptr, "Close All Editors" ,"Close all editors.", nullptr, nullptr},
+    {"editorMenu", "&Editor", nullptr, false, false, -1, nullptr, nullptr, "editor", nullptr},
+    {"editorNew", "&New", "window-new", false, false, -1, "Ctrl+Shift+N", "Open new editor.", nullptr, nullptr},
+    {"editorClone", "&Clone", nullptr, false, false, -1, "Ctrl+Shift+C", "Clone current editor.", nullptr, nullptr},
+    {"editorClose", "&Close", "window-close", false, false, QKeySequence::Close, nullptr, "Close current editor.", nullptr, nullptr},
+    {"editorCloseAll", "Close &All", nullptr, false, false, -1, nullptr, "Close all editors.", nullptr, nullptr},
+
+    {"layerMenu", "&Layer", nullptr, false, false, -1, nullptr, nullptr, "layer", nullptr},
+    {"layerWrap", "&Wrap", nullptr, true, false, -1, "Ctrl+Shift+W", "Toggle layer wrapping.", nullptr, nullptr},
+    {"layerWrapX", "&Wrap X", nullptr, true, true, -1, nullptr, "Toggle layer X axis wrapping.", nullptr, nullptr},
+    {"layerWrapY", "&Wrap Y", nullptr, true, true, -1, nullptr, "Toggle layer Y axis wrapping.", nullptr, nullptr},
+    {"layerBounds", "&Bounds", nullptr, true, false, -1, "Ctrl+Shift+B", "Toggle layer bounds rendering.", nullptr, nullptr},
+    {"layerAntialias", "&Antialias", nullptr, true, false, -1, nullptr, "Toggle layer antialiased rendering.", nullptr, nullptr},
+
+    {"editMenu", "&Edit", nullptr, false, false, -1, nullptr, nullptr, "edit", nullptr},
+    {"editUndo", "&Undo", "edit-undo", false, false, QKeySequence::Undo, nullptr, "Undo last edit.", nullptr, nullptr},
+    {"editRedo", "&Redo", "edit-redo", false, false, QKeySequence::Redo, nullptr, "Redo last undo.", nullptr, nullptr},
+    {"editCut", "Cu&t", "edit-cut", false, false, QKeySequence::Cut, nullptr, "Cut selection.", nullptr, nullptr},
+    {"editCopy", "&Copy", "edit-copy", false, false, QKeySequence::Copy, nullptr, "Copy selection.", nullptr, nullptr},
+    {"editPaste", "&Paste", "edit-paste", false, false, QKeySequence::Paste, nullptr, "Paste selection.", nullptr, nullptr},
+
+    {"brushModeMenu", "&Brush Mode", nullptr, false, false, -1, nullptr, nullptr, "brushMode", nullptr},
+    {"brushModePixel", "&Pixel", nullptr, true, false, -1, nullptr, "Pixel brush.", nullptr, "brushMode"},
+    {"brushModeRectangle", "&Rectangle", nullptr, true, false, -1, nullptr, "Rectangle brush.", nullptr, "brushMode"},
+    {"brushModeEllipse", "&Ellipse", nullptr, true, false, -1, nullptr, "Ellipse brush.", nullptr, "brushMode"},
+
+    {"toolSpaceMenu", "&Tool Space", nullptr, false, false, -1, nullptr, nullptr, "toolSpace", nullptr},
+    {"toolSpaceImage", "&Image Space", nullptr, true, false, -1, nullptr, "Image space.", nullptr, "toolSpace"},
+    {"toolSpaceImageAspectCorrect", "&Image Space (Aspect Correct)", nullptr, true, false, -1, nullptr, "Aspect corrected image space.", nullptr, "toolSpace"},
+    {"toolSpaceScreen", "&Screen Space", nullptr, true, false, -1, nullptr, "Screen space.", nullptr, "toolSpace"},
+    {"toolSpaceGrid", "&Grid Space", nullptr, true, false, -1, nullptr, "Grid space.", nullptr, "toolSpace"},
 };
 
 void Application::createActions()
@@ -551,14 +577,8 @@ void Application::createActions()
             action->setShortcut(QKeySequence(definition.customShortcut));
             action->setShortcutContext(Qt::ApplicationShortcut);
         }
-        if (!definition.iconText.isEmpty()) {
-            action->setIconText(definition.iconText);
-        }
         if (!definition.toolTip.isEmpty()) {
             action->setToolTip(definition.toolTip);
-        }
-        if (!definition.statusTip.isEmpty()) {
-            action->setStatusTip(definition.statusTip);
         }
         actions[definition.name] = action;
     }
@@ -566,7 +586,7 @@ void Application::createActions()
 }
 
 const QList<Application::MenuDefinition> Application::menuDefinitions = {
-    {"main", "&Menu", {"applicationMenu", "sessionMenu", "layoutMenu", "windowMenu", "documentMenu", "editorMenu"}},
+    {"main", "&Menu", {"applicationMenu", "sessionMenu", "layoutMenu", "windowMenu", "documentMenu", "editorMenu", "layerMenu", "editMenu", "brushModeMenu", "toolSpaceMenu"}},
     {"application", "&Application", {"applicationAbout", "applicationAboutQt", "applicationLicense", nullptr, "applicationSettings", nullptr, "applicationExit"}},
     {"session", "&Session", {"sessionNew", "sessionOpen", "sessionRecentMenu", nullptr, "sessionSave", "sessionSaveAs", nullptr, "sessionClose"}},
     {"sessionRecent", "&Recent", {}},
@@ -579,6 +599,10 @@ const QList<Application::MenuDefinition> Application::menuDefinitions = {
     {"document", "&Document", {"documentNew", "documentOpen", "documentRecentMenu", nullptr, "documentSave", "documentSaveAs", "documentSaveAll", nullptr, "documentClose", "documentCloseAll"}},
     {"documentRecent", "&Recent", {}},
     {"editor", "&Editor", {"editorNew", "editorClone", nullptr, "editorClose", "editorCloseAll"}},
+    {"layer", "&Layer", {"layerWrap", "layerWrapX", "layerWrapY", nullptr, "layerBounds", "layerAntialias"}},
+    {"edit", "&Edit", {"editUndo", "editRedo", nullptr, "editCut", "editCopy", "editPaste"}},
+    {"brushMode", "&Brush Mode", {"brushModePixel", "brushModeRectangle", "brushModeEllipse"}},
+    {"toolSpace", "&Tool Space", {"toolSpaceImage", "toolSpaceImageAspectCorrect", "toolSpaceScreen", "toolSpaceGrid"}},
 };
 
 void Application::createMenus()
@@ -606,6 +630,19 @@ void Application::setActionMenus()
         if (!definition.menuName.isEmpty()) {
             actions[definition.name]->setMenu(menus[definition.menuName]);
             qDebug() << definition.menuName;
+        }
+    }
+}
+
+void Application::setActionGroups()
+{
+    for (int i = 0; i < Application::actionDefinitions.size(); i++) {
+        const Application::ActionDefinition &definition = Application::actionDefinitions[i];
+        if (!definition.groupName.isEmpty()) {
+            if (!actionGroups[definition.groupName]) {
+                actionGroups[definition.groupName] = new QActionGroup(this);
+            }
+            actions[definition.name]->setActionGroup(actionGroups[definition.groupName]);
         }
     }
 }

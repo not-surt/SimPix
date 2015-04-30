@@ -169,81 +169,75 @@ MainWindow::MainWindow(QWidget *parent) :
         addToolBar(Qt::TopToolBarArea, toolBar);
 
         toolBar = new QToolBar();
-        toolBar->setObjectName("toolBarLayout");
-        toolBar->setWindowTitle("Layout");
-        addToolBar(Qt::TopToolBarArea, toolBar);
-
-        toolBar = new QToolBar();
-        toolBar->setObjectName("toolBarEditor");
-        toolBar->setWindowTitle("Editor");
+        toolBar->setObjectName("toolBarLayer");
+        toolBar->setWindowTitle("Layer");
+        toolBar->addAction(APP->actions["layerWrap"]);
+        toolBar->addAction(APP->actions["layerWrapX"]);
+        toolBar->addAction(APP->actions["layerWrapY"]);
+        toolBar->addSeparator();
+        toolBar->addAction(APP->actions["layerBounds"]);
+        toolBar->addAction(APP->actions["layerAntialias"]);
         addToolBar(Qt::TopToolBarArea, toolBar);
 
         toolBar = new QToolBar();
         toolBar->setObjectName("toolBarEditingContext");
         toolBar->setWindowTitle("Editing Context");
+        ModeActionGroup<EditingContext::BrushStyle> *brushStyleGroup = new ModeActionGroup<EditingContext::BrushStyle>(this);
+        brushStyleGroup->addAction(ui->actionBrushStylePixel, EditingContext::BrushStyle::Pixel);
+        brushStyleGroup->addAction(ui->actionBrushStyleRectangle, EditingContext::BrushStyle::Rectangle);
+        brushStyleGroup->addAction(ui->actionBrushStyleEllipse, EditingContext::BrushStyle::Ellipse);
+        ModeToolButtonAction<EditingContext::BrushStyle> *actionBrushStyle = new ModeToolButtonAction<EditingContext::BrushStyle>(*brushStyleGroup);
+        actionBrushStyle->setMenu(ui->menuBrushStyle);
+        toolBar->addAction(actionBrushStyle);
+        QObject::connect(brushStyleGroup, &QActionGroup::triggered, [brushStyleGroup](QAction *const action) { EditingContext::BrushStyle brushStyle = brushStyleGroup->mode(action); qDebug() << int(brushStyle); });
+        ModeActionGroup<EditingContext::ToolSpace> *toolSpaceGroup = new ModeActionGroup<EditingContext::ToolSpace>(this);
+        toolSpaceGroup->addAction(ui->actionToolSpaceImage, EditingContext::ToolSpace::Image);
+        toolSpaceGroup->addAction(ui->actionToolSpaceImageAspectCorrected, EditingContext::ToolSpace::ImageAspectCorrected);
+        toolSpaceGroup->addAction(ui->actionToolSpaceScreen, EditingContext::ToolSpace::Screen);
+        toolSpaceGroup->addAction(ui->actionToolSpaceGrid, EditingContext::ToolSpace::Grid);
+        ModeToolButtonAction<EditingContext::ToolSpace> *actionToolSpace = new ModeToolButtonAction<EditingContext::ToolSpace>(*toolSpaceGroup);
+        actionToolSpace->setMenu(ui->menuToolSpace);
+        toolBar->addAction(actionToolSpace);
+        QObject::connect(toolSpaceGroup, &QActionGroup::triggered, [toolSpaceGroup](QAction *const action) { EditingContext::ToolSpace toolSpace = toolSpaceGroup->mode(action); qDebug() << int(toolSpace); });
+        toolBar->addSeparator();
+        toolBar->addAction(ui->actionBrushPixelSnap);
+        IntegerFieldAction *actionBrushWidth = new IntegerFieldAction();
+        toolBar->addAction(actionBrushWidth);
+        IntegerFieldAction *actionBrushHeight = new IntegerFieldAction();
+        toolBar->addAction(actionBrushHeight);
+        ColourSwatchAction *actionPrimaryColour = new ColourSwatchAction();
+        toolBar->addAction(actionPrimaryColour);
+        ColourSwatchAction *actionSecondaryColour = new ColourSwatchAction();
+        toolBar->addAction(actionSecondaryColour);
+        ColourSwatchAction *actionBackgroundColour = new ColourSwatchAction();
+        toolBar->addAction(actionBackgroundColour);
+        toolBar->addAction(actionBrushHeight);
         addToolBar(Qt::TopToolBarArea, toolBar);
     }
 
-    QToolBar *toolBarBrush = ui->toolBarBrush;
-    ModeActionGroup<EditingContext::BrushStyle> *brushStyleGroup = new ModeActionGroup<EditingContext::BrushStyle>(this);
-    brushStyleGroup->addAction(ui->actionBrushStylePixel, EditingContext::BrushStyle::Pixel);
-    brushStyleGroup->addAction(ui->actionBrushStyleRectangle, EditingContext::BrushStyle::Rectangle);
-    brushStyleGroup->addAction(ui->actionBrushStyleEllipse, EditingContext::BrushStyle::Ellipse);
-    ModeToolButtonAction<EditingContext::BrushStyle> *actionBrushStyle = new ModeToolButtonAction<EditingContext::BrushStyle>(*brushStyleGroup);
-    actionBrushStyle->setMenu(ui->menuBrushStyle);
-    toolBarBrush->addAction(actionBrushStyle);
-    QObject::connect(brushStyleGroup, &QActionGroup::triggered, [brushStyleGroup](QAction *const action) { EditingContext::BrushStyle brushStyle = brushStyleGroup->mode(action); qDebug() << int(brushStyle); });
+//    toolBarMenu = new QMenu;
+//    ui->actionToolbars->setMenu(toolBarMenu);
+//    ui->actionToolbarsMenu->setMenu(toolBarMenu);
+//    static_cast<QToolButton *>(ui->toolBarLayout->widgetForAction(ui->actionToolbarsMenu))->setPopupMode(QToolButton::MenuButtonPopup);
+//    QListIterator<QToolBar *> toolbar(findChildren<QToolBar *>());
+//    while (toolbar.hasNext()) {
+//        toolBarMenu->addAction(toolbar.next()->toggleViewAction());
+//    }
 
-    ModeActionGroup<EditingContext::ToolSpace> *toolSpaceGroup = new ModeActionGroup<EditingContext::ToolSpace>(this);
-    toolSpaceGroup->addAction(ui->actionToolSpaceImage, EditingContext::ToolSpace::Image);
-    toolSpaceGroup->addAction(ui->actionToolSpaceImageAspectCorrected, EditingContext::ToolSpace::ImageAspectCorrected);
-    toolSpaceGroup->addAction(ui->actionToolSpaceScreen, EditingContext::ToolSpace::Screen);
-    toolSpaceGroup->addAction(ui->actionToolSpaceGrid, EditingContext::ToolSpace::Grid);
-    ModeToolButtonAction<EditingContext::ToolSpace> *actionToolSpace = new ModeToolButtonAction<EditingContext::ToolSpace>(*toolSpaceGroup);
-    actionToolSpace->setMenu(ui->menuToolSpace);
-    toolBarBrush->addAction(actionToolSpace);
-    QObject::connect(toolSpaceGroup, &QActionGroup::triggered, [toolSpaceGroup](QAction *const action) { EditingContext::ToolSpace toolSpace = toolSpaceGroup->mode(action); qDebug() << int(toolSpace); });
-
-    toolBarBrush->addAction(ui->actionBrushPixelSnap);
-
-    IntegerFieldAction *actionBrushWidth = new IntegerFieldAction();
-    toolBarBrush->addAction(actionBrushWidth);
-    IntegerFieldAction *actionBrushHeight = new IntegerFieldAction();
-    toolBarBrush->addAction(actionBrushHeight);
-
-    QToolBar *toolBarColour = ui->toolBarColour;
-    ColourSwatchAction *actionPrimaryColour = new ColourSwatchAction();
-    toolBarColour->addAction(actionPrimaryColour);
-    ColourSwatchAction *actionSecondaryColour = new ColourSwatchAction();
-    toolBarColour->addAction(actionSecondaryColour);
-    ColourSwatchAction *actionBackgroundColour = new ColourSwatchAction();
-    toolBarColour->addAction(actionBackgroundColour);
-    toolBarColour->addAction(actionBrushHeight);
-
-    toolBarMenu = new QMenu;
-    ui->actionToolbars->setMenu(toolBarMenu);
-    ui->actionToolbarsMenu->setMenu(toolBarMenu);
-    static_cast<QToolButton *>(ui->toolBarLayout->widgetForAction(ui->actionToolbarsMenu))->setPopupMode(QToolButton::MenuButtonPopup);
-    QListIterator<QToolBar *> toolbar(findChildren<QToolBar *>());
-    while (toolbar.hasNext()) {
-        toolBarMenu->addAction(toolbar.next()->toggleViewAction());
-    }
-
-    dockMenu = new QMenu;
-    ui->actionDocks->setMenu(dockMenu);
-    ui->actionDocksMenu->setMenu(dockMenu);
-    static_cast<QToolButton *>(ui->toolBarLayout->widgetForAction(ui->actionDocksMenu))->setPopupMode(QToolButton::MenuButtonPopup);
-    QListIterator<QDockWidget *> dock(findChildren<QDockWidget *>());
-    while (dock.hasNext()) {
-        dockMenu->addAction(dock.next()->toggleViewAction());
-    }
+//    dockMenu = new QMenu;
+//    ui->actionDocks->setMenu(dockMenu);
+//    ui->actionDocksMenu->setMenu(dockMenu);
+//    static_cast<QToolButton *>(ui->toolBarLayout->widgetForAction(ui->actionDocksMenu))->setPopupMode(QToolButton::MenuButtonPopup);
+//    QListIterator<QDockWidget *> dock(findChildren<QDockWidget *>());
+//    while (dock.hasNext()) {
+//        dockMenu->addAction(dock.next()->toggleViewAction());
+//    }
 
     statusMouseWidget = new StatusMouseWidget;
     statusMouseWidget->hide();
     statusBar()->addWidget(statusMouseWidget);
     statusBar()->setSizeGripEnabled(true);
 
-    ui->toolBarLayout->hide();
     activateSubWindow(nullptr);
 
     APP->settings.beginGroup("window");

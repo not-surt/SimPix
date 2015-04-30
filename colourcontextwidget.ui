@@ -21,7 +21,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="ColourSwatch" name="primaryColourSwatch">
+    <widget class="ColourSwatchWidget" name="primaryColourSwatch">
      <property name="text">
       <string>PushButton</string>
      </property>
@@ -35,14 +35,14 @@
     </widget>
    </item>
    <item row="0" column="2">
-    <widget class="ColourSwatch" name="secondaryColourSwatch">
+    <widget class="ColourSwatchWidget" name="secondaryColourSwatch">
      <property name="text">
       <string>PushButton</string>
      </property>
     </widget>
    </item>
    <item row="0" column="5">
-    <widget class="ColourSwatch" name="backgroundColourSwatch">
+    <widget class="ColourSwatchWidget" name="backgroundColourSwatch">
      <property name="text">
       <string>PushButton</string>
      </property>
@@ -73,9 +73,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>ColourSwatch</class>
+   <class>ColourSwatchWidget</class>
    <extends>QPushButton</extends>
-   <header>colourswatch.h</header>
+   <header>colourswatchwidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

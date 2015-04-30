@@ -5,7 +5,7 @@
 #include <QDebug>
 #include "application.h"
 
-static const QSize sizePresets[] = {
+static const QList<QSize> sizePresets = {
     {50, 50}, {100, 100}, {200, 200},
     QSize(),
     {64, 64}, {128, 128}, {256, 256},
@@ -18,7 +18,7 @@ static const QSize sizePresets[] = {
     QSize(), QSize()
 };
 
-static const QSizeF pixelSizePresets[] = {
+static const QList<QSizeF> pixelSizePresets = {
     {1., 1.},
     {2., 1.},
     {1., 2.},
@@ -34,14 +34,6 @@ typedef struct ImagePreset {
     QVariant fill;
     QVariant transparent;
 } ImagePreset;
-
-static const QSizeF imagePresets[] = {
-    {1., 1.},
-    {2., 1.},
-    {1., 2.},
-    {1., 1.2},
-    QSize(), QSize()
-};
 
 NewDialog::NewDialog(QWidget *parent) :
     QDialog(parent),
@@ -59,7 +51,8 @@ NewDialog::NewDialog(QWidget *parent) :
     QMenu *presetMenu = new QMenu;
     for (int i = 0; sizePresets[i].isValid() || sizePresets[i+1].isValid(); ++i) {
         if (!sizePresets[i].isValid()) {
-            presetMenu->addSeparator();
+            QAction *seperator = presetMenu->addSeparator();
+            seperator->setText("Seperation");
         }
         else {
             const QSize &size = sizePresets[i];

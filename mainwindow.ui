@@ -147,29 +147,6 @@
    <addaction name="menuContext"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QToolBar" name="toolBarLayout">
-   <property name="windowTitle">
-    <string>Window</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="actionFullscreen"/>
-   <addaction name="separator"/>
-   <addaction name="actionMenu"/>
-   <addaction name="separator"/>
-   <addaction name="actionToolbarsMenu"/>
-   <addaction name="actionLockToolbars"/>
-   <addaction name="separator"/>
-   <addaction name="actionDocksMenu"/>
-   <addaction name="actionDockTitles"/>
-   <addaction name="actionLockDocks"/>
-   <addaction name="separator"/>
-   <addaction name="actionStatusBar"/>
-  </widget>
   <widget class="QToolBar" name="toolBarEditor">
    <property name="windowTitle">
     <string>Editor</string>
@@ -178,7 +155,7 @@
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
-    <bool>true</bool>
+    <bool>false</bool>
    </attribute>
    <addaction name="actionWrap"/>
    <addaction name="actionWrapX"/>

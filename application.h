@@ -14,6 +14,7 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLWidget>
 #include <QKeySequence>
+#include <QActionGroup>
 #include "session.h"
 #include "settingsdialog.h"
 
@@ -33,6 +34,7 @@ public:
     Session session;
     QSettings settings;
     QHash<QString, QAction *> actions;
+    QHash<QString, QActionGroup *> actionGroups;
     QHash<QString, QMenu *> menus;
     QHash<QString, QImage> iconSheets;
     QHash<QString, QIcon> iconCache;
@@ -44,6 +46,10 @@ public:
     GLuint shader(const QString &name) { return shaders[name]->shaderId(); }
     GLuint program(const QString &name) { return programs[name]->programId(); }
     QIcon icon(const QString &sheet, const QString &name, const int scale = 1);
+
+    void activateWindow(MainWindow *window);
+    void activateDocument(Document *document);
+    void activateEditor(Editor *editor);
 
 //    MainWindow *activeWindow();
     Document *activeDocument();
@@ -86,10 +92,9 @@ private:
         bool checked;
         int standardShortcut;
         QString customShortcut;
-        QString iconText;
         QString toolTip;
-        QString statusTip;
         QString menuName;
+        QString groupName;
     };
     static const QList<Application::ActionDefinition> actionDefinitions;
     struct MenuDefinition {
@@ -104,6 +109,7 @@ private:
     void createActions();
     void createMenus();
     void setActionMenus();
+    void setActionGroups();
     void connectActions();
     static QMenuBar *menuBarFromMenu(QMenu *menu);
     Document *m_activeDocument;
