@@ -8,6 +8,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include "newdialog.h"
+#include "editor.h"
 
 Document::Document(Session &session, const QString &fileName) :
     QObject(), fileInfo(fileName), editors(), session(session)

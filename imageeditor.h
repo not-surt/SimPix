@@ -25,6 +25,13 @@ public:
     }
 };
 
+enum ContextScope {
+    Layer,
+    Document,
+    Project,
+    Global,
+};
+
 class ImageEditor : public QOpenGLWidget, public Editor, protected QOpenGLFunctions_3_3_Core
 {
     Q_OBJECT
