@@ -12,7 +12,6 @@ TARGET = simpix
 TEMPLATE = app
 
 SOURCES += main.cpp\
-    mainwindow.cpp \
     newdialog.cpp \
     transformwidget.cpp \
     transform.cpp \
@@ -35,9 +34,10 @@ SOURCES += main.cpp\
     treemodel.cpp \
     colourselectorwidget.cpp \
     colourswatchwidget.cpp \
-    settingsdialog.cpp
+    settingsdialog.cpp \
+    window.cpp
 
-HEADERS  += mainwindow.h \
+HEADERS  += \
     newdialog.h \
     transformwidget.h \
     transform.h \
@@ -61,7 +61,8 @@ HEADERS  += mainwindow.h \
     stable.h \
     colourselectorwidget.h \
     colourswatchwidget.h \
-    settingsdialog.h
+    settingsdialog.h \
+    window.h
 
 PRECOMPILED_HEADER = stable.h
 

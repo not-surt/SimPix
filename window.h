@@ -1,5 +1,5 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef WINDOW_H
+#define WINDOW_H
 
 #include <QMainWindow>
 #include <QMdiArea>
@@ -36,7 +36,7 @@ class SessionWidget;
 class TransformWidget;
 class StatusMouseWidget;
 
-class MainWindow : public QMainWindow
+class Window : public QMainWindow
 {
     Q_OBJECT
 public:
@@ -53,8 +53,8 @@ public:
     QMenu *toolBarMenu;
     QMenu *dockMenu;
 
-    explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    explicit Window(QWidget *parent = nullptr);
+    ~Window();
 
     Editor *activeEditor();
 
@@ -79,4 +79,4 @@ private:
     QList<QMetaObject::Connection> activeSubWindowConnections;
 };
 
-#endif // MAINWINDOW_H
+#endif // WINDOW_H

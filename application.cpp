@@ -1,5 +1,5 @@
 #include "application.h"
-#include "mainwindow.h"
+#include "window.h"
 #include "util.h"
 #include <QDirIterator>
 #include <exception>
@@ -225,7 +225,7 @@ bool Application::sessionClose()
 
 bool Application::windowNew()
 {
-    MainWindow *window = new MainWindow;
+    Window *window = new Window;
     session.windows.append(window);
     window->show();
 }
@@ -237,13 +237,13 @@ bool Application::windowClone()
 
 bool Application::windowClose()
 {
-    MainWindow *window = dynamic_cast<MainWindow *>(activeWindow());
+    Window *window = dynamic_cast<Window *>(activeWindow());
     window->close();
 }
 
 void Application::documentNew()
 {
-    MainWindow *window = dynamic_cast<MainWindow *>(activeWindow());
+    Window *window = dynamic_cast<Window *>(activeWindow());
     if (window) {
         NewDialog *dialog = new NewDialog(window);
         if (dialog->exec()) {
@@ -259,7 +259,7 @@ void Application::documentNew()
 
 void Application::documentOpen()
 {
-    MainWindow *window = dynamic_cast<MainWindow *>(activeWindow());
+    Window *window = dynamic_cast<Window *>(activeWindow());
     if (window) {
         APP->settings.beginGroup("file");
         QFileDialog dialog(window, tr("Open Image"), APP->settings.value("lastOpened", QDir::homePath()).toString(), APP->fileDialogFilterString);
@@ -298,7 +298,7 @@ void Application::documentOpen()
 
 bool Application::documentSave()
 {
-    MainWindow *window = dynamic_cast<MainWindow *>(activeWindow());
+    Window *window = dynamic_cast<Window *>(activeWindow());
     if (window) {
         SubWindow *subWindow = static_cast<SubWindow *>(window->mdi->activeSubWindow());
         if (subWindow) {
@@ -323,7 +323,7 @@ bool Application::documentSave()
 
 bool Application::documentSaveAs()
 {
-    MainWindow *window = dynamic_cast<MainWindow *>(activeWindow());
+    Window *window = dynamic_cast<Window *>(activeWindow());
     if (window) {
         SubWindow *subWindow = static_cast<SubWindow *>(window->mdi->activeSubWindow());
         if (subWindow) {
@@ -355,7 +355,7 @@ bool Application::documentSaveAs()
 
 bool Application::documentClose()
 {
-    MainWindow *window = dynamic_cast<MainWindow *>(activeWindow());
+    Window *window = dynamic_cast<Window *>(activeWindow());
     if (window) {
         SubWindow *subWindow = static_cast<SubWindow *>(window->mdi->activeSubWindow());
         if (subWindow) {

@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "window.h"
 #include "ui_mainwindow.h"
 #include "newdialog.h"
 #include "util.h"
@@ -16,6 +16,8 @@
 #include <QWidgetAction>
 #include <QSpinBox>
 #include <QDockWidget>
+#include <QToolBar>
+#include <QStatusBar>
 #include "widgets.h"
 #include "palettewidget.h"
 #include "colourcontextwidget.h"
@@ -63,7 +65,7 @@ QSize MdiArea::subWindowSizeOverhead() const
     return QSize(2 * frameWidth, titleBarHeight + frameWidth);
 }
 
-MainWindow::MainWindow(QWidget *parent) :
+Window::Window(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), mdi(nullptr), statusMouseWidget(nullptr), oldSubWindow(nullptr)
 {    
@@ -78,34 +80,34 @@ MainWindow::MainWindow(QWidget *parent) :
     addActions(APP->actions.values());////////////////////
     setMenuBar(APP->createMenuBar());
 
-    // Copy actions to window so available when menu hidden. Is there a better way?
-    QListIterator<QMenu *> menuIterator(ui->menuBar->findChildren<QMenu *>());
-    while (menuIterator.hasNext()) {
-        addActions(menuIterator.next()->findChildren<QAction *>());
-//        // The better way? No.
-//        QList<QAction *> actions = menuIterator.next()->findChildren<QAction *>();
-//        QListIterator<QAction *> actionIterator(actions);
-//        while (actionIterator.hasNext()) {
-//            actionIterator.next()->setShortcutContext(Qt::ApplicationShortcut);
-//        }
-    }
-    ui->menuBar->hide();
+//    // Copy actions to window so available when menu hidden. Is there a better way?
+//    QListIterator<QMenu *> menuIterator(ui->menuBar->findChildren<QMenu *>());
+//    while (menuIterator.hasNext()) {
+//        addActions(menuIterator.next()->findChildren<QAction *>());
+////        // The better way? No.
+////        QList<QAction *> actions = menuIterator.next()->findChildren<QAction *>();
+////        QListIterator<QAction *> actionIterator(actions);
+////        while (actionIterator.hasNext()) {
+////            actionIterator.next()->setShortcutContext(Qt::ApplicationShortcut);
+////        }
+//    }
+//    ui->menuBar->hide();
 
     QObject::connect(mdi, &MdiArea::subWindowActivated, [this](QMdiSubWindow *const subWindow) { this->activateSubWindow(static_cast<SubWindow *>(subWindow)); } );
 
-    QObject::connect(APP->actions["layoutFullScreen"], &QAction::triggered, this, &MainWindow::setFullscreen);
+    QObject::connect(APP->actions["layoutFullScreen"], &QAction::triggered, this, &Window::setFullscreen);
     QObject::connect(APP->actions["layoutMenuBar"], &QAction::triggered, this->menuBar(), &QMenuBar::setVisible);
     QObject::connect(APP->actions["layoutStatusBar"], &QAction::triggered, this->statusBar(), &QStatusBar::setVisible);
-    QObject::connect(APP->actions["subWindowsUseTabs"], &QAction::triggered, this, &MainWindow::useTabs);
+    QObject::connect(APP->actions["subWindowsUseTabs"], &QAction::triggered, this, &Window::useTabs);
     QObject::connect(APP->actions["subWindowsTile"], &QAction::triggered, mdi, &MdiArea::tileSubWindows);
     QObject::connect(APP->actions["subWindowsCascade"], &QAction::triggered, mdi, &MdiArea::cascadeSubWindows);
     QObject::connect(APP->actions["subWindowsNext"], &QAction::triggered, mdi, &MdiArea::activateNextSubWindow);
     QObject::connect(APP->actions["subWindowsPrevious"], &QAction::triggered, mdi, &MdiArea::activatePreviousSubWindow);
-    QObject::connect(APP->actions["toolBarsLock"], &QAction::triggered, this, &MainWindow::lockToolbars);
-    QObject::connect(APP->actions["toolBarsAll"], &QAction::triggered, this, &MainWindow::showToolbars);
-    QObject::connect(APP->actions["docksTitles"], &QAction::triggered, this, &MainWindow::showDockTitles);
-    QObject::connect(APP->actions["docksLock"], &QAction::triggered, this, &MainWindow::lockDocks);
-    QObject::connect(APP->actions["docksAll"], &QAction::triggered, this, &MainWindow::showDocks);
+    QObject::connect(APP->actions["toolBarsLock"], &QAction::triggered, this, &Window::lockToolbars);
+    QObject::connect(APP->actions["toolBarsAll"], &QAction::triggered, this, &Window::showToolbars);
+    QObject::connect(APP->actions["docksTitles"], &QAction::triggered, this, &Window::showDockTitles);
+    QObject::connect(APP->actions["docksLock"], &QAction::triggered, this, &Window::lockDocks);
+    QObject::connect(APP->actions["docksAll"], &QAction::triggered, this, &Window::showDocks);
 
     {
         QDockWidget *dock;
@@ -179,40 +181,40 @@ MainWindow::MainWindow(QWidget *parent) :
         toolBar->addAction(APP->actions["layerAntialias"]);
         addToolBar(Qt::TopToolBarArea, toolBar);
 
-        toolBar = new QToolBar();
-        toolBar->setObjectName("toolBarEditingContext");
-        toolBar->setWindowTitle("Editing Context");
-        ModeActionGroup<EditingContext::BrushStyle> *brushStyleGroup = new ModeActionGroup<EditingContext::BrushStyle>(this);
-        brushStyleGroup->addAction(ui->actionBrushStylePixel, EditingContext::BrushStyle::Pixel);
-        brushStyleGroup->addAction(ui->actionBrushStyleRectangle, EditingContext::BrushStyle::Rectangle);
-        brushStyleGroup->addAction(ui->actionBrushStyleEllipse, EditingContext::BrushStyle::Ellipse);
-        ModeToolButtonAction<EditingContext::BrushStyle> *actionBrushStyle = new ModeToolButtonAction<EditingContext::BrushStyle>(*brushStyleGroup);
-        actionBrushStyle->setMenu(ui->menuBrushStyle);
-        toolBar->addAction(actionBrushStyle);
-        QObject::connect(brushStyleGroup, &QActionGroup::triggered, [brushStyleGroup](QAction *const action) { EditingContext::BrushStyle brushStyle = brushStyleGroup->mode(action); qDebug() << int(brushStyle); });
-        ModeActionGroup<EditingContext::ToolSpace> *toolSpaceGroup = new ModeActionGroup<EditingContext::ToolSpace>(this);
-        toolSpaceGroup->addAction(ui->actionToolSpaceImage, EditingContext::ToolSpace::Image);
-        toolSpaceGroup->addAction(ui->actionToolSpaceImageAspectCorrected, EditingContext::ToolSpace::ImageAspectCorrected);
-        toolSpaceGroup->addAction(ui->actionToolSpaceScreen, EditingContext::ToolSpace::Screen);
-        toolSpaceGroup->addAction(ui->actionToolSpaceGrid, EditingContext::ToolSpace::Grid);
-        ModeToolButtonAction<EditingContext::ToolSpace> *actionToolSpace = new ModeToolButtonAction<EditingContext::ToolSpace>(*toolSpaceGroup);
-        actionToolSpace->setMenu(ui->menuToolSpace);
-        toolBar->addAction(actionToolSpace);
-        QObject::connect(toolSpaceGroup, &QActionGroup::triggered, [toolSpaceGroup](QAction *const action) { EditingContext::ToolSpace toolSpace = toolSpaceGroup->mode(action); qDebug() << int(toolSpace); });
-        toolBar->addSeparator();
-        toolBar->addAction(ui->actionBrushPixelSnap);
-        IntegerFieldAction *actionBrushWidth = new IntegerFieldAction();
-        toolBar->addAction(actionBrushWidth);
-        IntegerFieldAction *actionBrushHeight = new IntegerFieldAction();
-        toolBar->addAction(actionBrushHeight);
-        ColourSwatchAction *actionPrimaryColour = new ColourSwatchAction();
-        toolBar->addAction(actionPrimaryColour);
-        ColourSwatchAction *actionSecondaryColour = new ColourSwatchAction();
-        toolBar->addAction(actionSecondaryColour);
-        ColourSwatchAction *actionBackgroundColour = new ColourSwatchAction();
-        toolBar->addAction(actionBackgroundColour);
-        toolBar->addAction(actionBrushHeight);
-        addToolBar(Qt::TopToolBarArea, toolBar);
+//        toolBar = new QToolBar();
+//        toolBar->setObjectName("toolBarEditingContext");
+//        toolBar->setWindowTitle("Editing Context");
+//        ModeActionGroup<EditingContext::BrushStyle> *brushStyleGroup = new ModeActionGroup<EditingContext::BrushStyle>(this);
+//        brushStyleGroup->addAction(ui->actionBrushStylePixel, EditingContext::BrushStyle::Pixel);
+//        brushStyleGroup->addAction(ui->actionBrushStyleRectangle, EditingContext::BrushStyle::Rectangle);
+//        brushStyleGroup->addAction(ui->actionBrushStyleEllipse, EditingContext::BrushStyle::Ellipse);
+//        ModeToolButtonAction<EditingContext::BrushStyle> *actionBrushStyle = new ModeToolButtonAction<EditingContext::BrushStyle>(*brushStyleGroup);
+//        actionBrushStyle->setMenu(ui->menuBrushStyle);
+//        toolBar->addAction(actionBrushStyle);
+//        QObject::connect(brushStyleGroup, &QActionGroup::triggered, [brushStyleGroup](QAction *const action) { EditingContext::BrushStyle brushStyle = brushStyleGroup->mode(action); qDebug() << int(brushStyle); });
+//        ModeActionGroup<EditingContext::ToolSpace> *toolSpaceGroup = new ModeActionGroup<EditingContext::ToolSpace>(this);
+//        toolSpaceGroup->addAction(ui->actionToolSpaceImage, EditingContext::ToolSpace::Image);
+//        toolSpaceGroup->addAction(ui->actionToolSpaceImageAspectCorrected, EditingContext::ToolSpace::ImageAspectCorrected);
+//        toolSpaceGroup->addAction(ui->actionToolSpaceScreen, EditingContext::ToolSpace::Screen);
+//        toolSpaceGroup->addAction(ui->actionToolSpaceGrid, EditingContext::ToolSpace::Grid);
+//        ModeToolButtonAction<EditingContext::ToolSpace> *actionToolSpace = new ModeToolButtonAction<EditingContext::ToolSpace>(*toolSpaceGroup);
+//        actionToolSpace->setMenu(ui->menuToolSpace);
+//        toolBar->addAction(actionToolSpace);
+//        QObject::connect(toolSpaceGroup, &QActionGroup::triggered, [toolSpaceGroup](QAction *const action) { EditingContext::ToolSpace toolSpace = toolSpaceGroup->mode(action); qDebug() << int(toolSpace); });
+//        toolBar->addSeparator();
+//        toolBar->addAction(ui->actionBrushPixelSnap);
+//        IntegerFieldAction *actionBrushWidth = new IntegerFieldAction();
+//        toolBar->addAction(actionBrushWidth);
+//        IntegerFieldAction *actionBrushHeight = new IntegerFieldAction();
+//        toolBar->addAction(actionBrushHeight);
+//        ColourSwatchAction *actionPrimaryColour = new ColourSwatchAction();
+//        toolBar->addAction(actionPrimaryColour);
+//        ColourSwatchAction *actionSecondaryColour = new ColourSwatchAction();
+//        toolBar->addAction(actionSecondaryColour);
+//        ColourSwatchAction *actionBackgroundColour = new ColourSwatchAction();
+//        toolBar->addAction(actionBackgroundColour);
+//        toolBar->addAction(actionBrushHeight);
+//        addToolBar(Qt::TopToolBarArea, toolBar);
     }
 
 //    toolBarMenu = new QMenu;
@@ -251,19 +253,19 @@ MainWindow::MainWindow(QWidget *parent) :
 //    }
 }
 
-MainWindow::~MainWindow()
+Window::~Window()
 {
     delete ui;
 }
 
-Editor *MainWindow::activeEditor()
+Editor *Window::activeEditor()
 {
     SubWindow *subWindow = static_cast<SubWindow *>(mdi->activeSubWindow());
     ImageEditor *editor = static_cast<ImageEditor *>(subWindow->widget());
     return editor;
 }
 
-void MainWindow::activateSubWindow(SubWindow *const subWindow)
+void Window::activateSubWindow(SubWindow *const subWindow)
 {
     if (oldSubWindow) {
         QListIterator<QMetaObject::Connection> connectionsIterator(activeSubWindowConnections);
@@ -286,18 +288,18 @@ void MainWindow::activateSubWindow(SubWindow *const subWindow)
         activeSubWindowConnections.append(QObject::connect(transformWidget, &TransformWidget::transformChanged, &editor->transform(), &Transform::copy));
         activeSubWindowConnections.append(QObject::connect(&editor->transform(), &Transform::changed, transformWidget, &TransformWidget::setTransform));
 
-        activeSubWindowConnections.append(QObject::connect(ui->actionWrap, &QAction::triggered, editor, &ImageEditor::setTiled));
-        ui->actionWrap->setChecked(editor->tiled());
-        activeSubWindowConnections.append(QObject::connect(ui->actionWrapX, &QAction::triggered, editor, &ImageEditor::setTileX));
-        ui->actionWrapX->setChecked(editor->tileX());
-        activeSubWindowConnections.append(QObject::connect(ui->actionWrapY, &QAction::triggered, editor, &ImageEditor::setTileY));
-        ui->actionWrapY->setChecked(editor->tileY());
-        activeSubWindowConnections.append(QObject::connect(ui->actionShowBounds, &QAction::triggered, editor, &ImageEditor::setShowBounds));
-        ui->actionShowBounds->setChecked(editor->showBounds());
-        activeSubWindowConnections.append(QObject::connect(ui->actionShowAlpha, &QAction::triggered, editor, &ImageEditor::setShowAlpha));
-        ui->actionShowAlpha->setChecked(editor->showAlpha());
-        activeSubWindowConnections.append(QObject::connect(ui->actionAntialias, &QAction::triggered, editor, &ImageEditor::setAntialias));
-        ui->actionAntialias->setChecked(editor->antialias());
+//        activeSubWindowConnections.append(QObject::connect(ui->actionWrap, &QAction::triggered, editor, &ImageEditor::setTiled));
+//        ui->actionWrap->setChecked(editor->tiled());
+//        activeSubWindowConnections.append(QObject::connect(ui->actionWrapX, &QAction::triggered, editor, &ImageEditor::setTileX));
+//        ui->actionWrapX->setChecked(editor->tileX());
+//        activeSubWindowConnections.append(QObject::connect(ui->actionWrapY, &QAction::triggered, editor, &ImageEditor::setTileY));
+//        ui->actionWrapY->setChecked(editor->tileY());
+//        activeSubWindowConnections.append(QObject::connect(ui->actionShowBounds, &QAction::triggered, editor, &ImageEditor::setShowBounds));
+//        ui->actionShowBounds->setChecked(editor->showBounds());
+//        activeSubWindowConnections.append(QObject::connect(ui->actionShowAlpha, &QAction::triggered, editor, &ImageEditor::setShowAlpha));
+//        ui->actionShowAlpha->setChecked(editor->showAlpha());
+//        activeSubWindowConnections.append(QObject::connect(ui->actionAntialias, &QAction::triggered, editor, &ImageEditor::setAntialias));
+//        ui->actionAntialias->setChecked(editor->antialias());
 
         activeSubWindowConnections.append(QObject::connect(editor, &ImageEditor::mouseEntered, statusMouseWidget, &StatusMouseWidget::show));
         activeSubWindowConnections.append(QObject::connect(editor, &ImageEditor::mouseLeft, statusMouseWidget, &StatusMouseWidget::hide));
@@ -307,38 +309,38 @@ void MainWindow::activateSubWindow(SubWindow *const subWindow)
         paletteWidget->setEditingContext(nullptr);
         setWindowFilePath(QString());
     }
-    ui->actionWrap->setEnabled(subWindow);
-    ui->actionWrapX->setEnabled(subWindow);
-    ui->actionWrapY->setEnabled(subWindow);
-    ui->actionShowBounds->setEnabled(subWindow);
-    ui->actionShowAlpha->setEnabled(subWindow);
-    ui->actionAntialias->setEnabled(subWindow);
+//    ui->actionWrap->setEnabled(subWindow);
+//    ui->actionWrapX->setEnabled(subWindow);
+//    ui->actionWrapY->setEnabled(subWindow);
+//    ui->actionShowBounds->setEnabled(subWindow);
+//    ui->actionShowAlpha->setEnabled(subWindow);
+//    ui->actionAntialias->setEnabled(subWindow);
     oldSubWindow = subWindow;
 }
 
-void MainWindow::showToolbars(bool checked)
+void Window::showToolbars(bool checked)
 {
-    QListIterator<QAction *> iterator(ui->actionToolbars->menu()->actions());
-    while (iterator.hasNext()) {
-        QAction *action = iterator.next();
-        if (action->isChecked() != checked) {
-            action->trigger();
-        }
-    }
+//    QListIterator<QAction *> iterator(ui->actionToolbars->menu()->actions());
+//    while (iterator.hasNext()) {
+//        QAction *action = iterator.next();
+//        if (action->isChecked() != checked) {
+//            action->trigger();
+//        }
+//    }
 }
 
-void MainWindow::showDocks(bool checked)
+void Window::showDocks(bool checked)
 {
-    QListIterator<QAction *> iterator(ui->actionDocks->menu()->actions());
-    while (iterator.hasNext()) {
-        QAction *action = iterator.next();
-        if (action->isChecked() != checked) {
-            action->trigger();
-        }
-    }
+//    QListIterator<QAction *> iterator(ui->actionDocks->menu()->actions());
+//    while (iterator.hasNext()) {
+//        QAction *action = iterator.next();
+//        if (action->isChecked() != checked) {
+//            action->trigger();
+//        }
+//    }
 }
 
-void MainWindow::showDockTitles(bool checked)
+void Window::showDockTitles(bool checked)
 {
     QListIterator<QDockWidget *> iterator(findChildren<QDockWidget *>());
     while (iterator.hasNext()) {
@@ -346,7 +348,7 @@ void MainWindow::showDockTitles(bool checked)
     }
 }
 
-void MainWindow::lockDocks(bool checked)
+void Window::lockDocks(bool checked)
 {
     QListIterator<QDockWidget *> dockIterator(findChildren<QDockWidget *>());
     while (dockIterator.hasNext()) {
@@ -356,12 +358,12 @@ void MainWindow::lockDocks(bool checked)
     }
 }
 
-void MainWindow::useTabs(bool checked)
+void Window::useTabs(bool checked)
 {
     mdi->setViewMode(checked ? QMdiArea::TabbedView : QMdiArea::SubWindowView);
 }
 
-void MainWindow::lockToolbars(bool checked)
+void Window::lockToolbars(bool checked)
 {
     QListIterator<QToolBar *> toolBarIterator(findChildren<QToolBar *>());
     while (toolBarIterator.hasNext()) {
@@ -372,7 +374,7 @@ void MainWindow::lockToolbars(bool checked)
     }
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
+void Window::closeEvent(QCloseEvent *event)
 {
     mdi->closeAllSubWindows();
     //if (!closeImage()) {
@@ -387,7 +389,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
 }
 
-void MainWindow::setFullscreen(const bool fullscreen)
+void Window::setFullscreen(const bool fullscreen)
 {
     if (fullscreen)
         showFullScreen();
@@ -395,7 +397,7 @@ void MainWindow::setFullscreen(const bool fullscreen)
         showNormal();
 }
 
-SubWindow *MainWindow::newEditorSubWindow(ImageEditor *const editor)
+SubWindow *Window::newEditorSubWindow(ImageEditor *const editor)
 {
     ImageDocument &image = static_cast<ImageDocument &>(editor->document);
     SubWindow *subWindow = new SubWindow;

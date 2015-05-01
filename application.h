@@ -103,7 +103,7 @@ struct ActionOwner {
     }
 };
 
-class MainWindow;
+class Window;
 class Editor;
 class Document;
 
