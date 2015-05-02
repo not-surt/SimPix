@@ -1,0 +1,4 @@
+before_install:
+  - apt-add-repository ppa:beineri/opt-qt541
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq qt54-meta

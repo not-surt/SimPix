@@ -97,3 +97,6 @@ RESOURCES += \
     simpix.qrc
 
 RC_FILE = simpix.rc
+
+DISTFILES += \
+    .travis.yml
