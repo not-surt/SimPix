@@ -89,11 +89,12 @@ Window::Window(QWidget *parent) :
     }
     setMenuBar(menuBar);
 
-    QObject::connect(mdi, &MdiArea::subWindowActivated, [this](QMdiSubWindow *const subWindow) { this->activateSubWindow(static_cast<SubWindow *>(subWindow)); } );
+    QObject::connect(this, &Window::windowActivated, APP, &Application::connectActiveWindow);
+
+    QObject::connect(mdi, &MdiArea::subWindowActivated, [this](QMdiSubWindow *const subWindow) { this->connectActiveSubWindow(static_cast<SubWindow *>(subWindow)); } );
 
     QObject::connect(ActionOwner::actions["layoutMenuBar"], &QAction::triggered, this->menuBar(), &QMenuBar::setVisible);
     QObject::connect(ActionOwner::actions["layoutStatusBar"], &QAction::triggered, this->statusBar(), &QStatusBar::setVisible);
-    QObject::connect(ActionOwner::actions["windowFullScreen"], &QAction::triggered, this, &Window::setFullscreen);
     QObject::connect(ActionOwner::actions["subWindowUseTabs"], &QAction::triggered, this, &Window::useTabs);
     QObject::connect(ActionOwner::actions["subWindowTile"], &QAction::triggered, mdi, &MdiArea::tileSubWindows);
     QObject::connect(ActionOwner::actions["subWindowCascade"], &QAction::triggered, mdi, &MdiArea::cascadeSubWindows);
@@ -213,34 +214,35 @@ Window::Window(QWidget *parent) :
 //        addToolBar(Qt::TopToolBarArea, toolBar);
     }
 
-//    toolBarMenu = new QMenu;
-//    ui->actionToolbars->setMenu(toolBarMenu);
-//    ui->actionToolbarsMenu->setMenu(toolBarMenu);
-//    static_cast<QToolButton *>(ui->toolBarLayout->widgetForAction(ui->actionToolbarsMenu))->setPopupMode(QToolButton::MenuButtonPopup);
-//    QListIterator<QToolBar *> toolbar(findChildren<QToolBar *>());
-//    while (toolbar.hasNext()) {
-//        toolBarMenu->addAction(toolbar.next()->toggleViewAction());
-//    }
-
-//    dockMenu = new QMenu;
-//    ui->actionDocks->setMenu(dockMenu);
-//    ui->actionDocksMenu->setMenu(dockMenu);
-//    static_cast<QToolButton *>(ui->toolBarLayout->widgetForAction(ui->actionDocksMenu))->setPopupMode(QToolButton::MenuButtonPopup);
-//    QListIterator<QDockWidget *> dock(findChildren<QDockWidget *>());
-//    while (dock.hasNext()) {
-//        dockMenu->addAction(dock.next()->toggleViewAction());
-//    }
+    for (QToolBar *toolBar : findChildren<QToolBar *>(QString(), Qt::FindDirectChildrenOnly)) {
+        menus["toolBar"]->addAction(toolBar->toggleViewAction());
+    }
+    for (QDockWidget *dock : findChildren<QDockWidget *>(QString(), Qt::FindDirectChildrenOnly)) {
+        menus["dock"]->addAction(dock->toggleViewAction());
+    }
 
     statusMouseWidget = new StatusMouseWidget;
     statusMouseWidget->hide();
     statusBar()->addWidget(statusMouseWidget);
     statusBar()->setSizeGripEnabled(true);
 
-    activateSubWindow(nullptr);
+    connectActiveSubWindow(nullptr);
 
     APP->settings.beginGroup("window");
     restoreGeometry(APP->settings.value("geometry").toByteArray());
     restoreState(APP->settings.value("state").toByteArray());
+    APP->settings.beginGroup("widget");
+    for (QToolBar *toolBar : findChildren<QToolBar *>(QString(), Qt::FindDirectChildrenOnly)) {
+        APP->settings.beginGroup(toolBar->objectName());
+        toolBar->restoreGeometry(APP->settings.value("geometry").toByteArray());
+        APP->settings.endGroup();
+    }
+    for (QDockWidget *dock : findChildren<QDockWidget *>(QString(), Qt::FindDirectChildrenOnly)) {
+        APP->settings.beginGroup(dock->objectName());
+        dock->restoreGeometry(APP->settings.value("geometry").toByteArray());
+        APP->settings.endGroup();
+    }
+    APP->settings.endGroup();
     APP->settings.endGroup();
 //    toolbars = findChildren<QToolBar *>();
 //    toolbar = QListIterator<QToolBar *>(toolbars);
@@ -251,6 +253,7 @@ Window::Window(QWidget *parent) :
 
 Window::~Window()
 {
+    QObject::disconnect(this, &Window::windowActivated, APP, &Application::connectActiveWindow);
 }
 
 Editor *Window::activeEditor()
@@ -260,7 +263,7 @@ Editor *Window::activeEditor()
     return editor;
 }
 
-void Window::activateSubWindow(SubWindow *const subWindow)
+void Window::connectActiveSubWindow(SubWindow *const subWindow)
 {
     if (oldSubWindow) {
         QListIterator<QMetaObject::Connection> connectionsIterator(activeSubWindowConnections);
@@ -312,6 +315,19 @@ void Window::activateSubWindow(SubWindow *const subWindow)
 //    ui->actionAntialias->setEnabled(subWindow);
     oldSubWindow = subWindow;
 }
+
+
+bool Window::event(QEvent *event)
+{
+    if (event->type() == QEvent::WindowActivate) {
+        emit windowActivated(this);
+        return true;
+    }
+    else {
+        return QMainWindow::event(event);
+    }
+}
+
 
 void Window::showToolbars(bool checked)
 {
@@ -375,6 +391,18 @@ void Window::closeEvent(QCloseEvent *event)
         APP->settings.beginGroup("window");
         APP->settings.setValue("geometry", saveGeometry());
         APP->settings.setValue("state", saveState());
+        APP->settings.beginGroup("widget");
+        for (QToolBar *toolBar : findChildren<QToolBar *>(QString(), Qt::FindDirectChildrenOnly)) {
+            APP->settings.beginGroup(toolBar->objectName());
+            APP->settings.setValue("geometry", toolBar->saveGeometry());
+            APP->settings.endGroup();
+        }
+        for (QDockWidget *dock : findChildren<QDockWidget *>(QString(), Qt::FindDirectChildrenOnly)) {
+            APP->settings.beginGroup(dock->objectName());
+            APP->settings.setValue("geometry", dock->saveGeometry());
+            APP->settings.endGroup();
+        }
+        APP->settings.endGroup();
         APP->settings.endGroup();
     }
 }

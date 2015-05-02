@@ -67,8 +67,11 @@ public slots:
     void about();
     void aboutQt();
     void license();
+    void connectActiveWindow(Window *const window);
 
 private:
+    Window *oldWindow;
+    QList<QMetaObject::Connection> activeWindowConnections;
     static const GLfloat brushVertices[][2];
     static const QHash<QString, ActionDefinition> actionDefinitions;
     static const QHash<QString, MenuDefinition> menuDefinitions;

@@ -84,6 +84,7 @@ Application::Application(int &argc, char **argv) :
     QObject::connect(actions["sessionSaveAs"], &QAction::triggered, this, &Application::sessionSaveAs);
     QObject::connect(actions["sessionClose"], &QAction::triggered, this, &Application::sessionClose);
 
+    connectActiveWindow(nullptr);
     windowNew();
 }
 
@@ -107,6 +108,7 @@ Application::~Application()
 
     delete swatchBackgroundPixmap;
 }
+
 
 bool Application::addShader(const QString &name, const QOpenGLShader::ShaderType type, const QString &src)
 {
@@ -385,6 +387,24 @@ void Application::license()
         text = QTextStream(&data).readAll();
     }
     QMessageBox::information(activeWindow(), QString(), text);
+}
+
+void Application::connectActiveWindow(Window *const window)
+{
+    qDebug() << "Activatred!"; //////////////////////////////////////////////////////
+    if (oldWindow) {
+        QListIterator<QMetaObject::Connection> connectionsIterator(activeWindowConnections);
+        while (connectionsIterator.hasNext()) {
+            QMetaObject::Connection connection = (connectionsIterator.next());
+            QObject::disconnect(connection);
+        }
+        activeWindowConnections.clear();
+    }
+    if (window) {
+        activeWindowConnections.append(QObject::connect(window->ActionOwner::actions["windowFullScreen"], &QAction::triggered, window, &Window::setFullscreen));
+        window->ActionOwner::actions["windowFullScreen"]->setChecked(window->isFullScreen());
+    }
+    oldWindow = window;
 }
 
 void Application::initializeGL()

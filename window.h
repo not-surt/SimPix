@@ -52,8 +52,11 @@ public:
 
     explicit Window(QWidget *parent = nullptr);
     ~Window();
-
     Editor *activeEditor();
+    virtual bool event(QEvent *event);
+
+signals:
+    void windowActivated(Window *window);
 
 public slots:
     void setFullscreen(bool);
@@ -64,15 +67,15 @@ public slots:
     void lockDocks(bool checked);
     void useTabs(bool checked);
     SubWindow *newEditorSubWindow(ImageEditor *const editor);
-    void activateSubWindow(SubWindow *const subWindow);
+    void connectActiveSubWindow(SubWindow *const subWindow);
 
 protected:
     virtual void closeEvent(QCloseEvent *event);
 
 private:
     SubWindow *oldSubWindow;
-    static const QString fileDialogFilterString;
     QList<QMetaObject::Connection> activeSubWindowConnections;
+    static const QString fileDialogFilterString;
     static const QHash<QString, ActionDefinition> actionDefinitions;
     static const QHash<QString, MenuDefinition> menuDefinitions;
 };

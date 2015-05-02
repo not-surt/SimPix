@@ -41,15 +41,6 @@ QMenu *ActionOwner::MenuDefinition::toMenu(QHash<QString, QAction *> &actions, Q
 
 ActionOwner::ActionOwner(const ActionOwner &other)
     : actions(other.actions), actionGroups(other.actionGroups), menus(other.menus) {
-//    for (const QString key : other.actions.keys()) {
-//        actions[key] = other.actions[key];
-//    }
-//    for (const QString key : other.actionGroups.keys()) {
-//        actionGroups[key] = other.actionGroups[key];
-//    }
-//    for (const QString key : other.menus.keys()) {
-//        menus[key] = other.menus[key];
-//    }
 }
 
 
