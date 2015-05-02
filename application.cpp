@@ -361,21 +361,6 @@ bool Application::documentClose()
     return true;
 }
 
-bool Application::editorNew()
-{
-
-}
-
-bool Application::editorClone()
-{
-
-}
-
-bool Application::editorClose()
-{
-
-}
-
 void Application::about()
 {
     QFile data(":/text/ABOUT");
@@ -484,7 +469,6 @@ const QHash<QString, Application::ActionDefinition> Application::actionDefinitio
     {"sessionClose", {"&Close", "document-close", false, false, -1, nullptr, "Close current session.", nullptr, nullptr}},
 
     {"layoutMenu", {"&Layout", nullptr, false, false, -1, nullptr, nullptr, "layout", nullptr}},
-    {"layoutFullScreen", {"&Full Screen", "view-fullscreen", true, false, QKeySequence::FullScreen, nullptr, "Toggle window full screen.", nullptr, nullptr}},
     {"layoutMenuBar", {"&Menu Bar", nullptr, true, true, -1, "Ctrl+M", "Toggle menu bar visibility.", nullptr, nullptr}},
     {"layoutStatusBar", {"&Status Bar", nullptr, true, true, -1, "Ctrl+B", "Toggle status bar visibility.", nullptr, nullptr}},
 
@@ -498,24 +482,21 @@ const QHash<QString, Application::ActionDefinition> Application::actionDefinitio
     {"documentClose", {"&Close", "document-close", false, false, -1, "Ctrl+Shift+W", "Close current document.", nullptr, nullptr}},
     {"documentCloseAll", {"Close &All", nullptr, false, false, -1, nullptr, "Close all documents.", nullptr, nullptr}},
 
-    {"windowsMenu", {"&Windows", nullptr, false, false, -1, nullptr, nullptr, "windows", nullptr}},
-    {"windowsNext", {"&Next Window", nullptr, false, false, -1, nullptr, "Switch to next window.", nullptr, nullptr}},
-    {"windowsPrevious", {"&Previous Window", nullptr, false, false, -1, nullptr, "Switch to previous window.", nullptr, nullptr}},
-
     {"windowMenu", {"&Window", nullptr, false, false, -1, nullptr, nullptr, "window", nullptr}},
     {"windowNew", {"&New Window", "window-new", false, false, -1, nullptr, "Open new window.", nullptr, nullptr}},
     {"windowClone", {"&Clone Window", nullptr, false, false, -1, nullptr, "Clone current window.", nullptr, nullptr}},
     {"windowClose", {"&Close Window", "window-close", false, false, -1, nullptr, "Close current window.", nullptr, nullptr}},
+    {"windowFullScreen", {"&Full Screen", "view-fullscreen", true, false, QKeySequence::FullScreen, nullptr, "Toggle window full screen.", nullptr, nullptr}},
+    {"windowNext", {"&Next Window", nullptr, false, false, -1, nullptr, "Switch to next window.", nullptr, nullptr}},
+    {"windowPrevious", {"&Previous Window", nullptr, false, false, -1, nullptr, "Switch to previous window.", nullptr, nullptr}},
 };
 
 const QHash<QString, Application::MenuDefinition> Application::menuDefinitions = {
-    {"main", {"&Menu", {"applicationMenu", "sessionMenu", "layoutMenu", "windowMenu", "documentMenu"}}},
-    {"application", {"&Application", {"applicationAbout", "applicationAboutQt", "applicationLicense", nullptr, "applicationSettings", nullptr, "applicationExit"}}},
+    {"application", {"&Application", {"applicationAbout", "applicationAboutQt", "applicationLicense", nullptr, "applicationSettings", nullptr, "sessionMenu", "layoutMenu", nullptr, "applicationExit"}}},
     {"session", {"&Session", {"sessionNew", "sessionOpen", "sessionRecentMenu", nullptr, "sessionSave", "sessionSaveAs", nullptr, "sessionClose"}}},
     {"sessionRecent", {"&Recent", {}}},
-    {"layout", {"&Layout", {"layoutFullScreen", nullptr, "layoutMenuBar", "layoutStatusBar", nullptr, "windowsMenu"}}},
+    {"layout", {"&Layout", {"layoutMenuBar", "layoutStatusBar", nullptr, "windowMenu"}}},
+    {"window", {"&Window", {"windowNew", "windowClone", nullptr, "windowClose", nullptr, "windowFullScreen", nullptr, "windowNext", "windowPrevious"}}},
     {"document", {"&Document", {"documentNew", "documentOpen", "documentRecentMenu", nullptr, "documentSave", "documentSaveAs", "documentSaveAll", nullptr, "documentClose", "documentCloseAll"}}},
     {"documentRecent", {"&Recent", {}}},
-    {"windows", {"&Windows", {"windowsNext", "windowsPrevious"}}},
-    {"window", {"&Window", {"windowNew", "windowClone", nullptr, "windowClose"}}},
 };

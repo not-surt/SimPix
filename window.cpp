@@ -28,7 +28,10 @@ SubWindow::SubWindow(QWidget *parent) :
     QMdiSubWindow(parent)
 {
     // Hack to remove conflicting close shortcut
-    systemMenu()->actions().last()->setShortcut(QKeySequence());
+//    systemMenu()->actions().last()->setShortcut(QKeySequence());
+    for (QAction *const action : systemMenu()->actions()) {
+        action->setShortcut(QKeySequence());
+    }
 }
 
 void SubWindow::closeEvent(QCloseEvent *event)
@@ -76,9 +79,7 @@ Window::Window(QWidget *parent) :
     addActions(ActionOwner::actions.values());////////////////////
 
     QMenuBar *menuBar = new QMenuBar();
-    QListIterator<QAction *> iterator(menus["main"]->actions());
-    while (iterator.hasNext()) {
-        QAction *const action = iterator.next();
+    for (QAction *const action : menus["main"]->actions()) {
         if (action->menu()) {
             menuBar->addMenu(action->menu());
         }
@@ -88,34 +89,21 @@ Window::Window(QWidget *parent) :
     }
     setMenuBar(menuBar);
 
-//    // Copy actions to window so available when menu hidden. Is there a better way?
-//    QListIterator<QMenu *> menuIterator(ui->menuBar->findChildren<QMenu *>());
-//    while (menuIterator.hasNext()) {
-//        addActions(menuIterator.next()->findChildren<QAction *>());
-////        // The better way? No.
-////        QList<QAction *> actions = menuIterator.next()->findChildren<QAction *>();
-////        QListIterator<QAction *> actionIterator(actions);
-////        while (actionIterator.hasNext()) {
-////            actionIterator.next()->setShortcutContext(Qt::ApplicationShortcut);
-////        }
-//    }
-//    ui->menuBar->hide();
-
     QObject::connect(mdi, &MdiArea::subWindowActivated, [this](QMdiSubWindow *const subWindow) { this->activateSubWindow(static_cast<SubWindow *>(subWindow)); } );
 
-    QObject::connect(ActionOwner::actions["layoutFullScreen"], &QAction::triggered, this, &Window::setFullscreen);
     QObject::connect(ActionOwner::actions["layoutMenuBar"], &QAction::triggered, this->menuBar(), &QMenuBar::setVisible);
     QObject::connect(ActionOwner::actions["layoutStatusBar"], &QAction::triggered, this->statusBar(), &QStatusBar::setVisible);
-    QObject::connect(ActionOwner::actions["subWindowsUseTabs"], &QAction::triggered, this, &Window::useTabs);
-    QObject::connect(ActionOwner::actions["subWindowsTile"], &QAction::triggered, mdi, &MdiArea::tileSubWindows);
-    QObject::connect(ActionOwner::actions["subWindowsCascade"], &QAction::triggered, mdi, &MdiArea::cascadeSubWindows);
-    QObject::connect(ActionOwner::actions["subWindowsNext"], &QAction::triggered, mdi, &MdiArea::activateNextSubWindow);
-    QObject::connect(ActionOwner::actions["subWindowsPrevious"], &QAction::triggered, mdi, &MdiArea::activatePreviousSubWindow);
-    QObject::connect(ActionOwner::actions["toolBarsLock"], &QAction::triggered, this, &Window::lockToolbars);
-    QObject::connect(ActionOwner::actions["toolBarsAll"], &QAction::triggered, this, &Window::showToolbars);
-    QObject::connect(ActionOwner::actions["docksTitles"], &QAction::triggered, this, &Window::showDockTitles);
-    QObject::connect(ActionOwner::actions["docksLock"], &QAction::triggered, this, &Window::lockDocks);
-    QObject::connect(ActionOwner::actions["docksAll"], &QAction::triggered, this, &Window::showDocks);
+    QObject::connect(ActionOwner::actions["windowFullScreen"], &QAction::triggered, this, &Window::setFullscreen);
+    QObject::connect(ActionOwner::actions["subWindowUseTabs"], &QAction::triggered, this, &Window::useTabs);
+    QObject::connect(ActionOwner::actions["subWindowTile"], &QAction::triggered, mdi, &MdiArea::tileSubWindows);
+    QObject::connect(ActionOwner::actions["subWindowCascade"], &QAction::triggered, mdi, &MdiArea::cascadeSubWindows);
+    QObject::connect(ActionOwner::actions["subWindowNext"], &QAction::triggered, mdi, &MdiArea::activateNextSubWindow);
+    QObject::connect(ActionOwner::actions["subWindowPrevious"], &QAction::triggered, mdi, &MdiArea::activatePreviousSubWindow);
+    QObject::connect(ActionOwner::actions["toolBarLock"], &QAction::triggered, this, &Window::lockToolbars);
+    QObject::connect(ActionOwner::actions["toolBarAll"], &QAction::triggered, this, &Window::showToolbars);
+    QObject::connect(ActionOwner::actions["dockTitles"], &QAction::triggered, this, &Window::showDockTitles);
+    QObject::connect(ActionOwner::actions["dockLock"], &QAction::triggered, this, &Window::lockDocks);
+    QObject::connect(ActionOwner::actions["dockAll"], &QAction::triggered, this, &Window::showDocks);
 
     {
         QDockWidget *dock;
@@ -164,7 +152,7 @@ Window::Window(QWidget *parent) :
         toolBar->setWindowTitle("Main");
         MenuToolButtonAction *menuToolButtonAction = new MenuToolButtonAction();
         menuToolButtonAction->setText("Menu");
-        menuToolButtonAction->setMenu(APP->menus["main"]);
+        menuToolButtonAction->setMenu(menus["main"]);
         toolBar->addAction(menuToolButtonAction);
         toolBar->addSeparator();
         toolBar->addAction(ActionOwner::actions["documentNew"]);
@@ -349,17 +337,14 @@ void Window::showDocks(bool checked)
 
 void Window::showDockTitles(bool checked)
 {
-    QListIterator<QDockWidget *> iterator(findChildren<QDockWidget *>());
-    while (iterator.hasNext()) {
-        iterator.next()->setTitleBarWidget(checked ? nullptr : new QWidget);
+    for (QDockWidget *const dock : findChildren<QDockWidget *>()) {
+        dock->setTitleBarWidget(checked ? nullptr : new QWidget);
     }
 }
 
 void Window::lockDocks(bool checked)
 {
-    QListIterator<QDockWidget *> dockIterator(findChildren<QDockWidget *>());
-    while (dockIterator.hasNext()) {
-        QDockWidget *dock = dockIterator.next();
+    for (QDockWidget *const dock : findChildren<QDockWidget *>()) {
         dock->setAllowedAreas(dock->isFloating() && checked ? Qt::NoDockWidgetArea : Qt::AllDockWidgetAreas);
         dock->setFeatures(dock->isFloating() || !checked ? (QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable) : QDockWidget::NoDockWidgetFeatures);
     }
@@ -372,9 +357,7 @@ void Window::useTabs(bool checked)
 
 void Window::lockToolbars(bool checked)
 {
-    QListIterator<QToolBar *> toolBarIterator(findChildren<QToolBar *>());
-    while (toolBarIterator.hasNext()) {
-        QToolBar *toolBar = toolBarIterator.next();
+    for (QToolBar *const toolBar : findChildren<QToolBar *>()) {
         toolBar->setAllowedAreas(toolBar->isFloating() && checked ? Qt::NoToolBarArea : Qt::AllToolBarAreas);
         toolBar->setFloatable(toolBar->isFloating() || !checked);
         toolBar->setMovable(!checked);
@@ -429,21 +412,21 @@ SubWindow *Window::newEditorSubWindow(ImageEditor *const editor)
 }
 
 const QHash<QString, Window::ActionDefinition> Window::actionDefinitions = {
-    {"subWindowsMenu", {"&Subwindows", nullptr, false, false, -1, nullptr, nullptr, "subWindows", nullptr}},
-    {"subWindowsUseTabs", {"&Use Tabs", nullptr, true, false, -1, nullptr, "Toggle tabbed subwindows.", nullptr, nullptr}},
-    {"subWindowsTile", {"&Tile Subwindows", nullptr, false, false, -1, nullptr, "Tile arange subwindows.", nullptr, nullptr}},
-    {"subWindowsCascade", {"&Cascade Subwindows", nullptr, false, false, -1, nullptr, "Cascade arange subwindows.", nullptr, nullptr}},
-    {"subWindowsNext", {"&Next Subwindow", nullptr, false, false, -1, nullptr, "Switch to next subwindow.", nullptr, nullptr}},
-    {"subWindowsPrevious", {"&Previous Subwindow", nullptr, false, false, -1, nullptr, "Switch to previous subwindow.", nullptr, nullptr}},
+    {"subWindowMenu", {"&Subwindow", nullptr, false, false, -1, nullptr, nullptr, "subWindow", nullptr}},
+    {"subWindowUseTabs", {"&Use Tabs", nullptr, true, false, -1, nullptr, "Toggle tabbed subwindows.", nullptr, nullptr}},
+    {"subWindowTile", {"&Tile Subwindows", nullptr, false, false, -1, nullptr, "Tile arange subwindows.", nullptr, nullptr}},
+    {"subWindowCascade", {"&Cascade Subwindows", nullptr, false, false, -1, nullptr, "Cascade arange subwindows.", nullptr, nullptr}},
+    {"subWindowNext", {"&Next Subwindow", nullptr, false, false, -1, nullptr, "Switch to next subwindow.", nullptr, nullptr}},
+    {"subWindowPrevious", {"&Previous Subwindow", nullptr, false, false, -1, nullptr, "Switch to previous subwindow.", nullptr, nullptr}},
 
-    {"toolBarsMenu", {"&Toolbars", nullptr, false, false, -1, nullptr, nullptr, "toolBars", nullptr}},
-    {"toolBarsLock", {"&Lock Toolbars", nullptr, true, false, -1, nullptr, "Lock poisition of all toolbars.", nullptr, nullptr}},
-    {"toolBarsAll", {"&All Toolbars", nullptr, true, false, -1, "Ctrl+Shift+T", "Toggle visibility of all toolbars.", nullptr, nullptr}},
+    {"toolBarMenu", {"&Toolbar", nullptr, false, false, -1, nullptr, nullptr, "toolBar", nullptr}},
+    {"toolBarLock", {"&Lock Toolbars", nullptr, true, false, -1, nullptr, "Lock poisition of all toolbars.", nullptr, nullptr}},
+    {"toolBarAll", {"&All Toolbars", nullptr, true, false, -1, "Ctrl+Shift+T", "Toggle visibility of all toolbars.", nullptr, nullptr}},
 
-    {"docksMenu", {"&Docks", nullptr, false, false, -1, nullptr, nullptr, "docks", nullptr}},
-    {"docksTitles", {"&Dock Titles", nullptr, true, false, -1, nullptr, "Toggle visibility of dock titles.", nullptr, nullptr}},
-    {"docksLock", {"&Lock Docks", nullptr, true, false, -1, nullptr, "Lock poisition of all docks.", nullptr, nullptr}},
-    {"docksAll", {"&All Docks", nullptr, true, false, -1, "Ctrl+Shift+D", "Toggle visibility of all docks.", nullptr, nullptr}},
+    {"dockMenu", {"&Dock", nullptr, false, false, -1, nullptr, nullptr, "dock", nullptr}},
+    {"dockTitles", {"&Dock Titles", nullptr, true, false, -1, nullptr, "Toggle visibility of dock titles.", nullptr, nullptr}},
+    {"dockLock", {"&Lock Docks", nullptr, true, false, -1, nullptr, "Lock poisition of all docks.", nullptr, nullptr}},
+    {"dockAll", {"&All Docks", nullptr, true, false, -1, "Ctrl+Shift+D", "Toggle visibility of all docks.", nullptr, nullptr}},
 
     {"editorMenu", {"&Editor", nullptr, false, false, -1, nullptr, nullptr, "editor", nullptr}},
     {"editorNew", {"&New", "window-new", false, false, -1, "Ctrl+Shift+N", "Open new editor.", nullptr, nullptr}},
@@ -464,6 +447,7 @@ const QHash<QString, Window::ActionDefinition> Window::actionDefinitions = {
     {"editCut", {"Cu&t", "edit-cut", false, false, QKeySequence::Cut, nullptr, "Cut selection.", nullptr, nullptr}},
     {"editCopy", {"&Copy", "edit-copy", false, false, QKeySequence::Copy, nullptr, "Copy selection.", nullptr, nullptr}},
     {"editPaste", {"&Paste", "edit-paste", false, false, QKeySequence::Paste, nullptr, "Paste selection.", nullptr, nullptr}},
+    {"editDelete", {"&Delete", "edit-delete", false, false, QKeySequence::Delete, nullptr, "Delete selection.", nullptr, nullptr}},
 
     {"brushModeMenu", {"&Brush Mode", nullptr, false, false, -1, nullptr, nullptr, "brushMode", nullptr}},
     {"brushModePixel", {"&Pixel", nullptr, true, false, -1, nullptr, "Pixel brush.", nullptr, "brushMode"}},
@@ -478,14 +462,15 @@ const QHash<QString, Window::ActionDefinition> Window::actionDefinitions = {
 };
 
 const QHash<QString, Window::MenuDefinition> Window::menuDefinitions = {
-    {"main", {"&Menu", {"editorMenu", "layerMenu", "editMenu", "brushModeMenu", "toolSpaceMenu"}}},
-    {"layout", {"&Layout", {"subWindowsMenu", "toolBarsMenu", "docksMenu"}}},
-    {"subWindows", {"&Subwindows", {"subWindowsUseTabs", nullptr, "subWindowsTile", "subWindowsCascade", nullptr, "subWindowsNext", "subWindowsPrevious"}}},
-    {"toolBars", {"&Toolbars", {"toolBarsLock", nullptr, "toolBarsAll", nullptr}}},
-    {"docks", {"&Docks", {"docksTitles", "docksLock", nullptr, "docksAll", nullptr}}},
+    {"main", {"&Menu", {"applicationMenu", "documentMenu", "layerMenu", "editMenu"}}},
+    {"document", {"&Document", {nullptr, "editorMenu"}}},
+    {"layout", {"&Layout", {"subWindowMenu", "toolBarMenu", "dockMenu"}}},
+    {"subWindow", {"&Subwindow", {"subWindowUseTabs", nullptr, "subWindowTile", "subWindowCascade", nullptr, "subWindowNext", "subWindowPrevious"}}},
+    {"toolBar", {"&Toolbar", {"toolBarLock", nullptr, "toolBarAll", nullptr}}},
+    {"dock", {"&Dock", {"dockTitles", "dockLock", nullptr, "dockAll", nullptr}}},
     {"editor", {"&Editor", {"editorNew", "editorClone", nullptr, "editorClose", "editorCloseAll"}}},
     {"layer", {"&Layer", {"layerWrap", "layerWrapX", "layerWrapY", nullptr, "layerBounds", "layerAntialias"}}},
-    {"edit", {"&Edit", {"editUndo", "editRedo", nullptr, "editCut", "editCopy", "editPaste"}}},
+    {"edit", {"&Edit", {"editUndo", "editRedo", nullptr, "editCut", "editCopy", "editPaste", "editDelete", nullptr, "brushModeMenu", "toolSpaceMenu"}}},
     {"brushMode", {"&Brush Mode", {"brushModePixel", "brushModeRectangle", "brushModeEllipse"}}},
     {"toolSpace", {"&Tool Space", {"toolSpaceImage", "toolSpaceImageAspectCorrect", "toolSpaceScreen", "toolSpaceGrid"}}},
 };

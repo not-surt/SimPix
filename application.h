@@ -64,9 +64,6 @@ public slots:
     bool documentSave();
     bool documentSaveAs();
     bool documentClose();
-    bool editorNew();
-    bool editorClone();
-    bool editorClose();
     void about();
     void aboutQt();
     void license();

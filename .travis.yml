@@ -8,7 +8,12 @@ before_install:
   - sudo apt-get install -qq qt54-meta
   - sudo /opt/qt54/bin/qt54-env.sh
 
-script: qmake; make
+before_script:
+  - mkdir build
+  - cd build
+  - qmake ..
+
+script: make
 
 branches:
   only:
