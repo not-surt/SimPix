@@ -28,14 +28,14 @@ SOURCES += main.cpp\
     editor.cpp \
     imagedocument.cpp \
     widgets.cpp \
-    actions.cpp \
     sessionwidget.cpp \
     palettewidget.cpp \
     treemodel.cpp \
     colourselectorwidget.cpp \
     colourswatchwidget.cpp \
     settingsdialog.cpp \
-    window.cpp
+    window.cpp \
+    actionowner.cpp
 
 HEADERS  += \
     newdialog.h \
@@ -54,7 +54,6 @@ HEADERS  += \
     editor.h \
     imagedocument.h \
     widgets.h \
-    actions.h \
     sessionwidget.h \
     palettewidget.h \
     treemodel.h \
@@ -62,11 +61,12 @@ HEADERS  += \
     colourselectorwidget.h \
     colourswatchwidget.h \
     settingsdialog.h \
-    window.h
+    window.h \
+    actionowner.h
 
 PRECOMPILED_HEADER = stable.h
 
-FORMS    += mainwindow.ui \
+FORMS    += \
     newdialog.ui \
     transformwidget.ui \
     palettewidget.ui \

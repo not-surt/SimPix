@@ -7,10 +7,7 @@
 #include "document.h"
 #include "imageeditor.h"
 #include "statusmousewidget.h"
-
-namespace Ui {
-class MainWindow;
-}
+#include "actionowner.h"
 
 class SubWindow : public QMdiSubWindow
 {
@@ -36,7 +33,7 @@ class SessionWidget;
 class TransformWidget;
 class StatusMouseWidget;
 
-class Window : public QMainWindow
+class Window : public QMainWindow, public ActionOwner
 {
     Q_OBJECT
 public:
@@ -73,10 +70,11 @@ protected:
     virtual void closeEvent(QCloseEvent *event);
 
 private:
-    Ui::MainWindow *ui;
     SubWindow *oldSubWindow;
     static const QString fileDialogFilterString;
     QList<QMetaObject::Connection> activeSubWindowConnections;
+    static const QHash<QString, ActionDefinition> actionDefinitions;
+    static const QHash<QString, MenuDefinition> menuDefinitions;
 };
 
 #endif // WINDOW_H
