@@ -76,7 +76,7 @@ Window::Window(QWidget *parent) :
     setCentralWidget(mdi);
     setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
 
-    addActions(ActionOwner::actions.values());////////////////////
+    addActions(allActions.values());////////////////////
 
     QMenuBar *menuBar = new QMenuBar();
     for (QAction *const action : menus["main"]->actions()) {
@@ -93,18 +93,21 @@ Window::Window(QWidget *parent) :
 
     QObject::connect(mdi, &MdiArea::subWindowActivated, [this](QMdiSubWindow *const subWindow) { this->connectActiveSubWindow(static_cast<SubWindow *>(subWindow)); } );
 
-    QObject::connect(ActionOwner::actions["layoutMenuBar"], &QAction::triggered, this->menuBar(), &QMenuBar::setVisible);
-    QObject::connect(ActionOwner::actions["layoutStatusBar"], &QAction::triggered, this->statusBar(), &QStatusBar::setVisible);
-    QObject::connect(ActionOwner::actions["subWindowUseTabs"], &QAction::triggered, this, &Window::useTabs);
-    QObject::connect(ActionOwner::actions["subWindowTile"], &QAction::triggered, mdi, &MdiArea::tileSubWindows);
-    QObject::connect(ActionOwner::actions["subWindowCascade"], &QAction::triggered, mdi, &MdiArea::cascadeSubWindows);
-    QObject::connect(ActionOwner::actions["subWindowNext"], &QAction::triggered, mdi, &MdiArea::activateNextSubWindow);
-    QObject::connect(ActionOwner::actions["subWindowPrevious"], &QAction::triggered, mdi, &MdiArea::activatePreviousSubWindow);
-    QObject::connect(ActionOwner::actions["toolBarLock"], &QAction::triggered, this, &Window::lockToolbars);
-    QObject::connect(ActionOwner::actions["toolBarAll"], &QAction::triggered, this, &Window::showToolbars);
-    QObject::connect(ActionOwner::actions["dockTitles"], &QAction::triggered, this, &Window::showDockTitles);
-    QObject::connect(ActionOwner::actions["dockLock"], &QAction::triggered, this, &Window::lockDocks);
-    QObject::connect(ActionOwner::actions["dockAll"], &QAction::triggered, this, &Window::showDocks);
+    QObject::connect(allActions["windowFullScreen"], &QAction::triggered, this, &Window::setFullscreen);
+    allActions["windowFullScreen"]->setChecked(isFullScreen());
+
+    QObject::connect(allActions["layoutMenuBar"], &QAction::triggered, this->menuBar(), &QMenuBar::setVisible);
+    QObject::connect(allActions["layoutStatusBar"], &QAction::triggered, this->statusBar(), &QStatusBar::setVisible);
+    QObject::connect(allActions["subWindowUseTabs"], &QAction::triggered, this, &Window::useTabs);
+    QObject::connect(allActions["subWindowTile"], &QAction::triggered, mdi, &MdiArea::tileSubWindows);
+    QObject::connect(allActions["subWindowCascade"], &QAction::triggered, mdi, &MdiArea::cascadeSubWindows);
+    QObject::connect(allActions["subWindowNext"], &QAction::triggered, mdi, &MdiArea::activateNextSubWindow);
+    QObject::connect(allActions["subWindowPrevious"], &QAction::triggered, mdi, &MdiArea::activatePreviousSubWindow);
+    QObject::connect(allActions["toolBarLock"], &QAction::triggered, this, &Window::lockToolbars);
+    QObject::connect(allActions["toolBarAll"], &QAction::triggered, this, &Window::showToolbars);
+    QObject::connect(allActions["dockTitles"], &QAction::triggered, this, &Window::showDockTitles);
+    QObject::connect(allActions["dockLock"], &QAction::triggered, this, &Window::lockDocks);
+    QObject::connect(allActions["dockAll"], &QAction::triggered, this, &Window::showDocks);
 
     {
         QDockWidget *dock;
@@ -156,26 +159,26 @@ Window::Window(QWidget *parent) :
         menuToolButtonAction->setMenu(menus["main"]);
         toolBar->addAction(menuToolButtonAction);
         toolBar->addSeparator();
-        toolBar->addAction(ActionOwner::actions["documentNew"]);
-        toolBar->addAction(ActionOwner::actions["documentOpen"]);
+        toolBar->addAction(allActions["documentNew"]);
+        toolBar->addAction(allActions["documentOpen"]);
         toolBar->addSeparator();
-        toolBar->addAction(ActionOwner::actions["documentSave"]);
-        toolBar->addAction(ActionOwner::actions["documentSaveAs"]);
+        toolBar->addAction(allActions["documentSave"]);
+        toolBar->addAction(allActions["documentSaveAs"]);
         toolBar->addSeparator();
-        toolBar->addAction(ActionOwner::actions["documentClose"]);
+        toolBar->addAction(allActions["documentClose"]);
         toolBar->addSeparator();
-        toolBar->addAction(ActionOwner::actions["applicationExit"]);
+        toolBar->addAction(allActions["applicationExit"]);
         addToolBar(Qt::TopToolBarArea, toolBar);
 
         toolBar = new QToolBar();
         toolBar->setObjectName("toolBarLayer");
         toolBar->setWindowTitle("Layer");
-        toolBar->addAction(ActionOwner::actions["layerWrap"]);
-        toolBar->addAction(ActionOwner::actions["layerWrapX"]);
-        toolBar->addAction(ActionOwner::actions["layerWrapY"]);
+        toolBar->addAction(allActions["layerWrap"]);
+        toolBar->addAction(allActions["layerWrapX"]);
+        toolBar->addAction(allActions["layerWrapY"]);
         toolBar->addSeparator();
-        toolBar->addAction(ActionOwner::actions["layerBounds"]);
-        toolBar->addAction(ActionOwner::actions["layerAntialias"]);
+        toolBar->addAction(allActions["layerBounds"]);
+        toolBar->addAction(allActions["layerAntialias"]);
         addToolBar(Qt::TopToolBarArea, toolBar);
 
 //        toolBar = new QToolBar();
@@ -266,9 +269,7 @@ Editor *Window::activeEditor()
 void Window::connectActiveSubWindow(SubWindow *const subWindow)
 {
     if (oldSubWindow) {
-        QListIterator<QMetaObject::Connection> connectionsIterator(activeSubWindowConnections);
-        while (connectionsIterator.hasNext()) {
-            QMetaObject::Connection connection = (connectionsIterator.next());
+        for (QMetaObject::Connection connection : activeSubWindowConnections) {
             QObject::disconnect(connection);
         }
         activeSubWindowConnections.clear();
@@ -440,6 +441,13 @@ SubWindow *Window::newEditorSubWindow(ImageEditor *const editor)
 }
 
 const QHash<QString, Window::ActionDefinition> Window::actionDefinitions = {
+    {"applicationMenu", {"&Application", nullptr, false, false, -1, nullptr, nullptr, "application", nullptr}},
+
+    {"layoutMenu", {"&Layout", nullptr, false, false, -1, nullptr, nullptr, "layout", nullptr}},
+
+    {"windowMenu", {"&Window", nullptr, false, false, -1, nullptr, nullptr, "window", nullptr}},
+    {"windowFullScreen", {"&Full Screen", "view-fullscreen", true, false, QKeySequence::FullScreen, nullptr, "Toggle window full screen.", nullptr, nullptr}},
+
     {"subWindowMenu", {"&Subwindow", nullptr, false, false, -1, nullptr, nullptr, "subWindow", nullptr}},
     {"subWindowUseTabs", {"&Use Tabs", nullptr, true, false, -1, nullptr, "Toggle tabbed subwindows.", nullptr, nullptr}},
     {"subWindowTile", {"&Tile Subwindows", nullptr, false, false, -1, nullptr, "Tile arange subwindows.", nullptr, nullptr}},
@@ -491,8 +499,10 @@ const QHash<QString, Window::ActionDefinition> Window::actionDefinitions = {
 
 const QHash<QString, Window::MenuDefinition> Window::menuDefinitions = {
     {"main", {"&Menu", {"applicationMenu", "documentMenu", "layerMenu", "editMenu"}}},
+    {"application", {"&Application", {"applicationAbout", "applicationAboutQt", "applicationLicense", nullptr, "applicationSettings", nullptr, "sessionMenu", "layoutMenu", nullptr, "applicationExit"}}},
     {"document", {"&Document", {nullptr, "editorMenu"}}},
-    {"layout", {"&Layout", {"subWindowMenu", "toolBarMenu", "dockMenu"}}},
+    {"layout", {"&Layout", {"layoutMenuBar", "layoutStatusBar", nullptr, "windowMenu", "subWindowMenu", "toolBarMenu", "dockMenu"}}},
+    {"window", {"&Window", {"windowNew", "windowClone", nullptr, "windowClose", nullptr, "windowFullScreen", nullptr, "windowNext", "windowPrevious"}}},
     {"subWindow", {"&Subwindow", {"subWindowUseTabs", nullptr, "subWindowTile", "subWindowCascade", nullptr, "subWindowNext", "subWindowPrevious"}}},
     {"toolBar", {"&Toolbar", {"toolBarLock", nullptr, "toolBarAll", nullptr}}},
     {"dock", {"&Dock", {"dockTitles", "dockLock", nullptr, "dockAll", nullptr}}},

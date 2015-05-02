@@ -62,27 +62,27 @@ Application::Application(int &argc, char **argv) :
 
     initializeGL();
 
-    QObject::connect(actions["applicationAbout"], &QAction::triggered, this, &Application::about);
-    QObject::connect(actions["applicationAboutQt"], &QAction::triggered, this, &Application::aboutQt);
-    QObject::connect(actions["applicationLicense"], &QAction::triggered, this, &Application::license);
-    QObject::connect(actions["applicationSettings"], &QAction::triggered, &settingsWindow, &SettingsDialog::show);
-    QObject::connect(actions["applicationExit"], &QAction::triggered, this, &Application::closeAllWindows);
+    QObject::connect(allActions["applicationAbout"], &QAction::triggered, this, &Application::about);
+    QObject::connect(allActions["applicationAboutQt"], &QAction::triggered, this, &Application::aboutQt);
+    QObject::connect(allActions["applicationLicense"], &QAction::triggered, this, &Application::license);
+    QObject::connect(allActions["applicationSettings"], &QAction::triggered, &settingsWindow, &SettingsDialog::show);
+    QObject::connect(allActions["applicationExit"], &QAction::triggered, this, &Application::closeAllWindows);
 
-    QObject::connect(actions["windowNew"], &QAction::triggered, this, &Application::windowNew);
-    QObject::connect(actions["windowClone"], &QAction::triggered, this, &Application::windowClone);
-    QObject::connect(actions["windowClose"], &QAction::triggered, this, &Application::windowClose);
+    QObject::connect(allActions["windowNew"], &QAction::triggered, this, &Application::windowNew);
+    QObject::connect(allActions["windowClone"], &QAction::triggered, this, &Application::windowClone);
+    QObject::connect(allActions["windowClose"], &QAction::triggered, this, &Application::windowClose);
 
-    QObject::connect(actions["documentNew"], &QAction::triggered, this, &Application::documentNew);
-    QObject::connect(actions["documentOpen"], &QAction::triggered, this, &Application::documentOpen);
-    QObject::connect(actions["documentSave"], &QAction::triggered, this, &Application::documentSave);
-    QObject::connect(actions["documentSaveAs"], &QAction::triggered, this, &Application::documentSaveAs);
-    QObject::connect(actions["documentClose"], &QAction::triggered, this, &Application::documentClose);
+    QObject::connect(allActions["documentNew"], &QAction::triggered, this, &Application::documentNew);
+    QObject::connect(allActions["documentOpen"], &QAction::triggered, this, &Application::documentOpen);
+    QObject::connect(allActions["documentSave"], &QAction::triggered, this, &Application::documentSave);
+    QObject::connect(allActions["documentSaveAs"], &QAction::triggered, this, &Application::documentSaveAs);
+    QObject::connect(allActions["documentClose"], &QAction::triggered, this, &Application::documentClose);
 
-    QObject::connect(actions["sessionNew"], &QAction::triggered, this, &Application::sessionNew);
-    QObject::connect(actions["sessionOpen"], &QAction::triggered, this, &Application::sessionOpen);
-    QObject::connect(actions["sessionSave"], &QAction::triggered, this, &Application::sessionSave);
-    QObject::connect(actions["sessionSaveAs"], &QAction::triggered, this, &Application::sessionSaveAs);
-    QObject::connect(actions["sessionClose"], &QAction::triggered, this, &Application::sessionClose);
+    QObject::connect(allActions["sessionNew"], &QAction::triggered, this, &Application::sessionNew);
+    QObject::connect(allActions["sessionOpen"], &QAction::triggered, this, &Application::sessionOpen);
+    QObject::connect(allActions["sessionSave"], &QAction::triggered, this, &Application::sessionSave);
+    QObject::connect(allActions["sessionSaveAs"], &QAction::triggered, this, &Application::sessionSaveAs);
+    QObject::connect(allActions["sessionClose"], &QAction::triggered, this, &Application::sessionClose);
 
     connectActiveWindow(nullptr);
     windowNew();
@@ -104,7 +104,7 @@ Application::~Application()
     }
     shareWidget.deleteLater();
 
-    qDeleteAll(actions);
+    qDeleteAll(allActions);
 
     delete swatchBackgroundPixmap;
 }
@@ -391,18 +391,15 @@ void Application::license()
 
 void Application::connectActiveWindow(Window *const window)
 {
-    qDebug() << "Activatred!"; //////////////////////////////////////////////////////
     if (oldWindow) {
-        QListIterator<QMetaObject::Connection> connectionsIterator(activeWindowConnections);
-        while (connectionsIterator.hasNext()) {
-            QMetaObject::Connection connection = (connectionsIterator.next());
+        for (QMetaObject::Connection connection : activeWindowConnections) {
             QObject::disconnect(connection);
         }
         activeWindowConnections.clear();
     }
     if (window) {
-        activeWindowConnections.append(QObject::connect(window->ActionOwner::actions["windowFullScreen"], &QAction::triggered, window, &Window::setFullscreen));
-        window->ActionOwner::actions["windowFullScreen"]->setChecked(window->isFullScreen());
+//        activeWindowConnections.append(QObject::connect(window->ActionOwner::actions["windowFullScreen"], &QAction::triggered, window, &Window::setFullscreen));
+//        window->ActionOwner::actions["windowFullScreen"]->setChecked(window->isFullScreen());
     }
     oldWindow = window;
 }
@@ -473,7 +470,6 @@ void Application::initializeGL()
 }
 
 const QHash<QString, Application::ActionDefinition> Application::actionDefinitions = {
-    {"applicationMenu", {"&Application", nullptr, false, false, -1, nullptr, nullptr, "application", nullptr}},
     {"applicationAbout", {"&About", "help-about", false, false, -1, nullptr, "About application.", nullptr, nullptr}},
     {"applicationAboutQt", {"About &Qt", nullptr, false, false, -1, nullptr, "About Qt.", nullptr, nullptr}},
     {"applicationLicense", {"&License", nullptr, false, false, -1, nullptr, "Application license.", nullptr, nullptr}},
@@ -488,7 +484,6 @@ const QHash<QString, Application::ActionDefinition> Application::actionDefinitio
     {"sessionSaveAs", {"Save &As", "document-save-as", false, false, -1, nullptr, "Save current session as new filename.", nullptr, nullptr}},
     {"sessionClose", {"&Close", "document-close", false, false, -1, nullptr, "Close current session.", nullptr, nullptr}},
 
-    {"layoutMenu", {"&Layout", nullptr, false, false, -1, nullptr, nullptr, "layout", nullptr}},
     {"layoutMenuBar", {"&Menu Bar", nullptr, true, true, -1, "Ctrl+M", "Toggle menu bar visibility.", nullptr, nullptr}},
     {"layoutStatusBar", {"&Status Bar", nullptr, true, true, -1, "Ctrl+B", "Toggle status bar visibility.", nullptr, nullptr}},
 
@@ -502,21 +497,16 @@ const QHash<QString, Application::ActionDefinition> Application::actionDefinitio
     {"documentClose", {"&Close", "document-close", false, false, -1, "Ctrl+Shift+W", "Close current document.", nullptr, nullptr}},
     {"documentCloseAll", {"Close &All", nullptr, false, false, -1, nullptr, "Close all documents.", nullptr, nullptr}},
 
-    {"windowMenu", {"&Window", nullptr, false, false, -1, nullptr, nullptr, "window", nullptr}},
     {"windowNew", {"&New Window", "window-new", false, false, -1, nullptr, "Open new window.", nullptr, nullptr}},
     {"windowClone", {"&Clone Window", nullptr, false, false, -1, nullptr, "Clone current window.", nullptr, nullptr}},
     {"windowClose", {"&Close Window", "window-close", false, false, -1, nullptr, "Close current window.", nullptr, nullptr}},
-    {"windowFullScreen", {"&Full Screen", "view-fullscreen", true, false, QKeySequence::FullScreen, nullptr, "Toggle window full screen.", nullptr, nullptr}},
     {"windowNext", {"&Next Window", nullptr, false, false, -1, nullptr, "Switch to next window.", nullptr, nullptr}},
     {"windowPrevious", {"&Previous Window", nullptr, false, false, -1, nullptr, "Switch to previous window.", nullptr, nullptr}},
 };
 
 const QHash<QString, Application::MenuDefinition> Application::menuDefinitions = {
-    {"application", {"&Application", {"applicationAbout", "applicationAboutQt", "applicationLicense", nullptr, "applicationSettings", nullptr, "sessionMenu", "layoutMenu", nullptr, "applicationExit"}}},
     {"session", {"&Session", {"sessionNew", "sessionOpen", "sessionRecentMenu", nullptr, "sessionSave", "sessionSaveAs", nullptr, "sessionClose"}}},
     {"sessionRecent", {"&Recent", {}}},
-    {"layout", {"&Layout", {"layoutMenuBar", "layoutStatusBar", nullptr, "windowMenu"}}},
-    {"window", {"&Window", {"windowNew", "windowClone", nullptr, "windowClose", nullptr, "windowFullScreen", nullptr, "windowNext", "windowPrevious"}}},
     {"document", {"&Document", {"documentNew", "documentOpen", "documentRecentMenu", nullptr, "documentSave", "documentSaveAs", "documentSaveAll", nullptr, "documentClose", "documentCloseAll"}}},
     {"documentRecent", {"&Recent", {}}},
 };

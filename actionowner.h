@@ -26,10 +26,11 @@ public:
         QString text;
         QList<QString> actionNames;
 
-        QMenu *toMenu(QHash<QString, QAction *> &actions, QMenu *menu = nullptr) const;
+        QMenu *toMenu(QHash<QString, QAction *> &allActions) const;
     };
 
-    QHash<QString, QAction *> actions;
+    QHash<QString, QAction *> ownActions;
+    QHash<QString, QAction *> allActions;
     QHash<QString, QActionGroup *> actionGroups;
     QHash<QString, QMenu *> menus;
 

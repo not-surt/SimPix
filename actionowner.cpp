@@ -22,13 +22,12 @@ QAction *ActionOwner::ActionDefinition::toAction() const {
 }
 
 
-QMenu *ActionOwner::MenuDefinition::toMenu(QHash<QString, QAction *> &actions, QMenu *menu) const {
-    if (!menu) {
-        menu = new QMenu(text);
-    }
-    for (int j = 0; j < actionNames.size(); j++) {
-        if (!actionNames[j].isEmpty()) {
-            menu->addAction(actions[actionNames[j]]);
+QMenu *ActionOwner::MenuDefinition::toMenu(QHash<QString, QAction *> &actions) const {
+    QMenu *menu = new QMenu(text);
+
+    for (const QString name : actionNames) {
+        if (!name.isEmpty()) {
+            menu->addAction(actions[name]);
         }
         else {
             menu->addSeparator();
@@ -40,12 +39,12 @@ QMenu *ActionOwner::MenuDefinition::toMenu(QHash<QString, QAction *> &actions, Q
 
 
 ActionOwner::ActionOwner(const ActionOwner &other)
-    : actions(other.actions), actionGroups(other.actionGroups), menus(other.menus) {
+    : ownActions(), allActions(other.allActions), actionGroups(other.actionGroups), menus(other.menus) {
 }
 
 
 ActionOwner::ActionOwner(const QHash<QString, ActionOwner::ActionDefinition> &actionDefinitions, const QHash<QString, ActionOwner::MenuDefinition> &menuDefinitions)
-    : actions(), actionGroups(), menus() {
+    : ownActions(), allActions(), actionGroups(), menus() {
     init(actionDefinitions, menuDefinitions);
 }
 
@@ -59,7 +58,10 @@ ActionOwner::ActionOwner(const QHash<QString, ActionOwner::ActionDefinition> &ac
 void ActionOwner::init(const QHash<QString, ActionOwner::ActionDefinition> &actionDefinitions, const QHash<QString, ActionOwner::MenuDefinition> &menuDefinitions) {
     // Create actions
     for (const QString key : actionDefinitions.keys()) {
-        actions[key] = actionDefinitions[key].toAction();
+        ownActions[key] = actionDefinitions[key].toAction();
+    }
+    for (const QString key : ownActions.keys()) {
+        allActions[key] = ownActions[key];
     }
     // Set action groups
     for (const QString key : actionDefinitions.keys()) {
@@ -68,18 +70,18 @@ void ActionOwner::init(const QHash<QString, ActionOwner::ActionDefinition> &acti
             if (!actionGroups[definition.groupName]) {
                 actionGroups[definition.groupName] = new QActionGroup(nullptr);
             }
-            actions[key]->setActionGroup(actionGroups[definition.groupName]);
+            allActions[key]->setActionGroup(actionGroups[definition.groupName]);
         }
     }
     // Create menus
     for (const QString key : menuDefinitions.keys()) {
-        menus[key] = menuDefinitions[key].toMenu(actions, menus[key]);
+        menus[key] = menuDefinitions[key].toMenu(allActions);
     }
     // Set menu actions
     for (const QString key : actionDefinitions.keys()) {
         const ActionDefinition &definition = actionDefinitions[key];
         if (!definition.menuName.isEmpty()) {
-            actions[key]->setMenu(menus[definition.menuName]);
+            allActions[key]->setMenu(menus[definition.menuName]);
         }
     }
 }
