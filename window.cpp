@@ -69,12 +69,14 @@ QSize MdiArea::subWindowSizeOverhead() const
 Window::Window(QWidget *parent) :
     QMainWindow(parent), ActionOwner(actionDefinitions, menuDefinitions, *APP), mdi(nullptr), statusMouseWidget(nullptr), oldSubWindow(nullptr)
 {    
+    setWindowTitle(APP->applicationName());
+    setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
+
     mdi = new MdiArea;
     mdi->setTabsClosable(true);
     mdi->setTabsMovable(true);
     mdi->setActivationOrder(QMdiArea::CreationOrder);
     setCentralWidget(mdi);
-    setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
 
     addActions(allActions.values());////////////////////
 
@@ -137,6 +139,7 @@ Window::Window(QWidget *parent) :
         dock->setObjectName("dockSession");
         dock->setWindowTitle("Session");
         sessionWidget = new SessionWidget();
+        sessionWidget->setSession(&APP->session);
         dock->setWidget(sessionWidget);
         addDockWidget(Qt::RightDockWidgetArea, dock);
 
@@ -181,10 +184,19 @@ Window::Window(QWidget *parent) :
         toolBar->addAction(allActions["layerAntialias"]);
         addToolBar(Qt::TopToolBarArea, toolBar);
 
-//        toolBar = new QToolBar();
-//        toolBar->setObjectName("toolBarEditingContext");
-//        toolBar->setWindowTitle("Editing Context");
-//        ModeActionGroup<EditingContext::BrushStyle> *brushStyleGroup = new ModeActionGroup<EditingContext::BrushStyle>(this);
+        toolBar = new QToolBar();
+        toolBar->setObjectName("toolBarEditingContext");
+        toolBar->setWindowTitle("Editing Context");
+        ModeActionGroup<EditingContext::BrushStyle> *brushStyleGroup = new ModeActionGroup<EditingContext::BrushStyle>(this);
+        brushStyleGroup->addAction(allActions["brushModePixel"], EditingContext::BrushStyle::Pixel);
+        brushStyleGroup->addAction(allActions["brushModeRectangle"], EditingContext::BrushStyle::Rectangle);
+        brushStyleGroup->addAction(allActions["brushModeEllipse"], EditingContext::BrushStyle::Ellipse);
+        brushStyleGroup->setMode(EditingContext::BrushStyle::Pixel);
+        ModeToolButtonAction<EditingContext::BrushStyle> *actionBrushStyle = new ModeToolButtonAction<EditingContext::BrushStyle>(*brushStyleGroup);
+        actionBrushStyle->setMenu(menus["brushMode"]);
+        toolBar->addAction(actionBrushStyle);
+        QObject::connect(brushStyleGroup, &QActionGroup::triggered, [brushStyleGroup](QAction *const action) { EditingContext::BrushStyle brushStyle = brushStyleGroup->mode(action); qDebug() << int(brushStyle); });
+        addToolBar(Qt::TopToolBarArea, toolBar);
 //        brushStyleGroup->addAction(ui->actionBrushStylePixel, EditingContext::BrushStyle::Pixel);
 //        brushStyleGroup->addAction(ui->actionBrushStyleRectangle, EditingContext::BrushStyle::Rectangle);
 //        brushStyleGroup->addAction(ui->actionBrushStyleEllipse, EditingContext::BrushStyle::Ellipse);

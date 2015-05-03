@@ -6,9 +6,6 @@ SessionWidget::SessionWidget(QWidget *parent) :
 {
     ui->setupUi(this);
     setCentralWidget(&treeView);
-    TreeModel &treeModel = *new TreeModel();
-    treeModel.setHeadings({"Type", "Name", "File Name", "Editors"});
-    treeView.setModel(&treeModel);
 }
 
 SessionWidget::~SessionWidget()
@@ -18,5 +15,5 @@ SessionWidget::~SessionWidget()
 
 void SessionWidget::setSession(Session *const session)
 {
-    static_cast<TreeModel *>(treeView.model())->setRoot(session);
+    treeView.setModel(session);
 }

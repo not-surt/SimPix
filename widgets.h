@@ -86,13 +86,13 @@ public:
         setCheckable(false);
         setChecked(false);
     }
-    void setMenu(QMenu *const _menu) {
-        if (menu()) {
-            QObject::disconnect(menu(), &QMenu::triggered, this, &ModeMenuToolButton::setCurrentAction);
+    void setMenu(QMenu *const menu) {
+        if (this->menu()) {
+            QObject::disconnect(this->menu(), &QMenu::triggered, this, &ModeMenuToolButton::setCurrentAction);
         }
-        QToolButton::setMenu(_menu);
-        if (_menu) {
-            QObject::connect(_menu, &QMenu::triggered, this, &ModeMenuToolButton::setCurrentAction);
+        QToolButton::setMenu(menu);
+        if (menu) {
+            QObject::connect(menu, &QMenu::triggered, this, &ModeMenuToolButton::setCurrentAction);
         }
     }
 
@@ -113,19 +113,21 @@ protected:
 
     virtual QWidget *createWidget(QWidget *parent) {
         ModeMenuToolButton<Enum> *button = new ModeMenuToolButton<Enum>(m_group, parent);
-        button->setMenu(menu());
-        QList<QAction *> actions = menu()->actions();
-        QAction *action = nullptr;
-        if (actions.length() > 0) {
-            QActionGroup *group = actions[0]->actionGroup();
-            if (group) {
-                action = group->checkedAction();
+        if (menu()) {
+            button->setMenu(menu());
+            QList<QAction *> actions = menu()->actions();
+            QAction *action = nullptr;
+            if (actions.length() > 0) {
+                QActionGroup *group = actions[0]->actionGroup();
+                if (group) {
+                    action = group->checkedAction();
+                }
+                else {
+                    action = actions[0];
+                }
             }
-            else {
-                action = actions[0];
-            }
+            button->setCurrentAction(action);
         }
-        button->setCurrentAction(action);
         return button;
     }
 };

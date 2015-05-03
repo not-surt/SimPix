@@ -2,57 +2,33 @@
 #define SESSION_H
 
 #include <QList>
+#include <QAbstractItemModel>
 #include "treemodel.h"
 
-class SessionItem : public TreeModelItem
+class SessionItem : public TreeModel::Item
 {
 public:
-    explicit SessionItem(const QString &name = QString())
-        : m_name(name) {}
-    virtual ~SessionItem() {}
-    virtual QString typeName() const = 0;
-    QString name() const {
-        return m_name;
-    }
-    QVariant data(int column) const{
-        if (column == 0) {
-            return typeName();
-        }
-        else if (column == 1) {
-            return name();
-        }
-        else {
-            return QVariant();
-        }
-    }
+    QString name;
 
-protected:
-    QString m_name;
+    explicit SessionItem(const QString &name = QString());
+    virtual ~SessionItem();
+    virtual QString typeName() const = 0;
+    QVariant data(int column) const;
 };
 
 class Document;
 
-class Session : public SessionItem
+class Session : public SessionItem, public TreeModel
 {
 public:
-    QList<QWidget *> windows;
     QList<Document *> documents;
 
-    explicit Session(const QString &name = QString())
-        : SessionItem(name), windows(), documents() {}
-    QString typeName() const {
-        return "Session";
-    }
-    TreeModelItem *child(int row) override;
-    int childCount() const override {
-        return documents.count();
-    }
-    TreeModelItem *parent() {
-        return nullptr;
-    }
-    int row() {
-        return 0;
-    }
+    explicit Session(const QString &name = QString());
+    QString typeName() const;
+    TreeModel::Item *child(int row) override;
+    int childCount() const override;
+    TreeModel::Item *parent();
+    int row();
 };
 
 #endif // SESSION_H

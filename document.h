@@ -62,11 +62,11 @@ public:
     QString typeName() const {
         return "Document";
     }
-    TreeModelItem *child(int row) override;
+    TreeModel::Item *child(int row) override;
     int childCount() const override {
         return editors.count();
     }
-    TreeModelItem *parent() {
+    TreeModel::Item *parent() {
         return &session;
     }
     int row() {

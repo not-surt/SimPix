@@ -6,27 +6,27 @@
 #include <QVariant>
 #include <QDebug>
 
-class TreeModelItem
-{
-public:
-    explicit TreeModelItem() {}
-    virtual ~TreeModelItem() {}
-
-    virtual TreeModelItem *child(int row) = 0;
-    virtual int childCount() const = 0;
-    virtual TreeModelItem *parent() = 0;
-    virtual int row() = 0;
-    virtual QVariant data(int column) const = 0;
-};
-
 class TreeModel : public QAbstractItemModel
 {
     Q_OBJECT
 
 public:
+    class Item
+    {
+    public:
+        explicit Item() {}
+        virtual ~Item() {}
+
+        virtual Item *child(int row) = 0;
+        virtual int childCount() const = 0;
+        virtual Item *parent() = 0;
+        virtual int row() = 0;
+        virtual QVariant data(int column) const = 0;
+    };
+
     explicit TreeModel(QObject *parent = 0);
     ~TreeModel();
-    void setRoot(TreeModelItem *const root) { this->root = root; emit layoutChanged(); }
+    void setRoot(Item *const root) { this->root = root; emit layoutChanged(); }
     void setHeadings(const QStringList headings) { this->headings = headings; }
 
     QVariant data(const QModelIndex &index, int role) const override;
@@ -38,7 +38,7 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
 
 private:
-    TreeModelItem *root;
+    Item *root;
     QStringList headings;
 };
 

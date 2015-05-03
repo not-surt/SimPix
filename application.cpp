@@ -26,7 +26,7 @@ const QString Application::fileDialogFilterString = tr(
             "JPEG Image Files (*.jpeg *.jpg);;");
 
 Application::Application(int &argc, char **argv) :
-    QApplication(argc, argv), ActionOwner(actionDefinitions, menuDefinitions), shaders(), programs(), session(),
+    QApplication(argc, argv), ActionOwner(actionDefinitions, menuDefinitions), shaders(), programs(), session(), oldWindow(nullptr),
     shareWidget((({
         QSurfaceFormat format;
         format.setVersion(3, 3);
@@ -98,10 +98,6 @@ Application::~Application()
         glDeleteBuffers((GLsizei)1, &brushVertexBuffer);
     }
 
-    QListIterator<QWidget *> window(session.windows);
-    while (window.hasNext()) {
-        window.next()->deleteLater();
-    }
     shareWidget.deleteLater();
 
     qDeleteAll(allActions);
@@ -205,7 +201,6 @@ bool Application::sessionClose()
 bool Application::windowNew()
 {
     Window *window = new Window;
-    session.windows.append(window);
     window->show();
 }
 
@@ -227,9 +222,7 @@ void Application::documentNew()
         NewDialog *dialog = new NewDialog(window);
         if (dialog->exec()) {
             ImageDocument *image = new ImageDocument(APP->session, dialog->imageSize(), dialog->format());
-    //        APP->session.documents.append(image);
             ImageEditor *editor = static_cast<ImageEditor *>(image->createEditor());
-//            static_cast<SessionWidget *>(ui->dockWidgetSession->widget())->setSession(&APP->session);
             window->newEditorSubWindow(editor);
         }
         dialog->deleteLater();
@@ -262,9 +255,7 @@ void Application::documentOpen()
                 failed.append(QFileInfo(fileName).fileName());
             }
             else {
-    //            APP->session.documents.append(image);
                 ImageEditor *editor = static_cast<ImageEditor *>(image->createEditor());
-//                static_cast<SessionWidget *>(ui->dockWidgetSession->widget())->setSession(&APP->session);
                 window->newEditorSubWindow(editor);
             }
         }

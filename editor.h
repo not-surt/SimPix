@@ -16,13 +16,13 @@ public:
     QString typeName() const {
         return "Editor";
     }
-    TreeModelItem *child(int row) override {
+    TreeModel::Item *child(int row) override {
         return nullptr;
     }
     int childCount() const override {
         return 0;
     }
-    TreeModelItem *parent();
+    TreeModel::Item *parent();
     int row();
 };
 

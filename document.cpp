@@ -14,11 +14,13 @@ Document::Document(Session &session, const QString &fileName) :
     QObject(), fileInfo(fileName), editors(), session(session)
 {
    session.documents.append(this);
+   emit session.layoutChanged();
 }
 
 Document::~Document()
 {
     session.documents.removeOne(this);
+    emit session.layoutChanged();
 }
 
 bool Document::save(QString fileName)
@@ -37,7 +39,7 @@ bool Document::save(QString fileName)
     return saved;
 }
 
-TreeModelItem *Document::child(int row) {
+TreeModel::Item *Document::child(int row) {
     return editors.value(row);
 }
 

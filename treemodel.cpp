@@ -4,13 +4,12 @@
 #include <QDebug>
 
 TreeModel::TreeModel(QObject *parent)
-    : QAbstractItemModel(parent), root(nullptr)
+    : QAbstractItemModel(parent), root(nullptr), headings()
 {
 }
 
 TreeModel::~TreeModel()
 {
-    delete root;
 }
 
 int TreeModel::columnCount(const QModelIndex &parent) const
@@ -26,7 +25,7 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
     if (role != Qt::DisplayRole)
         return QVariant();
 
-    TreeModelItem *item = static_cast<TreeModelItem*>(index.internalPointer());
+    Item *item = static_cast<Item*>(index.internalPointer());
 
     return item->data(index.column());
 }
@@ -55,14 +54,14 @@ QModelIndex TreeModel::index(int row, int column, const QModelIndex &parentIndex
     if (!hasIndex(row, column, parentIndex))
         return QModelIndex();
 
-    TreeModelItem *parent;
+    Item *parent;
 
     if (!parentIndex.isValid())
         parent = root;
     else
-        parent = static_cast<TreeModelItem*>(parentIndex.internalPointer());
+        parent = static_cast<Item*>(parentIndex.internalPointer());
 
-    TreeModelItem *child = parent->child(row);
+    Item *child = parent->child(row);
     if (child)
         return createIndex(row, column, child);
     else
@@ -77,8 +76,8 @@ QModelIndex TreeModel::parent(const QModelIndex &index) const
     if (!index.isValid())
         return QModelIndex();
 
-    TreeModelItem *child = static_cast<TreeModelItem *>(index.internalPointer());
-    TreeModelItem *parent = child->parent();
+    Item *child = static_cast<Item *>(index.internalPointer());
+    Item *parent = child->parent();
 
     if (parent == root)
         return QModelIndex();
@@ -88,7 +87,7 @@ QModelIndex TreeModel::parent(const QModelIndex &index) const
 
 int TreeModel::rowCount(const QModelIndex &parent) const
 {
-    TreeModelItem *parentItem;
+    Item *parentItem;
 
     if (!root)
         return 0;
@@ -99,7 +98,7 @@ int TreeModel::rowCount(const QModelIndex &parent) const
     if (!parent.isValid())
         parentItem = root;
     else
-        parentItem = static_cast<TreeModelItem*>(parent.internalPointer());
+        parentItem = static_cast<Item*>(parent.internalPointer());
 
     return parentItem->childCount();
 }
